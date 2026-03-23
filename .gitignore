@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+logs/
+data/blocklist.json
+data/watchlist.json
+SpamShield_Backups/
+*.tar.gz
+*.log

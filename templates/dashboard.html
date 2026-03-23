@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ t["app_title"] }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #0f1115; color: #eee; margin: 0; padding: 20px; }
+        h1, h2, h3 { margin: 0 0 12px 0; color: #fff; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+        .brand { font-size: 26px; font-weight: bold; }
+        .subtitle { color: #aaa; margin-top: 6px; font-size: 14px; }
+        .userbox { background: #171a21; border: 1px solid #2b2f3a; border-radius: 12px; padding: 12px 14px; text-align: right; }
+        .logout-btn, .pass-btn, .add-user-btn, .users-btn, .settings-btn, .lang-btn {
+            color: white; text-decoration: none; padding: 10px 14px; border-radius: 8px;
+            display: inline-block; margin-top: 8px; font-weight: bold;
+        }
+        .logout-btn { background: #b91c1c; }
+        .pass-btn { background: #2563eb; margin-right: 6px; }
+        .add-user-btn { background: #0f9d58; margin-right: 6px; }
+        .users-btn { background: #6d28d9; margin-right: 6px; }
+        .settings-btn { background: #475569; margin-right: 6px; }
+        .lang-btn { background: #374151; margin-right: 6px; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+        .stat-card { background: #171a21; border: 1px solid #2b2f3a; border-radius: 14px; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .stat-title { color: #aaa; font-size: 13px; margin-bottom: 8px; }
+        .stat-value { font-size: 26px; font-weight: bold; color: #fff; }
+        .filters { background: #171a21; border: 1px solid #2b2f3a; border-radius: 14px; padding: 14px; margin-bottom: 20px; }
+        .filters form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        select, input, button { padding: 10px 12px; border-radius: 8px; border: 1px solid #333845; background: #0f1115; color: #eee; }
+        button { cursor: pointer; background: #1f6feb; border: none; color: white; font-weight: bold; }
+        .secondary-link { color: #9ecbff; text-decoration: none; padding: 8px 4px; }
+        .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .panel { background: #171a21; border: 1px solid #2b2f3a; border-radius: 14px; padding: 16px; }
+        .log-card { border-radius: 12px; padding: 14px; margin-bottom: 12px; border: 1px solid #333; }
+        .spam { background: #351516; border-color: #7f1d1d; }
+        .supheli { background: #3a2c12; border-color: #a16207; }
+        .temiz { background: #10281a; border-color: #166534; }
+        .beyaz { background: #10263f; border-color: #1d4ed8; }
+        .meta { font-size: 14px; color: #d1d5db; margin-bottom: 8px; }
+        .msg { color: #f3f4f6; white-space: pre-wrap; word-wrap: break-word; line-height: 1.45; }
+        .badge { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: bold; margin-right: 8px; }
+        .badge-spam { background: #dc2626; color: white; }
+        .badge-supheli { background: #f59e0b; color: black; }
+        .badge-temiz { background: #16a34a; color: white; }
+        .badge-beyaz { background: #2563eb; color: white; }
+        .side-section { margin-bottom: 20px; }
+        .side-item { padding: 12px 0; border-bottom: 1px solid #2c3240; }
+        .side-item:last-child { border-bottom: none; }
+        .side-title { font-weight: bold; color: #fff; }
+        .small { color: #aab1bf; font-size: 13px; margin-top: 6px; line-height: 1.5; }
+        .danger-btn { background: #b91c1c; color: white; margin-top: 8px; }
+        .warn-btn { background: #d97706; color: white; margin-top: 8px; }
+        .safe-btn { background: #2563eb; color: white; margin-top: 8px; }
+        .side-item form { display: inline-block; margin-right: 6px; }
+        .chart-panel { margin-bottom: 20px; }
+        @media (max-width: 900px) { .stats { grid-template-columns: repeat(2, 1fr); } .layout { grid-template-columns: 1fr; } }
+        @media (max-width: 600px) { .stats { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    {% set ns = namespace(total=0, spam=0, supheli=0, beyaz=0) %}
+    {% for log in logs %}
+        {% set ns.total = ns.total + 1 %}
+        {% if log.status == 'SPAM' %}
+            {% set ns.spam = ns.spam + 1 %}
+        {% elif log.status == 'ŞÜPHELİ' %}
+            {% set ns.supheli = ns.supheli + 1 %}
+        {% endif %}
+        {% if log.category == 'BEYAZ_LISTE' %}
+            {% set ns.beyaz = ns.beyaz + 1 %}
+        {% endif %}
+    {% endfor %}
+
+    <div class="topbar">
+        <div>
+            <div class="brand">🛡️ {{ t["app_title"] }}</div>
+            <div class="subtitle">{{ t["app_subtitle"] }}</div>
+        </div>
+        <div class="userbox">
+            <div><strong>{{ t["user"] }}:</strong> {{ username }}</div>
+            <div class="small">{{ t["role"] }}: {{ role }}</div>
+
+            <a class="lang-btn" href="/set-language/tr">{{ t["turkish"] }}</a>
+            <a class="lang-btn" href="/set-language/en">{{ t["english"] }}</a>
+
+            {% if role == "admin" %}
+                <a class="add-user-btn" href="/add-user">{{ t["add_user"] }}</a>
+                <a class="users-btn" href="/users">{{ t["users"] }}</a>
+                <a class="settings-btn" href="/settings">{{ t["settings"] }}</a>
+            {% endif %}
+            <a class="pass-btn" href="/change-password">{{ t["change_password"] }}</a>
+            <a class="logout-btn" href="/logout">{{ t["logout"] }}</a>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card"><div class="stat-title">{{ t["total_messages"] }}</div><div class="stat-value">{{ ns.total }}</div></div>
+        <div class="stat-card"><div class="stat-title">{{ t["spam"] }}</div><div class="stat-value">{{ ns.spam }}</div></div>
+        <div class="stat-card"><div class="stat-title">{{ t["suspicious"] }}</div><div class="stat-value">{{ ns.supheli }}</div></div>
+        <div class="stat-card"><div class="stat-title">{{ t["whitelist"] }}</div><div class="stat-value">{{ ns.beyaz }}</div></div>
+        <div class="stat-card"><div class="stat-title">{{ t["watchlist"] }}</div><div class="stat-value">{{ summary.watchlist_count }}</div></div>
+        <div class="stat-card"><div class="stat-title">{{ t["blocklist"] }}</div><div class="stat-value">{{ summary.blocklist_count }}</div></div>
+        <div class="stat-card"><div class="stat-title">{{ t["last_blocked"] }}</div><div class="stat-value" style="font-size:18px;">{{ summary.last_blocked or '-' }}</div></div>
+    </div>
+
+    <div class="panel chart-panel">
+        <h3>📊 {{ t["message_distribution"] }}</h3>
+        <canvas id="statsChart" height="90"></canvas>
+    </div>
+
+    <div class="filters">
+        <form method="GET" action="/">
+            <select name="status">
+                <option value="">{{ t["all_statuses"] }}</option>
+                <option value="SPAM" {% if status_filter == "SPAM" %}selected{% endif %}>{{ t["spam"] }}</option>
+                <option value="ŞÜPHELİ" {% if status_filter == "ŞÜPHELİ" %}selected{% endif %}>{{ t["suspicious"] }}</option>
+                <option value="TEMİZ" {% if status_filter == "TEMİZ" %}selected{% endif %}>{{ t["clean"] }}</option>
+            </select>
+
+            <input type="text" name="category" placeholder="{{ t['category'] }}" value="{{ category_filter }}">
+            <input type="text" name="sender" placeholder="{{ t['sender'] }}" value="{{ sender_filter }}">
+
+            <button type="submit">{{ t["filter"] }}</button>
+            <a class="secondary-link" href="/">{{ t["reset"] }}</a>
+        </form>
+    </div>
+
+    <div class="layout">
+        <div class="panel">
+            <h3>📨 {{ t["recent_messages"] }}</h3>
+            {% for log in logs %}
+                {% set cls = 'temiz' %}
+                {% set badge = 'badge-temiz' %}
+                {% if log.category == 'BEYAZ_LISTE' %}
+                    {% set cls = 'beyaz' %}
+                    {% set badge = 'badge-beyaz' %}
+                {% elif log.status == 'SPAM' %}
+                    {% set cls = 'spam' %}
+                    {% set badge = 'badge-spam' %}
+                {% elif log.status == 'ŞÜPHELİ' %}
+                    {% set cls = 'supheli' %}
+                    {% set badge = 'badge-supheli' %}
+                {% endif %}
+
+                <div class="log-card {{ cls }}">
+                    <div class="meta">
+                        <span class="badge {{ badge }}">{{ log.status or t["unknown"] }}</span>
+                        <strong>{{ t["sender"] }}:</strong> {{ log.sender or t["unknown"] }}
+                        &nbsp; | &nbsp;
+                        <strong>{{ t["score"] }}:</strong> {{ log.score or '0' }}
+                        &nbsp; | &nbsp;
+                        <strong>{{ t["category"] }}:</strong> {{ log.category or 'GENEL' }}
+                    </div>
+                    <div class="msg">{{ log.message }}</div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div>
+            <div class="panel side-section">
+                <h3>👀 {{ t["watchlist"] }}</h3>
+                {% if watchlist %}
+                    {% for sender, info in watchlist.items() %}
+                        <div class="side-item">
+                            <div class="side-title">{{ sender }}</div>
+                            <div class="small">
+                                {{ t["category"] }}: {{ info.category }}<br>
+                                {{ t["score"] }}: {{ info.score }}<br>
+                                {{ t["repeat"] }}: {{ info.count }}
+                            </div>
+                            {% if role == "admin" %}
+                                <form method="POST" action="/watch-block/{{ sender }}">
+                                    <button type="submit" class="warn-btn">{{ t["manual_block"] }}</button>
+                                </form>
+                                <form method="POST" action="/watch-remove/{{ sender }}">
+                                    <button type="submit" class="safe-btn">{{ t["remove_watch"] }}</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="side-item">{{ t["no_watchlist"] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="panel side-section">
+                <h3>⛔ {{ t["blocklist"] }}</h3>
+                {% if blocklist %}
+                    {% for sender, info in blocklist.items() %}
+                        <div class="side-item">
+                            <div class="side-title">{{ sender }}</div>
+                            <div class="small">
+                                {{ t["category"] }}: {{ info.category }}<br>
+                                {{ t["score"] }}: {{ info.score }}<br>
+                                {{ t["blocked"] }}: {{ info.blocked }}
+                            </div>
+                            {% if role == "admin" %}
+                                <form method="POST" action="/unblock/{{ sender }}">
+                                    <button type="submit" class="danger-btn">{{ t["unblock"] }}</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="side-item">{{ t["no_blocklist"] }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const spam = {{ ns.spam }};
+        const supheli = {{ ns.supheli }};
+        const temiz = {{ ns.total - ns.spam - ns.supheli }};
+
+        const ctx = document.getElementById('statsChart').getContext('2d');
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['{{ t["spam"] }}', '{{ t["suspicious"] }}', '{{ t["clean"] }}'],
+                datasets: [{
+                    data: [spam, supheli, temiz],
+                    backgroundColor: ['#dc2626', '#f59e0b', '#16a34a']
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#eee'
+                        }
+                    }
+                }
+            }
+        });
+
+        setTimeout(() => {
+            window.location.reload();
+        }, 60000);
+    </script>
+</body>
+</html>

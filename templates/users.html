@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Kullanıcılar - SpamShield</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f1115;
+            color: #eee;
+            margin: 0;
+            padding: 20px;
+        }
+        .box {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #171a21;
+            border: 1px solid #2b2f3a;
+            border-radius: 16px;
+            padding: 24px;
+        }
+        h2 { margin-top: 0; }
+        .small { color: #aab1bf; font-size: 13px; margin-bottom: 16px; }
+        .user-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid #2c3240;
+        }
+        .user-row:last-child {
+            border-bottom: none;
+        }
+        .name {
+            font-weight: bold;
+            color: #fff;
+        }
+        .role {
+            color: #9ecbff;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        .danger-btn, .back-btn {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .danger-btn {
+            background: #b91c1c;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 18px;
+            background: #2563eb;
+        }
+        .disabled {
+            color: #888;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>👥 Kullanıcılar</h2>
+        <div class="small">Admin: <strong>{{ username }}</strong></div>
+
+        {% for uname, info in users.items() %}
+            <div class="user-row">
+                <div>
+                    <div class="name">{{ uname }}</div>
+                    <div class="role">Rol: {{ info.role }}</div>
+                </div>
+                <div>
+                    {% if uname == username %}
+                        <div class="disabled">Aktif kullanıcı silinemez</div>
+                    {% else %}
+                        <form method="POST" action="/delete-user/{{ uname }}">
+                            <button type="submit" class="danger-btn">Sil</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+
+        <a class="back-btn" href="/">Panele Dön</a>
+    </div>
+</body>
+</html>
