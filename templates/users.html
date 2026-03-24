@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Kullanıcılar - SpamShield</title>
+    <title>Kullanıcılar</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,7 +12,7 @@
             padding: 20px;
         }
         .box {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: #171a21;
             border: 1px solid #2b2f3a;
@@ -20,7 +20,6 @@
             padding: 24px;
         }
         h2 { margin-top: 0; }
-        .small { color: #aab1bf; font-size: 13px; margin-bottom: 16px; }
         .user-row {
             display: flex;
             justify-content: space-between;
@@ -36,12 +35,13 @@
             font-weight: bold;
             color: #fff;
         }
-        .role {
-            color: #9ecbff;
+        .meta {
+            color: #aab1bf;
             font-size: 13px;
             margin-top: 4px;
+            line-height: 1.5;
         }
-        .danger-btn, .back-btn {
+        .danger-btn, .back-btn, .toggle-btn {
             padding: 10px 14px;
             border-radius: 8px;
             border: none;
@@ -49,36 +49,48 @@
             text-decoration: none;
             font-weight: bold;
             cursor: pointer;
+            margin-left: 6px;
         }
-        .danger-btn {
-            background: #b91c1c;
-        }
+        .danger-btn { background: #b91c1c; }
         .back-btn {
             display: inline-block;
             margin-top: 18px;
             background: #2563eb;
         }
+        .toggle-btn { background: #d97706; }
         .disabled {
             color: #888;
             font-size: 13px;
+        }
+        form {
+            display: inline-block;
         }
     </style>
 </head>
 <body>
     <div class="box">
         <h2>👥 Kullanıcılar</h2>
-        <div class="small">Admin: <strong>{{ username }}</strong></div>
 
         {% for uname, info in users.items() %}
             <div class="user-row">
                 <div>
                     <div class="name">{{ uname }}</div>
-                    <div class="role">Rol: {{ info.role }}</div>
+                    <div class="meta">
+                        Rol: {{ info.role }}<br>
+                        Aktif: {{ info.active }}<br>
+                        Lisans: {{ info.license_key }}<br>
+                        Bitiş: {{ info.expires_at }}
+                    </div>
                 </div>
                 <div>
-                    {% if uname == username %}
-                        <div class="disabled">Aktif kullanıcı silinemez</div>
+                    {% if uname == "admin" %}
+                        <div class="disabled">Admin kilitli</div>
                     {% else %}
+                        <form method="POST" action="/toggle-user/{{ uname }}">
+                            <button type="submit" class="toggle-btn">
+                                {% if info.active %}Pasif Yap{% else %}Aktif Yap{% endif %}
+                            </button>
+                        </form>
                         <form method="POST" action="/delete-user/{{ uname }}">
                             <button type="submit" class="danger-btn">Sil</button>
                         </form>
