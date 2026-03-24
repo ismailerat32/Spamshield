@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Kullanıcı Ekle - SpamShield</title>
+    <title>Kullanıcı Ekle</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,11 +19,10 @@
             border: 1px solid #2b2f3a;
             border-radius: 16px;
             padding: 28px;
-            width: 380px;
+            width: 420px;
             box-shadow: 0 4px 18px rgba(0,0,0,0.35);
         }
         h2 { margin-top: 0; }
-        .small { color: #aab1bf; font-size: 13px; margin-bottom: 16px; }
         input, select, button, a {
             width: 100%;
             box-sizing: border-box;
@@ -60,12 +59,16 @@
             border-radius: 10px;
             margin-bottom: 12px;
         }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ddd;
+        }
     </style>
 </head>
 <body>
     <div class="box">
         <h2>👤 Kullanıcı Ekle</h2>
-        <div class="small">Giriş yapan admin: <strong>{{ username }}</strong></div>
 
         {% if error %}
             <div class="error">{{ error }}</div>
@@ -75,7 +78,7 @@
         {% endif %}
 
         <form method="POST" action="/add-user">
-            <input type="text" name="username" placeholder="Yeni kullanıcı adı" required>
+            <input type="text" name="username" placeholder="Kullanıcı adı" required>
             <input type="password" name="password" placeholder="Şifre" required>
             <input type="password" name="confirm_password" placeholder="Şifre tekrar" required>
 
@@ -83,6 +86,20 @@
                 <option value="user">user</option>
                 <option value="admin">admin</option>
             </select>
+
+            <select name="license_key">
+                <option value="">Lisans key seç</option>
+                {% for k in valid_keys %}
+                    <option value="{{ k }}">{{ k }}</option>
+                {% endfor %}
+            </select>
+
+            <input type="date" name="expires_at" required>
+
+            <label>
+                <input type="checkbox" name="active" checked style="width:auto; margin-right:8px;">
+                Kullanıcı aktif
+            </label>
 
             <button type="submit">Kullanıcıyı Oluştur</button>
         </form>
