@@ -14,10 +14,10 @@ LOG_DIR = os.path.join(BASE_DIR, "logs")
 SEEN_FILE = os.path.join(DATA_DIR, "seen_ids.json")
 LOG_FILE = os.path.join(LOG_DIR, "log.txt")
 
-SMS_LIMIT = 5
+SMS_LIMIT = 3
 SMS_TIMEOUT = 25
-NORMAL_SLEEP = 15
-ERROR_SLEEP = 60
+NORMAL_SLEEP = 25
+ERROR_SLEEP = 90
 MAX_SEEN_IDS = 1000
 
 os.makedirs(DATA_DIR, exist_ok=True)
