@@ -70,12 +70,8 @@
     <div class="box">
         <h2>👤 Kullanıcı Ekle</h2>
 
-        {% if error %}
-            <div class="error">{{ error }}</div>
-        {% endif %}
-        {% if success %}
-            <div class="success">{{ success }}</div>
-        {% endif %}
+        {% if error %}<div class="error">{{ error }}</div>{% endif %}
+        {% if success %}<div class="success">{{ success }}</div>{% endif %}
 
         <form method="POST" action="/add-user">
             <input type="text" name="username" placeholder="Kullanıcı adı" required>
@@ -88,13 +84,7 @@
                 <option value="admin">admin</option>
             </select>
 
-            <select name="license_key">
-                <option value="">Lisans key seç</option>
-                {% for k in valid_keys %}
-                    <option value="{{ k }}">{{ k }}</option>
-                {% endfor %}
-            </select>
-
+            <input type="text" value="Lisans otomatik üretilecek" disabled>
             <input type="date" name="expires_at" required>
 
             <label>
