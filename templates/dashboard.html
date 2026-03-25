@@ -12,103 +12,136 @@
             margin: 0;
             padding: 20px;
         }
-        h1, h2, h3 {
-            margin: 0 0 12px 0;
-            color: #fff;
-        }
+
+        h1, h2, h3 { margin: 0 0 12px 0; }
+
         .topbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            gap: 12px;
+            gap: 16px;
             flex-wrap: wrap;
+            margin-bottom: 22px;
         }
+
         .brand {
-            font-size: 26px;
-            font-weight: bold;
+            font-size: 28px;
+            font-weight: 900;
         }
+
         .subtitle {
-            color: #aaa;
+            color: #9aa4b2;
             margin-top: 6px;
             font-size: 14px;
         }
-        .userbox {
-            background: #171a21;
-            border: 1px solid #2b2f3a;
-            border-radius: 12px;
-            padding: 12px 14px;
-            text-align: right;
-        }
-        .logout-btn, .pass-btn, .add-user-btn, .users-btn, .settings-btn, .lang-btn {
-            color: white;
+
+        .actions a {
             text-decoration: none;
+            color: white;
             padding: 10px 14px;
-            border-radius: 8px;
+            border-radius: 10px;
+            margin-left: 8px;
             display: inline-block;
-            margin-top: 8px;
             font-weight: bold;
         }
-        .logout-btn { background: #b91c1c; }
-        .pass-btn { background: #2563eb; margin-right: 6px; }
-        .add-user-btn { background: #0f9d58; margin-right: 6px; }
-        .users-btn { background: #6d28d9; margin-right: 6px; }
-        .settings-btn { background: #475569; margin-right: 6px; }
-        .lang-btn { background: #374151; margin-right: 6px; }
+
+        .btn-blue { background: #2563eb; }
+        .btn-green { background: #16a34a; }
+        .btn-purple { background: #7c3aed; }
+        .btn-red { background: #b91c1c; }
+        .btn-gray { background: #475569; }
 
         .stats {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
-        .stat-card {
+
+        .card {
             background: #171a21;
             border: 1px solid #2b2f3a;
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 16px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 18px rgba(0,0,0,0.22);
         }
-        .stat-title {
-            color: #aaa;
+
+        .card-title {
+            color: #9aa4b2;
             font-size: 13px;
             margin-bottom: 8px;
         }
-        .stat-value {
-            font-size: 26px;
-            font-weight: bold;
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 900;
             color: #fff;
+        }
+
+        .card-sub {
+            margin-top: 6px;
+            color: #8f98a7;
+            font-size: 12px;
+        }
+
+        .chart-wrap {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .chart-box {
+            background: #171a21;
+            border: 1px solid #2b2f3a;
+            border-radius: 16px;
+            padding: 18px;
+        }
+
+        .mini-info {
+            display: grid;
+            gap: 12px;
+        }
+
+        .mini-row {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #2c3240;
+            border-radius: 12px;
+            padding: 14px;
         }
 
         .filters {
             background: #171a21;
             border: 1px solid #2b2f3a;
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
+
         .filters form {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             align-items: center;
         }
+
         select, input, button {
             padding: 10px 12px;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid #333845;
             background: #0f1115;
             color: #eee;
         }
+
         button {
-            cursor: pointer;
-            background: #1f6feb;
             border: none;
-            color: white;
+            background: #2563eb;
+            cursor: pointer;
             font-weight: bold;
         }
-        .secondary-link {
-            color: #9ecbff;
+
+        .reset-link {
+            color: #93c5fd;
             text-decoration: none;
             padding: 8px 4px;
         }
@@ -118,19 +151,21 @@
             grid-template-columns: 2fr 1fr;
             gap: 20px;
         }
+
         .panel {
             background: #171a21;
             border: 1px solid #2b2f3a;
-            border-radius: 14px;
-            padding: 16px;
+            border-radius: 16px;
+            padding: 18px;
         }
 
-        .log-card {
-            border-radius: 12px;
+        .msg-card {
+            border-radius: 14px;
             padding: 14px;
             margin-bottom: 12px;
             border: 1px solid #333;
         }
+
         .spam { background: #351516; border-color: #7f1d1d; }
         .supheli { background: #3a2c12; border-color: #a16207; }
         .temiz { background: #10281a; border-color: #166534; }
@@ -142,63 +177,80 @@
             color: #d1d5db;
             margin-bottom: 8px;
         }
+
         .msg {
-            color: #f3f4f6;
             white-space: pre-wrap;
             word-wrap: break-word;
-            line-height: 1.45;
+            line-height: 1.5;
         }
 
         .badge {
             display: inline-block;
-            padding: 3px 9px;
+            padding: 4px 9px;
             border-radius: 999px;
             font-size: 12px;
             font-weight: bold;
             margin-right: 8px;
         }
+
         .badge-spam { background: #dc2626; color: white; }
         .badge-supheli { background: #f59e0b; color: black; }
         .badge-temiz { background: #16a34a; color: white; }
         .badge-beyaz { background: #2563eb; color: white; }
         .badge-engellendi { background: #991b1b; color: white; }
 
-        .side-section { margin-bottom: 20px; }
         .side-item {
             padding: 12px 0;
             border-bottom: 1px solid #2c3240;
         }
-        .side-item:last-child { border-bottom: none; }
+
+        .side-item:last-child {
+            border-bottom: none;
+        }
+
         .side-title {
             font-weight: bold;
-            color: #fff;
         }
-        .small {
-            color: #aab1bf;
+
+        .side-small {
+            color: #9aa4b2;
             font-size: 13px;
             margin-top: 6px;
             line-height: 1.5;
         }
-        .danger-btn { background: #b91c1c; color: white; margin-top: 8px; }
-        .warn-btn { background: #d97706; color: white; margin-top: 8px; }
-        .safe-btn { background: #2563eb; color: white; margin-top: 8px; }
+
+        .danger-btn, .warn-btn, .safe-btn {
+            padding: 9px 12px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+
+        .danger-btn { background: #b91c1c; }
+        .warn-btn { background: #d97706; }
+        .safe-btn { background: #2563eb; }
+
         .side-item form {
             display: inline-block;
             margin-right: 6px;
         }
-        .chart-panel { margin-bottom: 20px; }
 
-        @media (max-width: 900px) {
-            .stats { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 1000px) {
+            .stats { grid-template-columns: repeat(3, 1fr); }
+            .chart-wrap,
             .layout { grid-template-columns: 1fr; }
         }
-        @media (max-width: 600px) {
-            .stats { grid-template-columns: 1fr; }
+
+        @media (max-width: 640px) {
+            .stats { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
 <body>
-    {% set ns = namespace(total=0, spam=0, supheli=0, beyaz=0, engellendi=0) %}
+    {% set ns = namespace(total=0, spam=0, supheli=0, beyaz=0, engellendi=0, temiz=0) %}
     {% for log in logs %}
         {% set ns.total = ns.total + 1 %}
         {% if log.status == 'SPAM' %}
@@ -213,42 +265,77 @@
             {% set ns.beyaz = ns.beyaz + 1 %}
         {% endif %}
     {% endfor %}
+    {% set ns.temiz = ns.total - ns.spam - ns.supheli %}
 
     <div class="topbar">
         <div>
             <div class="brand">🛡️ SpamShield Premium</div>
-            <div class="subtitle">Akıllı SMS analiz, watchlist ve blocklist merkezi</div>
+            <div class="subtitle">Canlı SMS analiz, kullanıcı yönetimi ve lisans merkezi</div>
         </div>
-        <div class="userbox">
-            <div><strong>Kullanıcı:</strong> {{ username }}</div>
-            <div class="small">Rol: {{ role }}</div>
-
-            <a class="lang-btn" href="/set-language/tr">Türkçe</a>
-            <a class="lang-btn" href="/set-language/en">English</a>
-
+        <div class="actions">
+            <a class="btn-gray" href="/landing">Landing</a>
+            <a class="btn-blue" href="/change-password">Şifre</a>
             {% if role == "admin" %}
-                <a class="add-user-btn" href="/add-user">Kullanıcı Ekle</a>
-                <a class="users-btn" href="/users">Kullanıcılar</a>
-                <a class="settings-btn" href="/settings">Ayarlar</a>
+                <a class="btn-green" href="/add-user">Kullanıcı Ekle</a>
+                <a class="btn-purple" href="/users">Kullanıcılar</a>
+                <a class="btn-gray" href="/settings">Ayarlar</a>
             {% endif %}
-            <a class="pass-btn" href="/change-password">Şifre Değiştir</a>
-            <a class="logout-btn" href="/logout">Çıkış Yap</a>
+            <a class="btn-red" href="/logout">Çıkış</a>
         </div>
     </div>
 
     <div class="stats">
-        <div class="stat-card"><div class="stat-title">Toplam Mesaj</div><div class="stat-value">{{ ns.total }}</div></div>
-        <div class="stat-card"><div class="stat-title">SPAM</div><div class="stat-value">{{ ns.spam }}</div></div>
-        <div class="stat-card"><div class="stat-title">Şüpheli</div><div class="stat-value">{{ ns.supheli }}</div></div>
-        <div class="stat-card"><div class="stat-title">Beyaz Liste</div><div class="stat-value">{{ ns.beyaz }}</div></div>
-        <div class="stat-card"><div class="stat-title">Watchlist</div><div class="stat-value">{{ summary.watchlist_count }}</div></div>
-        <div class="stat-card"><div class="stat-title">Blocklist</div><div class="stat-value">{{ summary.blocklist_count }}</div></div>
-        <div class="stat-card"><div class="stat-title">Son Engellenen</div><div class="stat-value" style="font-size:18px;">{{ summary.last_blocked or '-' }}</div></div>
+        <div class="card">
+            <div class="card-title">Toplam Mesaj</div>
+            <div class="card-value" data-target="{{ ns.total }}">0</div>
+            <div class="card-sub">Son kayıtlı mesajlar</div>
+        </div>
+        <div class="card">
+            <div class="card-title">SPAM</div>
+            <div class="card-value" data-target="{{ ns.spam }}">0</div>
+            <div class="card-sub">Riskli içerikler</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Şüpheli</div>
+            <div class="card-value" data-target="{{ ns.supheli }}">0</div>
+            <div class="card-sub">İnceleme gerekenler</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Temiz</div>
+            <div class="card-value" data-target="{{ ns.temiz }}">0</div>
+            <div class="card-sub">Normal mesajlar</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Watchlist</div>
+            <div class="card-value" data-target="{{ summary.watchlist_count }}">0</div>
+            <div class="card-sub">İzlenen göndericiler</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Blocklist</div>
+            <div class="card-value" data-target="{{ summary.blocklist_count }}">0</div>
+            <div class="card-sub">Engellenenler</div>
+        </div>
     </div>
 
-    <div class="panel chart-panel">
-        <h3>📊 Mesaj Dağılımı</h3>
-        <canvas id="statsChart" height="90"></canvas>
+    <div class="chart-wrap">
+        <div class="chart-box">
+            <h3>📊 Mesaj Dağılımı</h3>
+            <canvas id="statsChart" height="110"></canvas>
+        </div>
+        <div class="chart-box mini-info">
+            <div class="mini-row">
+                <div class="card-title">Son Engellenen</div>
+                <div class="card-value" style="font-size:20px;">{{ summary.last_blocked or '-' }}</div>
+            </div>
+            <div class="mini-row">
+                <div class="card-title">Aktif Rol</div>
+                <div class="card-value" style="font-size:20px;">{{ role }}</div>
+            </div>
+            <div class="mini-row">
+                <div class="card-title">Otomatik Yenileme</div>
+                <div class="card-value" style="font-size:20px;">60 sn</div>
+            </div>
+        </div>
     </div>
 
     <div class="filters">
@@ -265,7 +352,7 @@
             <input type="text" name="sender" placeholder="Gönderen" value="{{ sender_filter }}">
 
             <button type="submit">Filtrele</button>
-            <a class="secondary-link" href="/">Sıfırla</a>
+            <a class="reset-link" href="/">Sıfırla</a>
         </form>
     </div>
 
@@ -291,7 +378,7 @@
                         {% set badge = 'badge-engellendi' %}
                     {% endif %}
 
-                    <div class="log-card {{ cls }}">
+                    <div class="msg-card {{ cls }}">
                         <div class="meta">
                             <span class="badge {{ badge }}">{{ log.status or 'BİLİNMİYOR' }}</span>
                             <strong>Gönderen:</strong> {{ log.sender or 'BİLİNMİYOR' }}
@@ -309,23 +396,23 @@
         </div>
 
         <div>
-            <div class="panel side-section">
+            <div class="panel" style="margin-bottom:18px;">
                 <h3>👀 Watchlist</h3>
                 {% if watchlist %}
                     {% for sender, info in watchlist.items() %}
                         <div class="side-item">
                             <div class="side-title">{{ sender }}</div>
-                            <div class="small">
+                            <div class="side-small">
                                 Kategori: {{ info.category }}<br>
                                 Skor: {{ info.score }}<br>
                                 Tekrar: {{ info.count }}
                             </div>
                             {% if role == "admin" %}
                                 <form method="POST" action="/watch-block/{{ sender }}">
-                                    <button type="submit" class="warn-btn">Manuel Blokla</button>
+                                    <button type="submit" class="warn-btn">Blokla</button>
                                 </form>
                                 <form method="POST" action="/watch-remove/{{ sender }}">
-                                    <button type="submit" class="safe-btn">İzlemeden Çıkar</button>
+                                    <button type="submit" class="safe-btn">Çıkar</button>
                                 </form>
                             {% endif %}
                         </div>
@@ -335,13 +422,13 @@
                 {% endif %}
             </div>
 
-            <div class="panel side-section">
+            <div class="panel">
                 <h3>⛔ Blocklist</h3>
                 {% if blocklist %}
                     {% for sender, info in blocklist.items() %}
                         <div class="side-item">
                             <div class="side-title">{{ sender }}</div>
-                            <div class="small">
+                            <div class="side-small">
                                 Kategori: {{ info.category }}<br>
                                 Skor: {{ info.score }}<br>
                                 Engellendi: {{ info.blocked }}
@@ -361,28 +448,57 @@
     </div>
 
     <script>
+        const counters = document.querySelectorAll('.card-value[data-target]');
+        counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-target') || '0', 10);
+            let current = 0;
+            const step = Math.max(1, Math.ceil(target / 25));
+
+            const update = () => {
+                current += step;
+                if (current >= target) {
+                    counter.textContent = target;
+                } else {
+                    counter.textContent = current;
+                    requestAnimationFrame(update);
+                }
+            };
+            update();
+        });
+
         const spam = {{ ns.spam }};
         const supheli = {{ ns.supheli }};
-        const temiz = {{ ns.total - ns.spam - ns.supheli }};
+        const temiz = {{ ns.temiz }};
+        const beyaz = {{ ns.beyaz }};
 
         const chartEl = document.getElementById('statsChart');
         if (chartEl) {
             const ctx = chartEl.getContext('2d');
             new Chart(ctx, {
-                type: 'doughnut',
+                type: 'bar',
                 data: {
-                    labels: ['SPAM', 'ŞÜPHELİ', 'TEMİZ'],
+                    labels: ['SPAM', 'ŞÜPHELİ', 'TEMİZ', 'BEYAZ LİSTE'],
                     datasets: [{
-                        data: [spam, supheli, temiz],
-                        backgroundColor: ['#dc2626', '#f59e0b', '#16a34a']
+                        label: 'Mesaj Sayısı',
+                        data: [spam, supheli, temiz, beyaz]
                     }]
                 },
                 options: {
+                    responsive: true,
                     plugins: {
                         legend: {
-                            labels: {
-                                color: '#eee'
-                            }
+                            labels: { color: '#eee' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#ddd' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y: {
+                            ticks: { color: '#ddd' },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            beginAtZero: true
                         }
                     }
                 }
