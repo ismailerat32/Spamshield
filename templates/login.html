@@ -22,10 +22,7 @@
             width: 360px;
             box-shadow: 0 4px 18px rgba(0,0,0,0.35);
         }
-        h2 {
-            margin-top: 0;
-            text-align: center;
-        }
+        h2 { margin-top: 0; text-align: center; }
         input, button, a {
             width: 100%;
             box-sizing: border-box;
@@ -45,9 +42,7 @@
             font-weight: bold;
             cursor: pointer;
         }
-        .register {
-            background: #22c55e;
-        }
+        .register { background: #22c55e; }
         .error {
             background: #351516;
             color: #ffb4b4;
@@ -66,10 +61,7 @@
 <body>
     <div class="box">
         <h2>🔐 Giriş Yap</h2>
-
-        <div class="info">
-            SpamShield hesabın ile giriş yap
-        </div>
+        <div class="info">SpamShield hesabın ile giriş yap</div>
 
         {% if error %}
             <div class="error">{{ error }}</div>
@@ -81,9 +73,7 @@
             <button type="submit">Giriş Yap</button>
         </form>
 
-        <!-- 🚀 ÜYE OL -->
         <a href="/register" class="register">Üye Ol</a>
-
     </div>
 </body>
 </html>

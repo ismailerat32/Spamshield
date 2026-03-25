@@ -1,12 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import os
 import json
+import random
+import string
 from datetime import datetime
+from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 from mailer import send_mail
 
+load_dotenv()
+
 app = Flask(__name__)
-app.secret_key = "spamshield_super_secret_key_degistir"
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "spamshield_dev_key")
 
 LOG_FILE = "logs/log.txt"
 WATCHLIST_FILE = "data/watchlist.json"
@@ -14,16 +19,8 @@ BLOCKLIST_FILE = "data/blocklist.json"
 USERS_FILE = "data/users.json"
 SETTINGS_FILE = "data/settings.json"
 LICENSE_FILE = "data/license.json"
-MAIL_SETTINGS_FILE = "data/mail_settings.json"
 LOCALES_DIR = "locales"
 
-VALID_LICENSE_KEYS = [
-    "SPAMSHIELD-2026-PRO-001",
-    "SPAMSHIELD-2026-PRO-002",
-    "SPAMSHIELD-2026-PRO-003",
-    "SPAMSHIELD-2026-PRO-004",
-    "SPAMSHIELD-2026-PRO-005"
-]
 
 def ensure_default_user():
     os.makedirs("data", exist_ok=True)
@@ -41,6 +38,7 @@ def ensure_default_user():
         with open(USERS_FILE, "w", encoding="utf-8") as f:
             json.dump(users, f, ensure_ascii=False, indent=2)
 
+
 def ensure_default_settings():
     os.makedirs("data", exist_ok=True)
     if not os.path.exists(SETTINGS_FILE):
@@ -53,12 +51,13 @@ def ensure_default_settings():
         with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
             json.dump(settings, f, ensure_ascii=False, indent=2)
 
+
 def load_settings():
     ensure_default_settings()
     try:
         with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    except:
+    except Exception:
         return {
             "notifications_enabled": True,
             "notify_spam": True,
@@ -66,46 +65,56 @@ def load_settings():
             "min_notify_score": 35
         }
 
+
 def save_settings(settings):
     os.makedirs("data", exist_ok=True)
     with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
         json.dump(settings, f, ensure_ascii=False, indent=2)
 
+
 def load_mail_settings():
-    if not os.path.exists(MAIL_SETTINGS_FILE):
-        return None
-    try:
-        with open(MAIL_SETTINGS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return None
+    return {
+        "smtp_host": os.getenv("SMTP_HOST", "smtp.gmail.com"),
+        "smtp_port": int(os.getenv("SMTP_PORT", "587")),
+        "smtp_user": os.getenv("SMTP_USER", ""),
+        "smtp_pass": os.getenv("SMTP_PASS", "")
+    }
+
 
 def load_locale(lang):
     path = os.path.join(LOCALES_DIR, f"{lang}.json")
     fallback = os.path.join(LOCALES_DIR, "tr.json")
+
     try:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
-    except:
-        with open(fallback, "r", encoding="utf-8") as f:
-            return json.load(f)
+    except Exception:
+        try:
+            with open(fallback, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+
 
 def get_lang():
     lang = session.get("lang", "tr")
     return lang if lang in ["tr", "en"] else "tr"
+
 
 def load_users():
     ensure_default_user()
     try:
         with open(USERS_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    except:
+    except Exception:
         return {}
+
 
 def save_users(users):
     os.makedirs("data", exist_ok=True)
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(users, f, ensure_ascii=False, indent=2)
+
 
 def read_logs():
     logs = []
@@ -116,7 +125,8 @@ def read_logs():
                 if not line or "From:" not in line:
                     continue
                 logs.append(line)
-    return logs[-200:]
+    return logs[-300:]
+
 
 def parse_logs():
     parsed = []
@@ -129,6 +139,7 @@ def parse_logs():
             "category": "",
             "message": line
         }
+
         parts = [p.strip() for p in line.split("|")]
         for p in parts:
             if p.startswith("From:"):
@@ -141,8 +152,11 @@ def parse_logs():
                 item["category"] = p.replace("Category:", "").strip()
             elif p.startswith("Message:"):
                 item["message"] = p.replace("Message:", "").strip()
+
         parsed.append(item)
+
     return parsed
+
 
 def load_json_dict(path):
     if not os.path.exists(path):
@@ -150,13 +164,15 @@ def load_json_dict(path):
     try:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
-    except:
+    except Exception:
         return {}
+
 
 def save_json_dict(path, data):
     os.makedirs("data", exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
 
 def load_license():
     if not os.path.exists(LICENSE_FILE):
@@ -164,43 +180,81 @@ def load_license():
     try:
         with open(LICENSE_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    except:
+    except Exception:
         return {"active": False, "key": ""}
+
 
 def save_license(data):
     os.makedirs("data", exist_ok=True)
     with open(LICENSE_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+
 def is_license_active():
     return load_license().get("active") is True
+
 
 def login_required():
     return session.get("logged_in") is True
 
+
 def admin_required():
     return session.get("role") == "admin"
+
 
 def get_last_blocked(blocklist):
     if not blocklist:
         return None
     try:
         return list(blocklist.keys())[-1]
-    except:
+    except Exception:
         return None
+
 
 def is_date_expired(date_str):
     try:
         expiry = datetime.strptime(date_str, "%Y-%m-%d").date()
         return datetime.now().date() > expiry
-    except:
+    except Exception:
         return False
+
+
+def generate_license_key():
+    parts = []
+    for _ in range(4):
+        part = "".join(random.choices(string.ascii_uppercase + string.digits, k=4))
+        parts.append(part)
+    return "SPAM-" + "-".join(parts)
+
+
+def get_all_used_license_keys(users):
+    used = set()
+    for info in users.values():
+        key = info.get("license_key", "").strip().upper()
+        if key and key != "NONE":
+            used.add(key)
+    return used
+
+
+def generate_unique_license_key(users):
+    used = get_all_used_license_keys(users)
+    while True:
+        new_key = generate_license_key()
+        if new_key not in used:
+            return new_key
+
 
 @app.route("/set-language/<lang>")
 def set_language(lang):
     if lang in ["tr", "en"]:
         session["lang"] = lang
-    return redirect(request.referrer or url_for("index"))
+    return redirect(request.referrer or url_for("landing"))
+
+
+@app.route("/landing")
+def landing():
+    return render_template("landing.html")
+
 
 @app.route("/activate", methods=["GET", "POST"])
 def activate():
@@ -216,16 +270,23 @@ def activate():
 
         if username not in users:
             error = "Kullanıcı bulunamadı" if get_lang() == "tr" else "User not found"
-        elif license_key not in VALID_LICENSE_KEYS:
-            error = "Geçersiz lisans" if get_lang() == "tr" else "Invalid license"
         else:
-            users[username]["active"] = True
-            users[username]["license_key"] = license_key
-            users[username]["expires_at"] = "2026-12-31"
-            save_users(users)
-            success = "Hesap aktif edildi!" if get_lang() == "tr" else "Account activated!"
+            user = users[username]
+            saved_key = user.get("license_key", "").strip().upper()
+
+            if not saved_key or saved_key == "NONE":
+                error = "Bu kullanıcı için lisans tanımlı değil." if get_lang() == "tr" else "No license assigned for this user."
+            elif license_key != saved_key:
+                error = "Geçersiz lisans" if get_lang() == "tr" else "Invalid license"
+            else:
+                users[username]["active"] = True
+                if not users[username].get("expires_at"):
+                    users[username]["expires_at"] = "2026-12-31"
+                save_users(users)
+                success = "Hesap aktif edildi!" if get_lang() == "tr" else "Account activated!"
 
     return render_template("activate.html", error=error, success=success, t=t, lang=get_lang())
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -252,7 +313,7 @@ def register():
                 "password": generate_password_hash(password),
                 "role": "user",
                 "active": False,
-                "license_key": "",
+                "license_key": "NONE",
                 "expires_at": "2099-01-01",
                 "email": email
             }
@@ -260,6 +321,7 @@ def register():
             success = "Kayıt başarılı, lisans maili bekleyin." if get_lang() == "tr" else "Registration successful, wait for license email."
 
     return render_template("register.html", error=error, success=success, t=t, lang=get_lang())
+
 
 @app.route("/send-license/<target_username>", methods=["POST"])
 def send_license(target_username):
@@ -276,46 +338,53 @@ def send_license(target_username):
 
     user = users[target_username]
     email = user.get("email", "").strip()
-    license_key = user.get("license_key", "").strip()
 
-    if not mail_cfg or not email:
+    if not email:
         return redirect(url_for("users"))
 
-    if not license_key or license_key == "NONE":
-        for k in VALID_LICENSE_KEYS:
-            used = any(u.get("license_key") == k for u in users.values())
-            if not used:
-                license_key = k
-                users[target_username]["license_key"] = k
-                save_users(users)
-                break
+    license_key = user.get("license_key", "").strip().upper()
 
-    if license_key:
-        subject = "SpamShield Lisans Kodunuz"
-        body = f"""Merhaba {target_username},
+    if not license_key or license_key == "NONE":
+        license_key = generate_unique_license_key(users)
+        users[target_username]["license_key"] = license_key
+        if not users[target_username].get("expires_at"):
+            users[target_username]["expires_at"] = "2026-12-31"
+        save_users(users)
+
+    base_url = os.getenv("APP_BASE_URL", "http://127.0.0.1:8080")
+
+    subject = "SpamShield Lisans Kodunuz"
+    body = f"""Merhaba {target_username},
 
 SpamShield lisans kodunuz aşağıdadır:
 
 {license_key}
 
-Aktivasyon sayfasından kullanıcı adınız ve bu kod ile hesabınızı aktif edebilirsiniz.
+Aktivasyon için:
+- Kullanıcı adınız: {target_username}
+- Lisans kodunuz: {license_key}
+
+Aktivasyon sayfası:
+{base_url}/activate
 
 SpamShield
 """
-        try:
-            send_mail(
-                mail_cfg["smtp_host"],
-                int(mail_cfg["smtp_port"]),
-                mail_cfg["smtp_user"],
-                mail_cfg["smtp_pass"],
-                email,
-                subject,
-                body
-            )
-        except Exception as e:
-            print("Mail gönderme hatası:", e)
+
+    try:
+        send_mail(
+            mail_cfg["smtp_host"],
+            mail_cfg["smtp_port"],
+            mail_cfg["smtp_user"],
+            mail_cfg["smtp_pass"],
+            email,
+            subject,
+            body
+        )
+    except Exception as e:
+        print("Mail gönderme hatası:", e)
 
     return redirect(url_for("users"))
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -349,10 +418,12 @@ def login():
 
     return render_template("login.html", error=error, t=t, lang=get_lang())
 
+
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("login"))
+
 
 @app.route("/change-password", methods=["GET", "POST"])
 def change_password():
@@ -383,7 +454,15 @@ def change_password():
             save_users(users)
             success = "Şifre başarıyla değiştirildi." if get_lang() == "tr" else "Password changed successfully."
 
-    return render_template("change_password.html", error=error, success=success, username=username, t=t, lang=get_lang())
+    return render_template(
+        "change_password.html",
+        error=error,
+        success=success,
+        username=username,
+        t=t,
+        lang=get_lang()
+    )
+
 
 @app.route("/add-user", methods=["GET", "POST"])
 def add_user():
@@ -402,7 +481,6 @@ def add_user():
         password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
         role = request.form.get("role", "user").strip()
-        license_key = request.form.get("license_key", "").strip().upper()
         expires_at = request.form.get("expires_at", "").strip()
         active = request.form.get("active") == "on"
 
@@ -425,7 +503,7 @@ def add_user():
                 "password": generate_password_hash(password),
                 "role": role,
                 "active": active,
-                "license_key": license_key if license_key else "NONE",
+                "license_key": "NONE",
                 "expires_at": expires_at,
                 "email": email
             }
@@ -438,9 +516,9 @@ def add_user():
         success=success,
         username=session.get("username", "admin"),
         t=t,
-        lang=get_lang(),
-        valid_keys=VALID_LICENSE_KEYS
+        lang=get_lang()
     )
+
 
 @app.route("/users")
 def users():
@@ -457,6 +535,7 @@ def users():
         lang=get_lang()
     )
 
+
 @app.route("/toggle-user/<target_username>", methods=["POST"])
 def toggle_user(target_username):
     if not login_required():
@@ -470,6 +549,7 @@ def toggle_user(target_username):
         save_users(users)
 
     return redirect(url_for("users"))
+
 
 @app.route("/delete-user/<target_username>", methods=["POST"])
 def delete_user(target_username):
@@ -486,6 +566,7 @@ def delete_user(target_username):
         save_users(users)
 
     return redirect(url_for("users"))
+
 
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
@@ -507,15 +588,25 @@ def settings():
             settings_data["min_notify_score"] = int(request.form.get("min_notify_score", "35"))
             save_settings(settings_data)
             success = "Bildirim ayarları kaydedildi." if get_lang() == "tr" else "Notification settings saved."
-        except:
+        except Exception:
             error = "Ayarlar kaydedilemedi." if get_lang() == "tr" else "Settings could not be saved."
 
-    return render_template("settings.html", settings=settings_data, error=error, success=success, username=session.get("username", "admin"), t=t, lang=get_lang())
+    return render_template(
+        "settings.html",
+        settings=settings_data,
+        error=error,
+        success=success,
+        username=session.get("username", "admin"),
+        t=t,
+        lang=get_lang()
+    )
+
 
 @app.route("/")
 def index():
     if not is_license_active():
         return redirect(url_for("activate"))
+
     if not login_required():
         return redirect(url_for("login"))
 
@@ -558,6 +649,7 @@ def index():
         lang=get_lang()
     )
 
+
 @app.route("/unblock/<sender>", methods=["POST"])
 def unblock(sender):
     if not login_required():
@@ -569,7 +661,9 @@ def unblock(sender):
     if sender in blocklist:
         del blocklist[sender]
         save_json_dict(BLOCKLIST_FILE, blocklist)
+
     return redirect(url_for("index"))
+
 
 @app.route("/watch-remove/<sender>", methods=["POST"])
 def watch_remove(sender):
@@ -582,7 +676,9 @@ def watch_remove(sender):
     if sender in watchlist:
         del watchlist[sender]
         save_json_dict(WATCHLIST_FILE, watchlist)
+
     return redirect(url_for("index"))
+
 
 @app.route("/watch-block/<sender>", methods=["POST"])
 def watch_block(sender):
@@ -606,6 +702,7 @@ def watch_block(sender):
         save_json_dict(BLOCKLIST_FILE, blocklist)
 
     return redirect(url_for("index"))
+
 
 if __name__ == "__main__":
     ensure_default_user()

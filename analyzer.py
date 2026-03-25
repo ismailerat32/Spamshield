@@ -1,98 +1,58 @@
 import re
 
-WHITELIST_SENDERS = [
-    "halkbank", "qnb", "turktelekom", "ttavantaj",
-    "oz burois", "isparta bld", "osmanzabun", "on."
+SPAM_KEYWORDS = [
+    "kazandın", "ödül", "bedava", "tıkla", "hemen", "şimdi",
+    "linke gir", "giriş yap", "şifre", "hesap askıya", "onayla"
 ]
 
-GAMBLING_WORDS = [
-    "casino", "slot", "bahis", "freebet", "jackpot", "rulet", "kupon"
+DANGEROUS_DOMAINS = [
+    "bit.ly", "tinyurl", "goo.gl", "t.me",
+    "short.link", "grabify"
 ]
 
-BANK_WORDS = [
-    "hesabınız", "hesabiniz", "kartınız", "kartiniz",
-    "şifre", "sifre", "doğrulama", "dogrulama",
-    "bloke", "askıya", "askiya"
-]
+def contains_link(text):
+    return re.search(r"http[s]?://", text) is not None
 
-AD_WORDS = [
-    "indirim", "kampanya", "fırsat", "firsat", "hediye",
-    "son gün", "son gun", "davet et"
-]
-
-SHORT_LINKS = [
-    "bit.ly", "cutt.ly", "tinyurl", "goo.gl", "t.ly"
-]
+def extract_links(text):
+    return re.findall(r"http[s]?://\S+", text)
 
 def analyze_sms(sender, message):
-    sender_l = (sender or "").lower()
-    msg = (message or "").lower()
-
     score = 0
     category = "GENEL"
+    status = "TEMİZ"
 
-    has_link = ("http" in msg or "www" in msg)
-    has_short_link = any(link in msg for link in SHORT_LINKS)
-    has_bank_words = any(word in msg for word in BANK_WORDS)
-    has_gambling = any(word in msg for word in GAMBLING_WORDS)
-    has_ads = any(word in msg for word in AD_WORDS)
+    msg = message.lower()
 
-    # Beyaz liste: gönderici adına göre çalışır
-    is_whitelisted = any(w == sender_l for w in WHITELIST_SENDERS)
-
-    # Beyaz listedeyse ve phishing sinyali yoksa temiz say
-    if is_whitelisted and not (has_link and has_bank_words):
-        return "TEMİZ", 0, "BEYAZ_LISTE"
-
-    # Link
-    if has_link:
-        score += 20
-        category = "LINK"
-
-    # Kısa link
-    if has_short_link:
-        score += 35
-        category = "ZARARLI_LINK"
-
-    # Kumar
-    if has_gambling:
-        score += 45
-        category = "KUMAR"
-
-    # Banka
-    if has_bank_words:
-        score += 25
-        category = "BANKA"
-
-    # Phishing
-    if has_link and has_bank_words:
-        score += 40
-        category = "PHISHING"
-
-    # Reklam / promosyon
-    if has_ads:
-        score += 15
-        if category == "GENEL":
-            category = "REKLAM"
-
-    # Para miktarı
-    if re.search(r"\d+\s?(tl|try|₺)", msg):
-        score += 10
-        if category == "GENEL":
-            category = "FINANSAL"
-
-    # Büyük harf oranı
-    letters = [c for c in message if c.isalpha()]
-    if letters:
-        upper_ratio = sum(1 for c in letters if c.isupper()) / len(letters)
-        if upper_ratio > 0.75:
+    # 1️⃣ Keyword analizi
+    for word in SPAM_KEYWORDS:
+        if word in msg:
             score += 10
-            if category == "GENEL":
-                category = "KAMPANYA"
 
-    if score >= 55:
-        return "SPAM", score, category
-    elif score >= 35:
-        return "ŞÜPHELİ", score, category
+    # 2️⃣ Link analizi
+    if contains_link(msg):
+        score += 15
+        links = extract_links(msg)
+
+        for link in links:
+            for bad in DANGEROUS_DOMAINS:
+                if bad in link:
+                    score += 40
+                    category = "PHISHING"
+                    status = "SPAM"
+
+    # 3️⃣ Fake banka / kritik pattern
+    if "banka" in msg or "kart" in msg:
+        if "giriş" in msg or "onayla" in msg:
+            score += 25
+            category = "BANKA_PHISHING"
+            status = "SPAM"
+
+    # 4️⃣ Final karar
+    if score >= 60:
+        status = "SPAM"
+    elif score >= 30:
+        status = "ŞÜPHELİ"
     else:
-        return "TEMİZ", score, "TEMİZ"
+        status = "TEMİZ"
+
+    return status, score, category

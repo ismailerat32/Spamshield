@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpamShield - AI SMS Protection</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background:
+                radial-gradient(circle at top, rgba(34,197,94,0.12), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(124,58,237,0.10), transparent 28%),
+                linear-gradient(180deg, #0b0d12 0%, #0f1115 100%);
+            color: #f5f7fa;
+            overflow-x: hidden;
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 32px 32px;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.2));
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            border-radius: 999px;
+            filter: blur(120px);
+            opacity: 0.18;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow.one {
+            top: -100px;
+            left: -100px;
+            background: #22c55e;
+        }
+
+        .glow.two {
+            right: -120px;
+            bottom: -120px;
+            background: #7c3aed;
+        }
+
+        .navbar {
+            width: 100%;
+            padding: 20px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(12px);
+            background: rgba(10, 12, 18, 0.55);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .brand {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+
+        .brand span {
+            color: #22c55e;
+            text-shadow: 0 0 18px rgba(34,197,94,0.35);
+        }
+
+        .nav-actions a {
+            color: #e5e7eb;
+            text-decoration: none;
+            margin-left: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            transition: 0.25s ease;
+            display: inline-block;
+        }
+
+        .nav-actions a:hover {
+            transform: translateY(-1px);
+            border-color: rgba(34,197,94,0.45);
+            box-shadow: 0 0 24px rgba(34,197,94,0.15);
+        }
+
+        .hero {
+            min-height: calc(100vh - 76px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-wrap {
+            width: 100%;
+            max-width: 1180px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border: 1px solid rgba(34,197,94,0.25);
+            border-radius: 999px;
+            background: rgba(34,197,94,0.08);
+            color: #9ff0be;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        .title {
+            font-size: clamp(38px, 7vw, 76px);
+            line-height: 0.95;
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            margin-bottom: 18px;
+        }
+
+        .title .accent {
+            color: #22c55e;
+            text-shadow: 0 0 22px rgba(34,197,94,0.35);
+        }
+
+        .subtitle {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #b8c0cc;
+            max-width: 640px;
+            margin-bottom: 28px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .btn {
+            text-decoration: none;
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-weight: 700;
+            transition: 0.25s ease;
+            display: inline-block;
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #08110b;
+            box-shadow: 0 12px 30px rgba(34,197,94,0.22);
+        }
+
+        .btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 36px rgba(34,197,94,0.30);
+        }
+
+        .btn.secondary {
+            color: #eef2f7;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.03);
+        }
+
+        .btn.secondary:hover {
+            transform: translateY(-2px);
+            border-color: rgba(124,58,237,0.45);
+            box-shadow: 0 14px 34px rgba(124,58,237,0.15);
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-width: 720px;
+        }
+
+        .stat {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 18px;
+            padding: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat .num {
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .stat .label {
+            font-size: 13px;
+            color: #9aa4b2;
+        }
+
+        .preview {
+            background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 22px;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+            backdrop-filter: blur(12px);
+        }
+
+        .preview-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .preview-title {
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .preview-badge {
+            color: #9ff0be;
+            background: rgba(34,197,94,0.10);
+            border: 1px solid rgba(34,197,94,0.25);
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+
+        .mini-card {
+            background: rgba(8, 12, 18, 0.55);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .mini-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .mini-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .mini-user {
+            font-weight: 700;
+        }
+
+        .mini-status {
+            font-size: 12px;
+            font-weight: 800;
+            padding: 6px 10px;
+            border-radius: 999px;
+        }
+
+        .spam {
+            background: rgba(239,68,68,0.14);
+            color: #ffb4b4;
+            border: 1px solid rgba(239,68,68,0.25);
+        }
+
+        .supheli {
+            background: rgba(245,158,11,0.14);
+            color: #ffd989;
+            border: 1px solid rgba(245,158,11,0.25);
+        }
+
+        .temiz {
+            background: rgba(34,197,94,0.14);
+            color: #9ff0be;
+            border: 1px solid rgba(34,197,94,0.25);
+        }
+
+        .mini-msg {
+            color: #bfc7d2;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .section {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 28px 24px 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-title {
+            font-size: 34px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .section-sub {
+            color: #9aa4b2;
+            max-width: 720px;
+            line-height: 1.7;
+            margin-bottom: 28px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .feature {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 22px;
+            transition: 0.25s ease;
+        }
+
+        .feature:hover {
+            transform: translateY(-4px);
+            border-color: rgba(34,197,94,0.22);
+            box-shadow: 0 18px 30px rgba(0,0,0,0.28);
+        }
+
+        .feature-icon {
+            width: 52px;
+            height: 52px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(124,58,237,0.15));
+            margin-bottom: 14px;
+            font-size: 24px;
+        }
+
+        .feature h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .feature p {
+            color: #a8b1bc;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .cta {
+            max-width: 1180px;
+            margin: 0 auto 80px;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-box {
+            border-radius: 28px;
+            padding: 34px;
+            background:
+                linear-gradient(135deg, rgba(34,197,94,0.13), rgba(37,99,235,0.10)),
+                rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cta-title {
+            font-size: 30px;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .cta-text {
+            color: #aab4c0;
+            line-height: 1.7;
+            max-width: 720px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: #7e8895;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 980px) {
+            .hero-wrap {
+                grid-template-columns: 1fr;
+            }
+
+            .features {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .hero-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar {
+                padding: 16px 18px;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .nav-actions {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .nav-actions a {
+                margin-left: 6px;
+                margin-top: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="glow one"></div>
+    <div class="glow two"></div>
+
+    <nav class="navbar">
+        <div class="brand">Spam<span>Shield</span></div>
+        <div class="nav-actions">
+            <a href="/login">Giriş Yap</a>
+            <a href="/register">Üye Ol</a>
+            <a href="/activate">Lisans Aktif Et</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-wrap">
+            <div>
+                <div class="eyebrow">🛡️ AI destekli yeni nesil SMS koruması</div>
+                <h1 class="title">
+                    Telefonunu <span class="accent">akıllı savunma</span> ile koru.
+                </h1>
+                <p class="subtitle">
+                    SpamShield; SMS mesajlarını analiz eder, riskli içerikleri işaretler,
+                    lisanslı kullanıcı yönetimi sağlar ve premium güvenlik paneli ile
+                    kontrolü tamamen sana verir.
+                </p>
+
+                <div class="hero-actions">
+                    <a class="btn primary" href="/register">Hemen Başla</a>
+                    <a class="btn secondary" href="/login">Panele Gir</a>
+                    <a class="btn secondary" href="/activate">Lisans Aktive Et</a>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="num">AI</div>
+                        <div class="label">Spam tespit motoru</div>
+                    </div>
+                    <div class="stat">
+                        <div class="num">Real-Time</div>
+                        <div class="label">Canlı SMS analiz akışı</div>
+                    </div>
+                    <div class="stat">
+                        <div class="num">Premium</div>
+                        <div class="label">Lisans ve kullanıcı yönetimi</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview">
+                <div class="preview-top">
+                    <div class="preview-title">SpamShield Command View</div>
+                    <div class="preview-badge">LIVE DEFENSE</div>
+                </div>
+
+                <div class="mini-card">
+                    <div class="mini-head">
+                        <div class="mini-user">BANKA</div>
+                        <div class="mini-status spam">SPAM</div>
+                    </div>
+                    <div class="mini-msg">
+                        Hesabınız askıya alındı! Girişi doğrulamak için bağlantıya tıklayın...
+                    </div>
+                </div>
+
+                <div class="mini-card">
+                    <div class="mini-head">
+                        <div class="mini-user">KAZAN-KAZAN</div>
+                        <div class="mini-status supheli">ŞÜPHELİ</div>
+                    </div>
+                    <div class="mini-msg">
+                        Birlikte 1 GB kazanmak için hemen arkadaşını davet et...
+                    </div>
+                </div>
+
+                <div class="mini-card">
+                    <div class="mini-head">
+                        <div class="mini-user">HALKBANK</div>
+                        <div class="mini-status temiz">TEMİZ</div>
+                    </div>
+                    <div class="mini-msg">
+                        Kart doğrulama işlemi gerçekleştirilmiştir. İşlemler size ait değilse...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2 class="section-title">Neler Sunuyor?</h2>
+        <p class="section-sub">
+            SpamShield sadece bir filtre değil; kullanıcı yönetimi, lisans aktivasyonu,
+            mail ile lisans teslimi ve merkezi güvenlik paneli ile tam bir ürün deneyimi sunar.
+        </p>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🤖</div>
+                <h3>Akıllı Analiz</h3>
+                <p>Mesajları içerik, skor ve kategori mantığıyla işleyerek riskli olanları ayırır.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📨</div>
+                <h3>Lisans Mail Sistemi</h3>
+                <p>Kullanıcı kayıt olur, admin lisansı tek tıkla mail olarak gönderir.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">👤</div>
+                <h3>Kullanıcı Yönetimi</h3>
+                <p>Aktif/pasif kullanıcı, lisans, rol ve bitiş tarihi yönetimi tek panelden yapılır.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <h3>Premium Dashboard</h3>
+                <p>Grafikler, son mesajlar, watchlist, blocklist ve kontrol araçları tek yerde.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="cta-box">
+            <div>
+                <div class="cta-title">SpamShield ile premium korumayı başlat.</div>
+                <div class="cta-text">
+                    Hesabını oluştur, lisansını aktive et ve akıllı SMS güvenlik deneyimine geç.
+                </div>
+            </div>
+            <div class="hero-actions" style="margin-bottom:0;">
+                <a class="btn primary" href="/register">Ücretsiz Başlangıç</a>
+                <a class="btn secondary" href="/login">Panele Geç</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        SpamShield • AI SMS Protection • Premium Security Experience
+    </footer>
+</body>
+</html>

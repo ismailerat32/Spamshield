@@ -1,8 +1,14 @@
 __pycache__/
 *.pyc
 logs/
-data/blocklist.json
-data/watchlist.json
 SpamShield_Backups/
 *.tar.gz
 *.log
+.env
+data/mail_settings.json
+data/users.json
+data/seen_ids.json
+data/watchlist.json
+data/blocklist.json
+test_mail.py
+test_mail.py.save
