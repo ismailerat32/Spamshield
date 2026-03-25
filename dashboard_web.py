@@ -3,6 +3,7 @@ import os
 import json
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from mailer import send_mail
 
 app = Flask(__name__)
 app.secret_key = "spamshield_super_secret_key_degistir"
@@ -13,6 +14,7 @@ BLOCKLIST_FILE = "data/blocklist.json"
 USERS_FILE = "data/users.json"
 SETTINGS_FILE = "data/settings.json"
 LICENSE_FILE = "data/license.json"
+MAIL_SETTINGS_FILE = "data/mail_settings.json"
 LOCALES_DIR = "locales"
 
 VALID_LICENSE_KEYS = [
@@ -32,7 +34,8 @@ def ensure_default_user():
                 "role": "admin",
                 "active": True,
                 "license_key": "ADMIN-SYSTEM",
-                "expires_at": "2099-12-31"
+                "expires_at": "2099-12-31",
+                "email": ""
             }
         }
         with open(USERS_FILE, "w", encoding="utf-8") as f:
@@ -67,6 +70,15 @@ def save_settings(settings):
     os.makedirs("data", exist_ok=True)
     with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
         json.dump(settings, f, ensure_ascii=False, indent=2)
+
+def load_mail_settings():
+    if not os.path.exists(MAIL_SETTINGS_FILE):
+        return None
+    try:
+        with open(MAIL_SETTINGS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return None
 
 def load_locale(lang):
     path = os.path.join(LOCALES_DIR, f"{lang}.json")
@@ -192,22 +204,118 @@ def set_language(lang):
 
 @app.route("/activate", methods=["GET", "POST"])
 def activate():
-    t = load_locale(get_lang())
     error = None
     success = None
-
-    if is_license_active():
-        return redirect(url_for("login"))
+    t = load_locale(get_lang())
 
     if request.method == "POST":
+        username = request.form.get("username", "").strip()
         license_key = request.form.get("license_key", "").strip().upper()
-        if license_key in VALID_LICENSE_KEYS:
-            save_license({"active": True, "key": license_key})
-            success = "Lisans başarıyla aktif edildi." if get_lang() == "tr" else "License activated successfully."
+
+        users = load_users()
+
+        if username not in users:
+            error = "Kullanıcı bulunamadı" if get_lang() == "tr" else "User not found"
+        elif license_key not in VALID_LICENSE_KEYS:
+            error = "Geçersiz lisans" if get_lang() == "tr" else "Invalid license"
         else:
-            error = "Geçersiz lisans anahtarı." if get_lang() == "tr" else "Invalid license key."
+            users[username]["active"] = True
+            users[username]["license_key"] = license_key
+            users[username]["expires_at"] = "2026-12-31"
+            save_users(users)
+            success = "Hesap aktif edildi!" if get_lang() == "tr" else "Account activated!"
 
     return render_template("activate.html", error=error, success=success, t=t, lang=get_lang())
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    error = None
+    success = None
+    t = load_locale(get_lang())
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+        users = load_users()
+
+        if not username:
+            error = "Kullanıcı adı boş olamaz." if get_lang() == "tr" else "Username cannot be empty."
+        elif not email:
+            error = "Mail adresi gerekli." if get_lang() == "tr" else "Email is required."
+        elif username in users:
+            error = "Bu kullanıcı zaten var." if get_lang() == "tr" else "This user already exists."
+        elif len(password) < 6:
+            error = "Şifre kısa." if get_lang() == "tr" else "Password is too short."
+        else:
+            users[username] = {
+                "password": generate_password_hash(password),
+                "role": "user",
+                "active": False,
+                "license_key": "",
+                "expires_at": "2099-01-01",
+                "email": email
+            }
+            save_users(users)
+            success = "Kayıt başarılı, lisans maili bekleyin." if get_lang() == "tr" else "Registration successful, wait for license email."
+
+    return render_template("register.html", error=error, success=success, t=t, lang=get_lang())
+
+@app.route("/send-license/<target_username>", methods=["POST"])
+def send_license(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("index"))
+
+    users = load_users()
+    mail_cfg = load_mail_settings()
+
+    if target_username not in users:
+        return redirect(url_for("users"))
+
+    user = users[target_username]
+    email = user.get("email", "").strip()
+    license_key = user.get("license_key", "").strip()
+
+    if not mail_cfg or not email:
+        return redirect(url_for("users"))
+
+    if not license_key or license_key == "NONE":
+        for k in VALID_LICENSE_KEYS:
+            used = any(u.get("license_key") == k for u in users.values())
+            if not used:
+                license_key = k
+                users[target_username]["license_key"] = k
+                save_users(users)
+                break
+
+    if license_key:
+        subject = "SpamShield Lisans Kodunuz"
+        body = f"""Merhaba {target_username},
+
+SpamShield lisans kodunuz aşağıdadır:
+
+{license_key}
+
+Aktivasyon sayfasından kullanıcı adınız ve bu kod ile hesabınızı aktif edebilirsiniz.
+
+SpamShield
+"""
+        try:
+            send_mail(
+                mail_cfg["smtp_host"],
+                int(mail_cfg["smtp_port"]),
+                mail_cfg["smtp_user"],
+                mail_cfg["smtp_pass"],
+                email,
+                subject,
+                body
+            )
+        except Exception as e:
+            print("Mail gönderme hatası:", e)
+
+    return redirect(url_for("users"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -290,6 +398,7 @@ def add_user():
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip()
         password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
         role = request.form.get("role", "user").strip()
@@ -317,7 +426,8 @@ def add_user():
                 "role": role,
                 "active": active,
                 "license_key": license_key if license_key else "NONE",
-                "expires_at": expires_at
+                "expires_at": expires_at,
+                "email": email
             }
             save_users(users)
             success = f"{username} kullanıcısı eklendi." if get_lang() == "tr" else f"User {username} added."

@@ -28,20 +28,15 @@
             padding: 14px 0;
             border-bottom: 1px solid #2c3240;
         }
-        .user-row:last-child {
-            border-bottom: none;
-        }
-        .name {
-            font-weight: bold;
-            color: #fff;
-        }
+        .user-row:last-child { border-bottom: none; }
+        .name { font-weight: bold; color: #fff; }
         .meta {
             color: #aab1bf;
             font-size: 13px;
             margin-top: 4px;
             line-height: 1.5;
         }
-        .danger-btn, .back-btn, .toggle-btn {
+        .danger-btn, .back-btn, .toggle-btn, .mail-btn {
             padding: 10px 14px;
             border-radius: 8px;
             border: none;
@@ -52,19 +47,18 @@
             margin-left: 6px;
         }
         .danger-btn { background: #b91c1c; }
+        .toggle-btn { background: #d97706; }
+        .mail-btn { background: #2563eb; }
         .back-btn {
             display: inline-block;
             margin-top: 18px;
             background: #2563eb;
         }
-        .toggle-btn { background: #d97706; }
         .disabled {
             color: #888;
             font-size: 13px;
         }
-        form {
-            display: inline-block;
-        }
+        form { display: inline-block; }
     </style>
 </head>
 <body>
@@ -78,6 +72,7 @@
                     <div class="meta">
                         Rol: {{ info.role }}<br>
                         Aktif: {{ info.active }}<br>
+                        Mail: {{ info.email or '-' }}<br>
                         Lisans: {{ info.license_key }}<br>
                         Bitiş: {{ info.expires_at }}
                     </div>
@@ -86,6 +81,9 @@
                     {% if uname == "admin" %}
                         <div class="disabled">Admin kilitli</div>
                     {% else %}
+                        <form method="POST" action="/send-license/{{ uname }}">
+                            <button type="submit" class="mail-btn">Lisans Maili Gönder</button>
+                        </form>
                         <form method="POST" action="/toggle-user/{{ uname }}">
                             <button type="submit" class="toggle-btn">
                                 {% if info.active %}Pasif Yap{% else %}Aktif Yap{% endif %}
