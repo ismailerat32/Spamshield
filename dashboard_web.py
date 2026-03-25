@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import os
 import json
 import random
@@ -244,6 +244,34 @@ def generate_unique_license_key(users):
             return new_key
 
 
+@app.route("/api/push-log", methods=["POST"])
+def api_push_log():
+    api_key = request.headers.get("X-API-KEY", "").strip()
+    expected_key = os.getenv("API_PUSH_KEY", "").strip()
+
+    if not expected_key or api_key != expected_key:
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    data = request.get_json(silent=True) or {}
+
+    sender = str(data.get("sender", "BİLİNMİYOR")).strip()
+    status = str(data.get("status", "TEMİZ")).strip()
+    score = str(data.get("score", "0")).strip()
+    category = str(data.get("category", "GENEL")).strip()
+    message = str(data.get("message", "")).strip()
+
+    if not message:
+        return jsonify({"ok": False, "error": "message missing"}), 400
+
+    os.makedirs("logs", exist_ok=True)
+    line = f"From: {sender} | Status: {status} | Score: {score} | Category: {category} | Message: {message[:160]}"
+
+    with open(LOG_FILE, "a", encoding="utf-8") as f:
+        f.write(line + "\n")
+
+    return jsonify({"ok": True})
+
+
 @app.route("/set-language/<lang>")
 def set_language(lang):
     if lang in ["tr", "en"]:
@@ -389,9 +417,6 @@ SpamShield
 @app.route("/login", methods=["GET", "POST"])
 def login():
     ensure_default_user()
-
-    if not is_license_active():
-        return redirect(url_for("activate"))
 
     error = None
     t = load_locale(get_lang())
@@ -604,9 +629,6 @@ def settings():
 
 @app.route("/")
 def index():
-    if not is_license_active():
-        return redirect(url_for("activate"))
-
     if not login_required():
         return redirect(url_for("login"))
 
