@@ -1,59 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Lisans Aktivasyonu</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #0f1115;
-            color: #eee;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .box {
-            background: #171a21;
-            border: 1px solid #2b2f3a;
-            border-radius: 16px;
-            padding: 28px;
-            width: 380px;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.35);
-        }
-        h2 { margin-top: 0; }
-        .small {
-            color: #aab1bf;
-            font-size: 13px;
-            margin-bottom: 16px;
-        }
-        input, button {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 12px;
-            margin-bottom: 12px;
-            border-radius: 10px;
-            border: 1px solid #333845;
-            background: #0f1115;
-            color: #eee;
-        }
-        button {
-            background: #1f6feb;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Lisans Aktivasyonu</title>
+<style>
+body { background:#0f1115; color:white; font-family:Arial; display:flex; justify-content:center; align-items:center; height:100vh; }
+.box { background:#171a21; padding:25px; border-radius:12px; width:320px; }
+input,button { width:100%; padding:10px; margin:8px 0; border-radius:8px; }
+button { background:#22c55e; color:white; border:none; }
+</style>
 </head>
 <body>
-    <div class="box">
-        <h2>🔑 Lisans Aktivasyonu</h2>
-        <div class="small">SpamShield kullanmak için lisans anahtarını gir.</div>
-        <form method="POST" action="/activate">
-            <input name="license_key" placeholder="Lisans anahtarı" required>
-            <button type="submit">Aktif Et</button>
-        </form>
-    </div>
+<div class="box">
+<h2>Lisans Aktivasyonu</h2>
+
+{% if error %}<p style="color:red">{{error}}</p>{% endif %}
+{% if success %}<p style="color:lightgreen">{{success}}</p>{% endif %}
+
+<form method="POST">
+<input name="username" placeholder="Kullanıcı adı">
+<input name="license_key" placeholder="Lisans key">
+<button>Aktif Et</button>
+</form>
+
+<a href="/login">Giriş Yap</a>
+</div>
 </body>
 </html>
