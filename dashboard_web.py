@@ -190,10 +190,6 @@ def save_license(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def is_license_active():
-    return load_license().get("active") is True
-
-
 def login_required():
     return session.get("logged_in") is True
 
@@ -264,7 +260,13 @@ def api_push_log():
         return jsonify({"ok": False, "error": "message missing"}), 400
 
     os.makedirs("logs", exist_ok=True)
-    line = f"From: {sender} | Status: {status} | Score: {score} | Category: {category} | Message: {message[:160]}"
+
+    line = (
+        f"From: {sender} | Status: {status} | Score: {score} | "
+        f"Category: {category} | Message: {message[:160]}"
+    )
+
+    print("PUSH_LOG:", line, flush=True)
 
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(line + "\n")
@@ -362,12 +364,14 @@ def send_license(target_username):
     mail_cfg = load_mail_settings()
 
     if target_username not in users:
+        print("MAIL_ERROR: kullanıcı bulunamadı ->", target_username, flush=True)
         return redirect(url_for("users"))
 
     user = users[target_username]
     email = user.get("email", "").strip()
 
     if not email:
+        print("MAIL_ERROR: kullanıcı email yok", flush=True)
         return redirect(url_for("users"))
 
     license_key = user.get("license_key", "").strip().upper()
@@ -399,6 +403,14 @@ SpamShield
 """
 
     try:
+        print("MAIL_DEBUG smtp_host:", mail_cfg["smtp_host"], flush=True)
+        print("MAIL_DEBUG smtp_port:", mail_cfg["smtp_port"], flush=True)
+        print("MAIL_DEBUG smtp_user:", mail_cfg["smtp_user"], flush=True)
+        print("MAIL_DEBUG smtp_pass_set:", bool(mail_cfg["smtp_pass"]), flush=True)
+        print("MAIL_DEBUG target_email:", email, flush=True)
+        print("MAIL_DEBUG target_username:", target_username, flush=True)
+        print("MAIL_DEBUG license_key:", license_key, flush=True)
+
         send_mail(
             mail_cfg["smtp_host"],
             mail_cfg["smtp_port"],
@@ -408,8 +420,11 @@ SpamShield
             subject,
             body
         )
+
+        print("MAIL_SUCCESS gönderildi", flush=True)
+
     except Exception as e:
-        print("Mail gönderme hatası:", e)
+        print("MAIL_ERROR:", repr(e), flush=True)
 
     return redirect(url_for("users"))
 
