@@ -374,6 +374,74 @@ def send_license(target_username):
         print("MAIL_ERROR: kullanıcı email yok", flush=True)
         return redirect(url_for("users"))
 
+    current_license = user.get("license_key", "").strip().upper()
+    generated_new_license = False
+
+    if not current_license or current_license == "NONE":
+        license_key = generate_unique_license_key(users)
+        generated_new_license = True
+    else:
+        license_key = current_license
+
+    expires_at = user.get("expires_at", "").strip() or "2026-12-31"
+    base_url = os.getenv("APP_BASE_URL", "http://127.0.0.1:8080")
+
+    subject = "SpamShield Lisans Kodunuz"
+    body = f"""Merhaba {target_username},
+
+SpamShield lisans kodunuz aşağıdadır:
+
+{license_key}
+
+Aktivasyon için:
+- Kullanıcı adınız: {target_username}
+- Lisans kodunuz: {license_key}
+
+Aktivasyon sayfası:
+{base_url}/activate
+
+SpamShield
+"""
+
+    try:
+        print("MAIL_DEBUG smtp_host:", mail_cfg["smtp_host"], flush=True)
+        print("MAIL_DEBUG smtp_port:", mail_cfg["smtp_port"], flush=True)
+        print("MAIL_DEBUG smtp_user:", mail_cfg["smtp_user"], flush=True)
+        print("MAIL_DEBUG smtp_pass_set:", bool(mail_cfg["smtp_pass"]), flush=True)
+        print("MAIL_DEBUG target_email:", email, flush=True)
+        print("MAIL_DEBUG target_username:", target_username, flush=True)
+        print("MAIL_DEBUG license_key:", license_key, flush=True)
+
+        send_mail(
+            mail_cfg["smtp_host"],
+            mail_cfg["smtp_port"],
+            mail_cfg["smtp_user"],
+            mail_cfg["smtp_pass"],
+            email,
+            subject,
+            body
+        )
+
+        if generated_new_license:
+            users[target_username]["license_key"] = license_key
+            users[target_username]["expires_at"] = expires_at
+            save_users(users)
+
+        print("MAIL_SUCCESS gönderildi", flush=True)
+
+    except Exception as e:
+        print("MAIL_ERROR:", repr(e), flush=True)
+
+    return redirect(url_for("users"))
+
+
+    user = users[target_username]
+    email = user.get("email", "").strip()
+
+    if not email:
+        print("MAIL_ERROR: kullanıcı email yok", flush=True)
+        return redirect(url_for("users"))
+
     license_key = user.get("license_key", "").strip().upper()
 
     if not license_key or license_key == "NONE":
