@@ -10,10 +10,9 @@ def send_mail(host, port, user, password, to_email, subject, body):
     msg["To"] = to_email
 
     try:
-        print("MAIL_DEBUG SMTP bağlanıyor...", flush=True)
+        print("MAIL_DEBUG SMTP SSL bağlanıyor...", flush=True)
 
-        server = smtplib.SMTP(host, port, timeout=10)
-        server.starttls()
+        server = smtplib.SMTP_SSL(host, 465, timeout=10)
 
         print("MAIL_DEBUG login deneniyor...", flush=True)
         server.login(user, password)
