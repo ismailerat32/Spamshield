@@ -1,16 +1,30 @@
 import smtplib
-from email.message import EmailMessage
+from email.mime.text import MIMEText
 
-def send_mail(smtp_host, smtp_port, smtp_user, smtp_pass, to_email, subject, body):
-    smtp_pass = smtp_pass.replace(" ", "").replace("\u00a0", "")
+def send_mail(host, port, user, password, to_email, subject, body):
+    print("MAIL_DEBUG send_mail başladı", flush=True)
 
-    msg = EmailMessage()
+    msg = MIMEText(body)
     msg["Subject"] = subject
-    msg["From"] = smtp_user
+    msg["From"] = user
     msg["To"] = to_email
-    msg.set_content(body)
 
-    with smtplib.SMTP(smtp_host, int(smtp_port)) as server:
+    try:
+        print("MAIL_DEBUG SMTP bağlanıyor...", flush=True)
+
+        server = smtplib.SMTP(host, port, timeout=10)
         server.starttls()
-        server.login(smtp_user, smtp_pass)
-        server.send_message(msg)
+
+        print("MAIL_DEBUG login deneniyor...", flush=True)
+        server.login(user, password)
+
+        print("MAIL_DEBUG mail gönderiliyor...", flush=True)
+        server.sendmail(user, [to_email], msg.as_string())
+
+        server.quit()
+
+        print("MAIL_SUCCESS gönderildi", flush=True)
+
+    except Exception as e:
+        print("MAIL_ERROR:", repr(e), flush=True)
+        raise
