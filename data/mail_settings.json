@@ -1,0 +1,6 @@
+{
+  "smtp_host": "smtp.gmail.com",
+  "smtp_port": 587,
+  "smtp_user": "REDACTED_SMTP_USER",
+  "smtp_pass": "REMOVED_SMTP_PASSWORD"
+}

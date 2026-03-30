@@ -1,0 +1,13 @@
+from mailer import send_mail
+
+send_mail(
+    "smtp.gmail.com",
+    587,
+    "REDACTED_SMTP_USER",
+    "",
+    "REDACTED_SMTP_USER",
+    "SpamShield Test",
+    "Bu bir test mailidir."
+)
+
+print("Mail gönderildi")

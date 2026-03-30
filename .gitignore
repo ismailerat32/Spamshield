@@ -1,14 +1,21 @@
+# Python
 __pycache__/
 *.pyc
-logs/
-SpamShield_Backups/
-*.tar.gz
+
+# Database
+*.db
+
+# JSON runtime data
+users.json
+licenses.json
+settings.json
+config.json
+
+# Logs
 *.log
-.env
-data/mail_settings.json
-data/users.json
-data/seen_ids.json
-data/watchlist.json
-data/blocklist.json
-test_mail.py
-test_mail.py.save
+
+# Temp
+*.tmp
+
+# OS
+.DS_Store
