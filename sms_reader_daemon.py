@@ -4,7 +4,7 @@ import json
 import subprocess
 import time
 import os
-from datetime import datetime
+import requests
 from analyzer import analyze_sms
 
 BASE_DIR = os.path.expanduser("~/spamshield_release")
@@ -20,6 +20,9 @@ NORMAL_SLEEP = 25
 ERROR_SLEEP = 90
 MAX_SEEN_IDS = 1000
 
+CLOUD_URL = "https://spamshield-peld.onrender.com/api/push-log"
+API_PUSH_KEY = "spamshield_push_key_123"
+
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -32,10 +35,6 @@ if not os.path.exists(LOG_FILE):
         f.write("")
 
 _last_error_text = None
-
-
-def now_str():
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def log_line(text):
@@ -61,9 +60,7 @@ def load_seen():
     try:
         with open(SEEN_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-            if isinstance(data, list):
-                return data
-            return []
+            return data if isinstance(data, list) else []
     except Exception:
         return []
 
@@ -86,6 +83,29 @@ def notify(title, content):
         pass
 
 
+def push_to_cloud(sender, status, score, category, message):
+    try:
+        response = requests.post(
+            CLOUD_URL,
+            headers={
+                "Content-Type": "application/json",
+                "X-API-KEY": API_PUSH_KEY
+            },
+            json={
+                "sender": sender,
+                "status": status,
+                "score": score,
+                "category": category,
+                "message": message
+            },
+            timeout=20
+        )
+        return response.status_code == 200
+    except Exception as e:
+        log_error_once(f"⚠️ Cloud gönderim hatası: {e}")
+        return False
+
+
 def read_sms():
     try:
         result = subprocess.run(
@@ -94,7 +114,6 @@ def read_sms():
             text=True,
             timeout=SMS_TIMEOUT
         )
-
         stdout = (result.stdout or "").strip()
         if not stdout:
             return []
@@ -104,11 +123,11 @@ def read_sms():
             clear_last_error()
             return data
 
-        log_error_once(f"⚠️ SMS okuma hatası: Beklenmeyen çıktı türü ({type(data).__name__})")
+        log_error_once("⚠️ SMS okuma hatası: Beklenmeyen çıktı")
         return []
 
     except subprocess.TimeoutExpired:
-        log_error_once("⚠️ SMS okuma hatası: termux-sms-list zaman aşımına uğradı")
+        log_error_once("⚠️ SMS okuma hatası: zaman aşımı")
         return []
     except json.JSONDecodeError:
         log_error_once("⚠️ SMS okuma hatası: JSON çözümlenemedi")
@@ -136,11 +155,10 @@ def process_message(msg, seen_ids):
         log_error_once(f"⚠️ Analiz hatası: {e}")
         return seen_ids
 
-    line = (
-        f"From: {sender} | Status: {status} | Score: {score} | "
-        f"Category: {category} | Message: {body[:160]}"
-    )
+    line = f"From: {sender} | Status: {status} | Score: {score} | Category: {category} | Message: {body[:160]}"
     log_line(line)
+
+    push_to_cloud(sender, status, score, category, body[:160])
 
     if status in ["SPAM", "ENGELLENDİ"]:
         notify("🚫 SpamShield - SPAM", f"{sender} → SPAM mesaj")
@@ -152,7 +170,7 @@ def process_message(msg, seen_ids):
 
 
 def main():
-    log_line(f"📡 SpamShield daemon başlatıldı [{now_str()}]")
+    log_line("📡 SpamShield daemon başlatıldı")
 
     while True:
         seen_ids = load_seen()

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kullanıcı Ekle</title>
+<title>Lisans Yönet</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#0b1220;color:#fff}
@@ -21,9 +21,15 @@ body{margin:0;font-family:Arial,sans-serif;background:#0b1220;color:#fff}
 .content{margin-top:64px;margin-left:88px;padding:18px;transition:margin-left .25s ease}
 .content.expanded{margin-left:230px}
 .card{background:#10192c;border:1px solid #23324b;border-radius:22px;padding:22px;max-width:760px}
+.info{background:#0b1325;border:1px solid #30415f;border-radius:16px;padding:14px;margin-bottom:16px;color:#dbeafe;line-height:1.7}
 label{display:block;margin:12px 0 6px;color:#cbd5e1}
-input,select{width:100%;padding:12px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:#fff}
-button{margin-top:16px;width:100%;padding:12px;border:none;border-radius:12px;background:#16a34a;color:#fff;font-weight:bold;cursor:pointer}
+input{width:100%;padding:12px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:#fff}
+.actions{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+button{padding:12px;border:none;border-radius:12px;color:#fff;font-weight:bold;cursor:pointer}
+.btn-extend{background:#2563eb}
+.btn-pro{background:#16a34a}
+.btn-trial{background:#9333ea}
+.btn-reset{background:#f59e0b}
 .ok{background:#14532d;padding:10px;border-radius:10px;margin-bottom:12px}
 .err{background:#7f1d1d;padding:10px;border-radius:10px;margin-bottom:12px}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.60);backdrop-filter:blur(3px);z-index:900}
@@ -50,8 +56,8 @@ button{margin-top:16px;width:100%;padding:12px;border:none;border-radius:12px;ba
 
 <div id="sidebar" class="sidebar">
     <a href="/dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
-    <a href="/users"><span class="icon">👥</span><span class="label">Kullanıcılar</span></a>
-    <a href="/add-user" class="active"><span class="icon">➕</span><span class="label">Kullanıcı Ekle</span></a>
+    <a href="/users" class="active"><span class="icon">👥</span><span class="label">Kullanıcılar</span></a>
+    <a href="/add-user"><span class="icon">➕</span><span class="label">Kullanıcı Ekle</span></a>
     <a href="/change"><span class="icon">🔑</span><span class="label">Şifre Değiştir</span></a>
     <a href="/setting"><span class="icon">⚙️</span><span class="label">Ayarlar</span></a>
     <a href="/activate-license"><span class="icon">💳</span><span class="label">Lisans</span></a>
@@ -61,23 +67,28 @@ button{margin-top:16px;width:100%;padding:12px;border:none;border-radius:12px;ba
 
 <div id="content" class="content">
     <div class="card">
-        <h2>Kullanıcı Ekle</h2>
+        <h2>{{ target_username }} lisans yönetimi</h2>
+
+        <div class="info">
+            Rol: <b>{{ target_user["role"] }}</b><br>
+            Lisans Tipi: <b>{{ target_user["license_type"] }}</b><br>
+            Lisans Kodu: <b>{{ target_user["license_key"] }}</b><br>
+            Bitiş: <b>{{ target_user["license_expiry"] }}</b><br>
+            Kalan Gün: <b>{{ days_left }}</b>
+        </div>
+
         {% if message %}<div class="ok">{{ message }}</div>{% endif %}
         {% if error %}<div class="err">{{ error }}</div>{% endif %}
-        <form method="POST" action="/add-user">
-            <label>Kullanıcı Adı</label>
-            <input type="text" name="username" required>
 
-            <label>Şifre</label>
-            <input type="password" name="password" required>
-
-            <label>Rol</label>
-            <select name="role">
-                <option value="user">user</option>
-                <option value="admin">admin</option>
-            </select>
-
-            <button type="submit">Kullanıcı Ekle</button>
+        <form method="POST">
+            <label>Kaç gün eklensin?</label>
+            <input type="number" name="extra_days" placeholder="30">
+            <div class="actions">
+                <button class="btn-extend" type="submit" name="action" value="extend">Süre Uzat</button>
+                <button class="btn-pro" type="submit" name="action" value="make_pro">PRO Yap</button>
+                <button class="btn-trial" type="submit" name="action" value="make_trial">Trial Yap</button>
+                <button class="btn-reset" type="submit" name="action" value="reset_license">Lisans Kodu Yenile</button>
+            </div>
         </form>
     </div>
 </div>

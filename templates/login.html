@@ -1,79 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>Giriş Yap</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #0f1115;
-            color: #eee;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .box {
-            background: #171a21;
-            border: 1px solid #2b2f3a;
-            border-radius: 16px;
-            padding: 28px;
-            width: 360px;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.35);
-        }
-        h2 { margin-top: 0; text-align: center; }
-        input, button, a {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 12px;
-            margin-bottom: 12px;
-            border-radius: 10px;
-            border: 1px solid #333845;
-            background: #0f1115;
-            color: #eee;
-            text-decoration: none;
-            display: block;
-            text-align: center;
-        }
-        button {
-            background: #2563eb;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .register { background: #22c55e; }
-        .error {
-            background: #351516;
-            color: #ffb4b4;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 12px;
-        }
-        .info {
-            text-align: center;
-            color: #aab1bf;
-            font-size: 13px;
-            margin-bottom: 10px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giriş Yap</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#0f172a,#111827,#1e293b);color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh}
+.box{width:90%;max-width:380px;background:#0f172af2;border:1px solid #334155;border-radius:16px;padding:28px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+h1{text-align:center;margin:0 0 8px}
+p.sub{text-align:center;color:#94a3b8;margin:0 0 22px}
+label{display:block;margin:10px 0 6px;color:#cbd5e1}
+input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #334155;border-radius:10px;background:#111827;color:#fff}
+button{width:100%;padding:12px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-weight:bold;margin-top:14px}
+.err{background:#7f1d1d55;border:1px solid #dc262680;color:#fecaca;padding:10px;border-radius:10px;margin-bottom:14px;text-align:center}
+.links{text-align:center;margin-top:18px}
+.links a{color:#60a5fa;text-decoration:none}
+</style>
 </head>
 <body>
-    <div class="box">
-        <h2>🔐 Giriş Yap</h2>
-        <div class="info">SpamShield hesabın ile giriş yap</div>
-
-        {% if error %}
-            <div class="error">{{ error }}</div>
-        {% endif %}
-
-        <form method="POST" action="/login">
-            <input type="text" name="username" placeholder="Kullanıcı adı" required>
-            <input type="password" name="password" placeholder="Şifre" required>
-            <button type="submit">Giriş Yap</button>
-        </form>
-
-        <a href="/register" class="register">Üye Ol</a>
-    </div>
+<div class="box">
+<h1>🛡 SpamShield</h1>
+<p class="sub">Yönetim paneline giriş yapın</p>
+{% if error %}<div class="err">{{ error }}</div>{% endif %}
+<form method="POST" action="/login">
+<label>Kullanıcı Adı</label>
+<input type="text" name="username" required>
+<label>Şifre</label>
+<input type="password" name="password" required>
+<button type="submit">Giriş Yap</button>
+</form>
+<div class="links">Hesabın yok mu? <a href="/register">Yeni üye ol</a></div>
+</div>
 </body>
 </html>

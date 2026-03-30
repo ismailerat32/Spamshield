@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kullanıcı Ekle</title>
+<title>Şifre Değiştir</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#0b1220;color:#fff}
@@ -22,8 +22,8 @@ body{margin:0;font-family:Arial,sans-serif;background:#0b1220;color:#fff}
 .content.expanded{margin-left:230px}
 .card{background:#10192c;border:1px solid #23324b;border-radius:22px;padding:22px;max-width:760px}
 label{display:block;margin:12px 0 6px;color:#cbd5e1}
-input,select{width:100%;padding:12px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:#fff}
-button{margin-top:16px;width:100%;padding:12px;border:none;border-radius:12px;background:#16a34a;color:#fff;font-weight:bold;cursor:pointer}
+input{width:100%;padding:12px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:#fff}
+button{margin-top:16px;width:100%;padding:12px;border:none;border-radius:12px;background:#2563eb;color:#fff;font-weight:bold;cursor:pointer}
 .ok{background:#14532d;padding:10px;border-radius:10px;margin-bottom:12px}
 .err{background:#7f1d1d;padding:10px;border-radius:10px;margin-bottom:12px}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.60);backdrop-filter:blur(3px);z-index:900}
@@ -51,8 +51,8 @@ button{margin-top:16px;width:100%;padding:12px;border:none;border-radius:12px;ba
 <div id="sidebar" class="sidebar">
     <a href="/dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
     <a href="/users"><span class="icon">👥</span><span class="label">Kullanıcılar</span></a>
-    <a href="/add-user" class="active"><span class="icon">➕</span><span class="label">Kullanıcı Ekle</span></a>
-    <a href="/change"><span class="icon">🔑</span><span class="label">Şifre Değiştir</span></a>
+    <a href="/add-user"><span class="icon">➕</span><span class="label">Kullanıcı Ekle</span></a>
+    <a href="/change" class="active"><span class="icon">🔑</span><span class="label">Şifre Değiştir</span></a>
     <a href="/setting"><span class="icon">⚙️</span><span class="label">Ayarlar</span></a>
     <a href="/activate-license"><span class="icon">💳</span><span class="label">Lisans</span></a>
     <a href="/landing"><span class="icon">🌐</span><span class="label">Landing</span></a>
@@ -61,23 +61,20 @@ button{margin-top:16px;width:100%;padding:12px;border:none;border-radius:12px;ba
 
 <div id="content" class="content">
     <div class="card">
-        <h2>Kullanıcı Ekle</h2>
+        <h2>Şifre Değiştir</h2>
         {% if message %}<div class="ok">{{ message }}</div>{% endif %}
         {% if error %}<div class="err">{{ error }}</div>{% endif %}
-        <form method="POST" action="/add-user">
-            <label>Kullanıcı Adı</label>
-            <input type="text" name="username" required>
+        <form method="POST" action="/change">
+            <label>Mevcut Şifre</label>
+            <input type="password" name="current_password" required>
 
-            <label>Şifre</label>
-            <input type="password" name="password" required>
+            <label>Yeni Şifre</label>
+            <input type="password" name="new_password" required>
 
-            <label>Rol</label>
-            <select name="role">
-                <option value="user">user</option>
-                <option value="admin">admin</option>
-            </select>
+            <label>Yeni Şifre Tekrar</label>
+            <input type="password" name="new_password2" required>
 
-            <button type="submit">Kullanıcı Ekle</button>
+            <button type="submit">Şifreyi Güncelle</button>
         </form>
     </div>
 </div>
