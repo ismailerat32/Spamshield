@@ -1,513 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>SpamShield Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #0f1115;
-            color: #eee;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h1, h2, h3 { margin: 0 0 12px 0; }
-
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 22px;
-        }
-
-        .brand {
-            font-size: 28px;
-            font-weight: 900;
-        }
-
-        .subtitle {
-            color: #9aa4b2;
-            margin-top: 6px;
-            font-size: 14px;
-        }
-
-        .actions a {
-            text-decoration: none;
-            color: white;
-            padding: 10px 14px;
-            border-radius: 10px;
-            margin-left: 8px;
-            display: inline-block;
-            font-weight: bold;
-        }
-
-        .btn-blue { background: #2563eb; }
-        .btn-green { background: #16a34a; }
-        .btn-purple { background: #7c3aed; }
-        .btn-red { background: #b91c1c; }
-        .btn-gray { background: #475569; }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 14px;
-            margin-bottom: 22px;
-        }
-
-        .card {
-            background: #171a21;
-            border: 1px solid #2b2f3a;
-            border-radius: 16px;
-            padding: 16px;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.22);
-        }
-
-        .card-title {
-            color: #9aa4b2;
-            font-size: 13px;
-            margin-bottom: 8px;
-        }
-
-        .card-value {
-            font-size: 28px;
-            font-weight: 900;
-            color: #fff;
-        }
-
-        .card-sub {
-            margin-top: 6px;
-            color: #8f98a7;
-            font-size: 12px;
-        }
-
-        .chart-wrap {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 18px;
-            margin-bottom: 22px;
-        }
-
-        .chart-box {
-            background: #171a21;
-            border: 1px solid #2b2f3a;
-            border-radius: 16px;
-            padding: 18px;
-        }
-
-        .mini-info {
-            display: grid;
-            gap: 12px;
-        }
-
-        .mini-row {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid #2c3240;
-            border-radius: 12px;
-            padding: 14px;
-        }
-
-        .filters {
-            background: #171a21;
-            border: 1px solid #2b2f3a;
-            border-radius: 16px;
-            padding: 14px;
-            margin-bottom: 22px;
-        }
-
-        .filters form {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-        }
-
-        select, input, button {
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #333845;
-            background: #0f1115;
-            color: #eee;
-        }
-
-        button {
-            border: none;
-            background: #2563eb;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .reset-link {
-            color: #93c5fd;
-            text-decoration: none;
-            padding: 8px 4px;
-        }
-
-        .layout {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-        }
-
-        .panel {
-            background: #171a21;
-            border: 1px solid #2b2f3a;
-            border-radius: 16px;
-            padding: 18px;
-        }
-
-        .msg-card {
-            border-radius: 14px;
-            padding: 14px;
-            margin-bottom: 12px;
-            border: 1px solid #333;
-        }
-
-        .spam { background: #351516; border-color: #7f1d1d; }
-        .supheli { background: #3a2c12; border-color: #a16207; }
-        .temiz { background: #10281a; border-color: #166534; }
-        .beyaz { background: #10263f; border-color: #1d4ed8; }
-        .engellendi { background: #3b0a0a; border-color: #ef4444; }
-
-        .meta {
-            font-size: 14px;
-            color: #d1d5db;
-            margin-bottom: 8px;
-        }
-
-        .msg {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            line-height: 1.5;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 9px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-right: 8px;
-        }
-
-        .badge-spam { background: #dc2626; color: white; }
-        .badge-supheli { background: #f59e0b; color: black; }
-        .badge-temiz { background: #16a34a; color: white; }
-        .badge-beyaz { background: #2563eb; color: white; }
-        .badge-engellendi { background: #991b1b; color: white; }
-
-        .side-item {
-            padding: 12px 0;
-            border-bottom: 1px solid #2c3240;
-        }
-
-        .side-item:last-child {
-            border-bottom: none;
-        }
-
-        .side-title {
-            font-weight: bold;
-        }
-
-        .side-small {
-            color: #9aa4b2;
-            font-size: 13px;
-            margin-top: 6px;
-            line-height: 1.5;
-        }
-
-        .danger-btn, .warn-btn, .safe-btn {
-            padding: 9px 12px;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-weight: bold;
-            margin-top: 8px;
-            cursor: pointer;
-        }
-
-        .danger-btn { background: #b91c1c; }
-        .warn-btn { background: #d97706; }
-        .safe-btn { background: #2563eb; }
-
-        .side-item form {
-            display: inline-block;
-            margin-right: 6px;
-        }
-
-        @media (max-width: 1000px) {
-            .stats { grid-template-columns: repeat(3, 1fr); }
-            .chart-wrap,
-            .layout { grid-template-columns: 1fr; }
-        }
-
-        @media (max-width: 640px) {
-            .stats { grid-template-columns: 1fr 1fr; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ app_name }}</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#0b1220;color:#fff}
+.topbar{position:fixed;top:0;left:0;right:0;height:64px;background:rgba(15,23,42,.9);backdrop-filter:blur(12px);border-bottom:1px solid #23324b;display:flex;align-items:center;padding:0 14px;z-index:1100}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.menu-btn{background:#1f2937;border:1px solid #2a3a57;color:#fff;font-size:22px;width:44px;height:44px;border-radius:14px;cursor:pointer}
+.brand{font-size:22px;font-weight:800}
+.sidebar{position:fixed;top:64px;left:0;width:88px;height:calc(100vh - 64px);background:rgba(15,23,42,.88);backdrop-filter:blur(10px);border-right:1px solid #23324b;padding:14px 10px;overflow-y:auto;transition:width .25s ease,left .25s ease;z-index:1000}
+.sidebar.expanded{width:230px}
+.sidebar a{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;background:#1c2739;border:1px solid #23324b;padding:13px 14px;border-radius:16px;margin-bottom:10px;white-space:nowrap;overflow:hidden}
+.sidebar a:hover,.sidebar a.active{background:#2563eb}
+.icon{font-size:24px;min-width:28px;text-align:center}
+.label{opacity:0;transition:opacity .2s ease;font-size:16px;font-weight:600}
+.sidebar.expanded .label{opacity:1}
+.content{margin-top:64px;margin-left:88px;padding:18px;transition:margin-left .25s ease}
+.content.expanded{margin-left:230px}
+.hero{background:linear-gradient(135deg,#101a2c 0%, #0f172a 100%);border:1px solid #23324b;border-radius:24px;padding:26px 22px;margin-bottom:18px}
+.hero h2{margin:0 0 12px 0;font-size:32px}
+.hero p{margin:0;color:#cbd5e1;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.card{background:#10192c;border:1px solid #23324b;border-radius:22px;padding:22px}
+.value{font-size:28px;font-weight:800;margin-top:10px}
+.badge{display:inline-block;padding:7px 12px;border-radius:999px;font-size:13px;font-weight:800;text-transform:uppercase}
+.badge.pro{background:rgba(22,163,74,.18);color:#86efac;border:1px solid rgba(22,163,74,.35)}
+.badge.trial{background:rgba(37,99,235,.18);color:#93c5fd;border:1px solid rgba(37,99,235,.35)}
+.key{margin-top:10px;padding:12px;border-radius:14px;background:#0b1325;border:1px dashed #30415f;word-break:break-all}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.60);backdrop-filter:blur(3px);z-index:900}
+.overlay.show{display:block}
+@media (min-width:900px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:768px){
+  .brand{font-size:18px}
+  .sidebar{left:-240px;width:220px}
+  .sidebar.expanded{left:0;width:220px}
+  .label{opacity:1}
+  .content{margin-left:0;padding:14px}
+  .content.expanded{margin-left:0}
+  .hero h2{font-size:26px}
+}
+</style>
 </head>
 <body>
-    {% set ns = namespace(total=0, spam=0, supheli=0, beyaz=0, engellendi=0, temiz=0) %}
-    {% for log in logs %}
-        {% set ns.total = ns.total + 1 %}
-        {% if log.status == 'SPAM' %}
-            {% set ns.spam = ns.spam + 1 %}
-        {% elif log.status == 'ŞÜPHELİ' %}
-            {% set ns.supheli = ns.supheli + 1 %}
-        {% elif log.status == 'ENGELLENDİ' %}
-            {% set ns.engellendi = ns.engellendi + 1 %}
-            {% set ns.spam = ns.spam + 1 %}
-        {% endif %}
-        {% if log.category == 'BEYAZ_LISTE' %}
-            {% set ns.beyaz = ns.beyaz + 1 %}
-        {% endif %}
-    {% endfor %}
-    {% set ns.temiz = ns.total - ns.spam - ns.supheli %}
+<div class="topbar">
+  <div class="topbar-left">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="brand">🛡 {{ app_name }}</div>
+  </div>
+</div>
 
-    <div class="topbar">
-        <div>
-            <div class="brand">🛡️ SpamShield Premium</div>
-            <div class="subtitle">Canlı SMS analiz, kullanıcı yönetimi ve lisans merkezi</div>
-        </div>
-        <div class="actions">
-            <a class="btn-gray" href="/landing">Landing</a>
-            <a class="btn-blue" href="/change-password">Şifre</a>
-            {% if role == "admin" %}
-                <a class="btn-green" href="/add-user">Kullanıcı Ekle</a>
-                <a class="btn-purple" href="/users">Kullanıcılar</a>
-                <a class="btn-gray" href="/settings">Ayarlar</a>
-            {% endif %}
-            <a class="btn-red" href="/logout">Çıkış</a>
-        </div>
+<div id="overlay" class="overlay" onclick="closeSidebarMobile()"></div>
+
+<div id="sidebar" class="sidebar">
+  <a href="/dashboard" class="active"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
+  <a href="/users"><span class="icon">👥</span><span class="label">Kullanıcılar</span></a>
+  <a href="/add-user"><span class="icon">➕</span><span class="label">Kullanıcı Ekle</span></a>
+  <a href="/change"><span class="icon">🔑</span><span class="label">Şifre Değiştir</span></a>
+  <a href="/setting"><span class="icon">⚙️</span><span class="label">Ayarlar</span></a>
+  <a href="/activate-license"><span class="icon">💳</span><span class="label">Lisans</span></a>
+  <a href="/landing"><span class="icon">🌐</span><span class="label">Landing</span></a>
+  <a href="/logout"><span class="icon">🚪</span><span class="label">Çıkış</span></a>
+</div>
+
+<div id="content" class="content">
+  <div class="hero">
+    <h2>Hoş geldin, {{ username }}</h2>
+    <p>Panel aktif. Lisans, kullanıcı ve ayar yönetimi burada.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div>Toplam Kullanıcı</div>
+      <div class="value">{{ total_users }}</div>
     </div>
 
-    <div class="stats">
-        <div class="card">
-            <div class="card-title">Toplam Mesaj</div>
-            <div class="card-value" data-target="{{ ns.total }}">0</div>
-            <div class="card-sub">Son kayıtlı mesajlar</div>
-        </div>
-        <div class="card">
-            <div class="card-title">SPAM</div>
-            <div class="card-value" data-target="{{ ns.spam }}">0</div>
-            <div class="card-sub">Riskli içerikler</div>
-        </div>
-        <div class="card">
-            <div class="card-title">Şüpheli</div>
-            <div class="card-value" data-target="{{ ns.supheli }}">0</div>
-            <div class="card-sub">İnceleme gerekenler</div>
-        </div>
-        <div class="card">
-            <div class="card-title">Temiz</div>
-            <div class="card-value" data-target="{{ ns.temiz }}">0</div>
-            <div class="card-sub">Normal mesajlar</div>
-        </div>
-        <div class="card">
-            <div class="card-title">Watchlist</div>
-            <div class="card-value" data-target="{{ summary.watchlist_count }}">0</div>
-            <div class="card-sub">İzlenen göndericiler</div>
-        </div>
-        <div class="card">
-            <div class="card-title">Blocklist</div>
-            <div class="card-value" data-target="{{ summary.blocklist_count }}">0</div>
-            <div class="card-sub">Engellenenler</div>
-        </div>
+    <div class="card">
+      <div>Kalan Gün</div>
+      <div class="value">{{ days_left }}</div>
     </div>
 
-    <div class="chart-wrap">
-        <div class="chart-box">
-            <h3>📊 Mesaj Dağılımı</h3>
-            <canvas id="statsChart" height="110"></canvas>
-        </div>
-        <div class="chart-box mini-info">
-            <div class="mini-row">
-                <div class="card-title">Son Engellenen</div>
-                <div class="card-value" style="font-size:20px;">{{ summary.last_blocked or '-' }}</div>
-            </div>
-            <div class="mini-row">
-                <div class="card-title">Aktif Rol</div>
-                <div class="card-value" style="font-size:20px;">{{ role }}</div>
-            </div>
-            <div class="mini-row">
-                <div class="card-title">Otomatik Yenileme</div>
-                <div class="card-value" style="font-size:20px;">60 sn</div>
-            </div>
-        </div>
+    <div class="card">
+      <div>Lisans Modu</div>
+      <div class="value">
+        <span class="badge {% if license_type == 'pro' %}pro{% else %}trial{% endif %}">{{ license_type }}</span>
+      </div>
     </div>
 
-    <div class="filters">
-        <form method="GET" action="/">
-            <select name="status">
-                <option value="">Tüm Durumlar</option>
-                <option value="SPAM" {% if status_filter == "SPAM" %}selected{% endif %}>SPAM</option>
-                <option value="ŞÜPHELİ" {% if status_filter == "ŞÜPHELİ" %}selected{% endif %}>ŞÜPHELİ</option>
-                <option value="TEMİZ" {% if status_filter == "TEMİZ" %}selected{% endif %}>TEMİZ</option>
-                <option value="ENGELLENDİ" {% if status_filter == "ENGELLENDİ" %}selected{% endif %}>ENGELLENDİ</option>
-            </select>
-
-            <input type="text" name="category" placeholder="Kategori" value="{{ category_filter }}">
-            <input type="text" name="sender" placeholder="Gönderen" value="{{ sender_filter }}">
-
-            <button type="submit">Filtrele</button>
-            <a class="reset-link" href="/">Sıfırla</a>
-        </form>
+    <div class="card">
+      <div>Lisans Kodu</div>
+      <div class="key">{{ license_key }}</div>
     </div>
+  </div>
+</div>
 
-    <div class="layout">
-        <div class="panel">
-            <h3>📨 Son Mesajlar</h3>
-            {% if logs %}
-                {% for log in logs %}
-                    {% set cls = 'temiz' %}
-                    {% set badge = 'badge-temiz' %}
-
-                    {% if log.category == 'BEYAZ_LISTE' %}
-                        {% set cls = 'beyaz' %}
-                        {% set badge = 'badge-beyaz' %}
-                    {% elif log.status == 'SPAM' %}
-                        {% set cls = 'spam' %}
-                        {% set badge = 'badge-spam' %}
-                    {% elif log.status == 'ŞÜPHELİ' %}
-                        {% set cls = 'supheli' %}
-                        {% set badge = 'badge-supheli' %}
-                    {% elif log.status == 'ENGELLENDİ' %}
-                        {% set cls = 'engellendi' %}
-                        {% set badge = 'badge-engellendi' %}
-                    {% endif %}
-
-                    <div class="msg-card {{ cls }}">
-                        <div class="meta">
-                            <span class="badge {{ badge }}">{{ log.status or 'BİLİNMİYOR' }}</span>
-                            <strong>Gönderen:</strong> {{ log.sender or 'BİLİNMİYOR' }}
-                            &nbsp; | &nbsp;
-                            <strong>Skor:</strong> {{ log.score or '0' }}
-                            &nbsp; | &nbsp;
-                            <strong>Kategori:</strong> {{ log.category or 'GENEL' }}
-                        </div>
-                        <div class="msg">{{ log.message }}</div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="side-item">Henüz mesaj yok.</div>
-            {% endif %}
-        </div>
-
-        <div>
-            <div class="panel" style="margin-bottom:18px;">
-                <h3>👀 Watchlist</h3>
-                {% if watchlist %}
-                    {% for sender, info in watchlist.items() %}
-                        <div class="side-item">
-                            <div class="side-title">{{ sender }}</div>
-                            <div class="side-small">
-                                Kategori: {{ info.category }}<br>
-                                Skor: {{ info.score }}<br>
-                                Tekrar: {{ info.count }}
-                            </div>
-                            {% if role == "admin" %}
-                                <form method="POST" action="/watch-block/{{ sender }}">
-                                    <button type="submit" class="warn-btn">Blokla</button>
-                                </form>
-                                <form method="POST" action="/watch-remove/{{ sender }}">
-                                    <button type="submit" class="safe-btn">Çıkar</button>
-                                </form>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="side-item">İzlenen numara yok.</div>
-                {% endif %}
-            </div>
-
-            <div class="panel">
-                <h3>⛔ Blocklist</h3>
-                {% if blocklist %}
-                    {% for sender, info in blocklist.items() %}
-                        <div class="side-item">
-                            <div class="side-title">{{ sender }}</div>
-                            <div class="side-small">
-                                Kategori: {{ info.category }}<br>
-                                Skor: {{ info.score }}<br>
-                                Engellendi: {{ info.blocked }}
-                            </div>
-                            {% if role == "admin" %}
-                                <form method="POST" action="/unblock/{{ sender }}">
-                                    <button type="submit" class="danger-btn">Engeli Kaldır</button>
-                                </form>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="side-item">Engellenen numara yok.</div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const counters = document.querySelectorAll('.card-value[data-target]');
-        counters.forEach(counter => {
-            const target = parseInt(counter.getAttribute('data-target') || '0', 10);
-            let current = 0;
-            const step = Math.max(1, Math.ceil(target / 25));
-
-            const update = () => {
-                current += step;
-                if (current >= target) {
-                    counter.textContent = target;
-                } else {
-                    counter.textContent = current;
-                    requestAnimationFrame(update);
-                }
-            };
-            update();
-        });
-
-        const spam = {{ ns.spam }};
-        const supheli = {{ ns.supheli }};
-        const temiz = {{ ns.temiz }};
-        const beyaz = {{ ns.beyaz }};
-
-        const chartEl = document.getElementById('statsChart');
-        if (chartEl) {
-            const ctx = chartEl.getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['SPAM', 'ŞÜPHELİ', 'TEMİZ', 'BEYAZ LİSTE'],
-                    datasets: [{
-                        label: 'Mesaj Sayısı',
-                        data: [spam, supheli, temiz, beyaz]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            labels: { color: '#eee' }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#ddd' },
-                            grid: { color: 'rgba(255,255,255,0.05)' }
-                        },
-                        y: {
-                            ticks: { color: '#ddd' },
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-
-        setTimeout(() => {
-            window.location.reload();
-        }, 60000);
-    </script>
+<script>
+const sidebar=document.getElementById("sidebar");
+const content=document.getElementById("content");
+const overlay=document.getElementById("overlay");
+function isMobile(){return window.innerWidth<=768;}
+function toggleSidebar(){
+  if(isMobile()){sidebar.classList.toggle("expanded");overlay.classList.toggle("show");}
+  else{sidebar.classList.toggle("expanded");content.classList.toggle("expanded");}
+}
+function closeSidebarMobile(){
+  if(isMobile()){sidebar.classList.remove("expanded");overlay.classList.remove("show");}
+}
+window.addEventListener("resize",()=>{if(!isMobile())overlay.classList.remove("show");else content.classList.remove("expanded");});
+</script>
 </body>
 </html>

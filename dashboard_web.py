@@ -814,3 +814,31 @@ if __name__ == "__main__":
     ensure_default_settings()
     port = int(os.getenv("PORT", 8080))
     app.run(host="0.0.0.0", port=port, debug=False)
+
+@app.route("/activate-license/<target_username>", methods=["POST"])
+def activate_license(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("index"))
+
+    users = load_users()
+
+    if target_username not in users:
+        print("LICENSE_ERROR: kullanıcı yok", target_username, flush=True)
+        return redirect(url_for("users"))
+
+    user = users[target_username]
+
+    license_key = generate_unique_license_key(users)
+
+    users[target_username]["license_key"] = license_key
+    users[target_username]["expires_at"] = "2026-12-31"
+    users[target_username]["active"] = True
+
+    save_users(users)
+
+    print("LICENSE_SUCCESS:", target_username, license_key, flush=True)
+
+    return redirect(url_for("users"))
+
