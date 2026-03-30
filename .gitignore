@@ -1,21 +1,29 @@
-# Python
 __pycache__/
 *.pyc
 
-# Database
-*.db
+# secrets
+.env
 
-# JSON runtime data
+# runtime data
 users.json
 licenses.json
 settings.json
 config.json
 
-# Logs
-*.log
+# data
+data/
 
-# Temp
+# logs
+logs/
+
+# database
+*.db
+
+# temp
 *.tmp
 
-# OS
+# test files
+test_*.py
+*.save
+
 .DS_Store

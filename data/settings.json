@@ -1,6 +1,0 @@
-{
-  "notifications_enabled": true,
-  "notify_spam": true,
-  "notify_supheli": true,
-  "min_notify_score": 35
-}
