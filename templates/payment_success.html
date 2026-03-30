@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ödeme Başarılı</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#0b1220;color:#fff}
+.container{max-width:760px;margin:40px auto;padding:20px}
+.card{background:#10192c;border:1px solid #23324b;border-radius:22px;padding:24px}
+.ok{background:#14532d;padding:12px;border-radius:12px;margin-bottom:16px}
+.info{background:#0b1325;border:1px solid #30415f;border-radius:16px;padding:14px;line-height:1.8;margin-bottom:18px}
+.actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-block;text-decoration:none;color:#fff;padding:12px 16px;border-radius:12px;font-weight:bold}
+.btn-blue{background:#2563eb}
+.btn-green{background:#16a34a}
+.key{font-size:20px;font-weight:800;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="ok">{{ message }}</div>
+
+    <h2>Ödeme Başarılı</h2>
+
+    <div class="info">
+      Sipariş No: <b>{{ order.order_id }}</b><br>
+      Plan: <b>{{ order.plan_name }}</b><br>
+      Tutar: <b>{{ order.price }}</b><br>
+      Süre: <b>{{ order.days }} gün</b><br>
+      Bitiş Tarihi: <b>{{ order.expiry }}</b><br>
+      Lisans Kodu: <div class="key">{{ order.license_key }}</div>
+    </div>
+
+    <div class="actions">
+      <a class="btn btn-green" href="/dashboard">Dashboard'a Dön</a>
+      <a class="btn btn-blue" href="/pricing">Diğer Planlar</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

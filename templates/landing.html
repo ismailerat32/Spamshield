@@ -6,157 +6,35 @@
 <title>{{ app_name }}</title>
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#0b1220;
-  color:#fff;
-}
-.topbar{
-  position:fixed;
-  top:0;left:0;right:0;
-  height:64px;
-  background:rgba(15,23,42,.92);
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid #23324b;
-  display:flex;
-  align-items:center;
-  padding:0 14px;
-  z-index:1100;
-}
-.topbar-left{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.menu-btn{
-  width:44px;height:44px;
-  border:none;
-  border-radius:14px;
-  background:#1f2937;
-  color:#fff;
-  font-size:22px;
-  cursor:pointer;
-}
-.brand{
-  font-size:22px;
-  font-weight:800;
-}
-.sidebar{
-  position:fixed;
-  top:64px;left:0;
-  width:88px;
-  height:calc(100vh - 64px);
-  background:rgba(15,23,42,.90);
-  border-right:1px solid #23324b;
-  padding:14px 10px;
-  overflow-y:auto;
-  transition:.25s ease;
-  z-index:1000;
-}
+body{margin:0;font-family:Arial,sans-serif;background:#0b1220;color:#fff}
+.topbar{position:fixed;top:0;left:0;right:0;height:64px;background:rgba(15,23,42,.92);backdrop-filter:blur(10px);border-bottom:1px solid #23324b;display:flex;align-items:center;padding:0 14px;z-index:1100}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.menu-btn{width:44px;height:44px;border:none;border-radius:14px;background:#1f2937;color:#fff;font-size:22px;cursor:pointer}
+.brand{font-size:22px;font-weight:800}
+.sidebar{position:fixed;top:64px;left:0;width:88px;height:calc(100vh - 64px);background:rgba(15,23,42,.90);border-right:1px solid #23324b;padding:14px 10px;overflow-y:auto;transition:.25s ease;z-index:1000}
 .sidebar.expanded{width:230px}
-.sidebar a{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  text-decoration:none;
-  color:#fff;
-  background:#1c2739;
-  border:1px solid #23324b;
-  padding:13px 14px;
-  border-radius:16px;
-  margin-bottom:10px;
-  white-space:nowrap;
-  overflow:hidden;
-}
+.sidebar a{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;background:#1c2739;border:1px solid #23324b;padding:13px 14px;border-radius:16px;margin-bottom:10px;white-space:nowrap;overflow:hidden}
 .sidebar a:hover,.sidebar a.active{background:#2563eb}
-.icon{
-  font-size:24px;
-  min-width:28px;
-  text-align:center;
-}
-.label{
-  opacity:0;
-  transition:.2s ease;
-  font-size:16px;
-  font-weight:600;
-}
+.icon{font-size:24px;min-width:28px;text-align:center}
+.label{opacity:0;transition:.2s ease;font-size:16px;font-weight:600}
 .sidebar.expanded .label{opacity:1}
-.content{
-  margin-top:64px;
-  margin-left:88px;
-  padding:18px;
-  transition:.25s ease;
-}
+.content{margin-top:64px;margin-left:88px;padding:18px;transition:.25s ease}
 .content.expanded{margin-left:230px}
-.hero{
-  background:linear-gradient(135deg,#101a2c 0%, #0f172a 100%);
-  border:1px solid #23324b;
-  border-radius:24px;
-  padding:24px;
-  margin-bottom:18px;
-}
-.hero h1{
-  margin:0 0 12px 0;
-  font-size:36px;
-}
-.hero p{
-  margin:0;
-  color:#cbd5e1;
-  line-height:1.7;
-  font-size:17px;
-}
-.actions{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  margin-top:18px;
-}
-.btn{
-  display:inline-block;
-  text-decoration:none;
-  color:#fff;
-  padding:12px 16px;
-  border-radius:12px;
-  font-weight:bold;
-}
+.hero{background:linear-gradient(135deg,#101a2c 0%, #0f172a 100%);border:1px solid #23324b;border-radius:24px;padding:24px;margin-bottom:18px}
+.hero h1{margin:0 0 12px 0;font-size:36px}
+.hero p{margin:0;color:#cbd5e1;line-height:1.7;font-size:17px}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+.btn{display:inline-block;text-decoration:none;color:#fff;padding:12px 16px;border-radius:12px;font-weight:bold}
 .btn-green{background:#16a34a}
 .btn-blue{background:#2563eb}
-.grid{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:16px;
-}
-.card{
-  background:#10192c;
-  border:1px solid #23324b;
-  border-radius:22px;
-  padding:22px;
-}
-.card h3{
-  margin-top:0;
-}
-.price{
-  font-size:30px;
-  font-weight:800;
-  margin:10px 0;
-}
-.list{
-  padding-left:18px;
-  color:#dbeafe;
-}
-.overlay{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
-  backdrop-filter:blur(3px);
-  z-index:900;
-}
+.grid{display:grid;grid-template-columns:1fr;gap:16px}
+.card{background:#10192c;border:1px solid #23324b;border-radius:22px;padding:22px}
+.card h3{margin-top:0}
+.price{font-size:30px;font-weight:800;margin:10px 0}
+.list{padding-left:18px;color:#dbeafe}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:900}
 .overlay.show{display:block}
-@media (min-width:900px){
-  .grid{grid-template-columns:1fr 1fr}
-}
+@media (min-width:900px){.grid{grid-template-columns:1fr 1fr}}
 @media (max-width:768px){
   .brand{font-size:18px}
   .sidebar{left:-240px;width:220px}
@@ -186,6 +64,10 @@ body{
   <a href="/change"><span class="icon">🔑</span><span class="label">Şifre Değiştir</span></a>
   <a href="/setting"><span class="icon">⚙️</span><span class="label">Ayarlar</span></a>
   <a href="/activate-license"><span class="icon">💳</span><span class="label">Lisans</span></a>
+  {% if session.get('username') == 'admin' %}
+  <a href="/admin/licenses"><span class="icon">🧾</span><span class="label">Lisans Havuzu</span></a>
+  {% endif %}
+  <a href="/pricing"><span class="icon">💰</span><span class="label">Fiyatlar</span></a>
   <a href="/landing" class="active"><span class="icon">🌐</span><span class="label">Landing</span></a>
   <a href="/logout"><span class="icon">🚪</span><span class="label">Çıkış</span></a>
 </div>
@@ -193,10 +75,10 @@ body{
 <div id="content" class="content">
   <div class="hero">
     <h1>{{ app_name }}</h1>
-    <p>Trial ile hemen başla, PRO lisans ile süreni uzat. Tek kullanımlık lisans ve panel içi aktivasyon desteği hazır.</p>
+    <p>Trial ile hemen başla. PRO plan satın alındığında sistem lisansı otomatik tanımlar ve hesabını anında yükseltir.</p>
     <div class="actions">
-      <a class="btn btn-green" href="/buy-license">Lisans Satın Al</a>
-      <a class="btn btn-blue" href="/activate-license">Lisans Aktifleştir</a>
+      <a class="btn btn-green" href="/pricing">Planları Gör</a>
+      <a class="btn btn-blue" href="/activate-license">Kod Aktifleştir</a>
     </div>
   </div>
 
@@ -207,17 +89,17 @@ body{
       <ul class="list">
         <li>Panel erişimi</li>
         <li>Temel kullanım</li>
-        <li>Hızlı deneme</li>
+        <li>Hızlı başlama</li>
       </ul>
     </div>
 
     <div class="card">
-      <h3>PRO Paket</h3>
-      <div class="price">30+ Gün</div>
+      <h3>PRO Paketler</h3>
+      <div class="price">30 / 90 / 365 Gün</div>
       <ul class="list">
-        <li>Tek kullanımlık lisans</li>
-        <li>PRO aktivasyon</li>
-        <li>Süre uzatma</li>
+        <li>Otomatik lisans tanımlama</li>
+        <li>Tek kullanımlık lisans sistemi</li>
+        <li>Uzun süreli kullanım</li>
       </ul>
     </div>
   </div>

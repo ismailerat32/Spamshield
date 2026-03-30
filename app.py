@@ -11,9 +11,41 @@ app.secret_key = "spamshield-secret-key"
 USERS_FILE = "users.json"
 SETTINGS_FILE = "settings.json"
 LICENSES_FILE = "licenses.json"
+ORDERS_FILE = "orders.json"
+
+PLANS = {
+    "pro30": {
+        "name": "PRO 30 Gün",
+        "days": 30,
+        "price": "99 TL"
+    },
+    "pro90": {
+        "name": "PRO 90 Gün",
+        "days": 90,
+        "price": "249 TL"
+    },
+    "pro365": {
+        "name": "PRO 365 Gün",
+        "days": 365,
+        "price": "799 TL"
+    }
+}
 
 # -----------------------
-# LICENSE GENERATOR
+# BASIC HELPERS
+# -----------------------
+def read_json(path, default):
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return default
+
+def write_json(path, data):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+# -----------------------
+# LICENSE KEY GENERATORS
 # -----------------------
 def generate_license_key():
     parts = []
@@ -21,70 +53,6 @@ def generate_license_key():
         part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
         parts.append(part)
     return "SPM-" + "-".join(parts)
-
-# Demo lisansları
-VALID_PRO_LICENSES = {
-    "PRO-2026-AAAA-BBBB": 30,
-    "PRO-2026-CCCC-DDDD": 90,
-    "PRO-2026-EEEE-FFFF": 365
-}
-
-# -----------------------
-# USERS
-# -----------------------
-def load_users():
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    users = {
-        "admin": {
-            "password": "1234",
-            "role": "admin",
-            "license_type": "pro",
-            "license_key": "MASTER-KEY",
-            "license_expiry": "2099-01-01"
-        }
-    }
-    save_users(users)
-    return users
-
-def save_users(users):
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(users, f, ensure_ascii=False, indent=4)
-
-# -----------------------
-# SETTINGS
-# -----------------------
-def load_settings():
-    if os.path.exists(SETTINGS_FILE):
-        with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    settings = {
-        "app_name": "SpamShield Premium",
-        "trial_days": 7,
-        "license_mode": "trial_pro"
-    }
-    save_settings(settings)
-    return settings
-
-def save_settings(settings):
-    with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
-        json.dump(settings, f, ensure_ascii=False, indent=4)
-
-# -----------------------
-# LICENSE POOL
-# -----------------------
-def load_licenses():
-    if os.path.exists(LICENSES_FILE):
-        with open(LICENSES_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-def save_licenses(licenses):
-    with open(LICENSES_FILE, "w", encoding="utf-8") as f:
-        json.dump(licenses, f, ensure_ascii=False, indent=4)
 
 def generate_pool_license(days=30):
     licenses = load_licenses()
@@ -100,12 +68,74 @@ def generate_pool_license(days=30):
         "used_by": "",
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
-
     save_licenses(licenses)
     return key
 
+def generate_order_id():
+    return "ORD-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+
 # -----------------------
-# HELPERS
+# USERS
+# -----------------------
+def load_users():
+    users = read_json(USERS_FILE, None)
+    if users is not None:
+        return users
+
+    users = {
+        "admin": {
+            "password": "1234",
+            "role": "admin",
+            "license_type": "pro",
+            "license_key": "MASTER-KEY",
+            "license_expiry": "2099-01-01"
+        }
+    }
+    save_users(users)
+    return users
+
+def save_users(users):
+    write_json(USERS_FILE, users)
+
+# -----------------------
+# SETTINGS
+# -----------------------
+def load_settings():
+    settings = read_json(SETTINGS_FILE, None)
+    if settings is not None:
+        return settings
+
+    settings = {
+        "app_name": "SpamShield Premium",
+        "trial_days": 7,
+        "license_mode": "trial_pro"
+    }
+    save_settings(settings)
+    return settings
+
+def save_settings(settings):
+    write_json(SETTINGS_FILE, settings)
+
+# -----------------------
+# LICENSE POOL
+# -----------------------
+def load_licenses():
+    return read_json(LICENSES_FILE, {})
+
+def save_licenses(licenses):
+    write_json(LICENSES_FILE, licenses)
+
+# -----------------------
+# ORDERS
+# -----------------------
+def load_orders():
+    return read_json(ORDERS_FILE, [])
+
+def save_orders(orders):
+    write_json(ORDERS_FILE, orders)
+
+# -----------------------
+# SESSION / AUTH HELPERS
 # -----------------------
 def login_required():
     return session.get("logged_in", False)
@@ -122,6 +152,9 @@ def is_admin():
 def admin_required():
     return login_required() and is_admin()
 
+# -----------------------
+# LICENSE HELPERS
+# -----------------------
 def is_license_active(user):
     try:
         expiry = datetime.strptime(user.get("license_expiry", ""), "%Y-%m-%d")
@@ -136,35 +169,6 @@ def days_left(user):
         return max(delta.days, 0)
     except:
         return 0
-
-def activate_demo_pro_license(username, entered_key):
-    entered_key = entered_key.strip().upper()
-    users = load_users()
-
-    if username not in users:
-        return False, "Kullanıcı bulunamadı."
-
-    if entered_key not in VALID_PRO_LICENSES:
-        return False, "Lisans kodu geçersiz."
-
-    extra_days = VALID_PRO_LICENSES[entered_key]
-    now = datetime.now()
-
-    current_expiry_raw = users[username].get("license_expiry", "")
-    try:
-        current_expiry = datetime.strptime(current_expiry_raw, "%Y-%m-%d")
-        base_date = current_expiry if current_expiry > now else now
-    except:
-        base_date = now
-
-    new_expiry = base_date + timedelta(days=extra_days)
-
-    users[username]["license_type"] = "pro"
-    users[username]["license_key"] = entered_key
-    users[username]["license_expiry"] = new_expiry.strftime("%Y-%m-%d")
-
-    save_users(users)
-    return True, f"PRO aktif edildi. +{extra_days} gün eklendi."
 
 def activate_pool_license(username, entered_key):
     entered_key = entered_key.strip().upper()
@@ -204,6 +208,75 @@ def activate_pool_license(username, entered_key):
     save_licenses(licenses)
 
     return True, f"PRO aktif edildi. +{extra_days} gün eklendi."
+
+def issue_paid_license(username, plan_key):
+    users = load_users()
+    licenses = load_licenses()
+    orders = load_orders()
+
+    if username not in users:
+        return False, "Kullanıcı bulunamadı.", None
+
+    if plan_key not in PLANS:
+        return False, "Geçersiz plan.", None
+
+    plan = PLANS[plan_key]
+    days = int(plan["days"])
+    now = datetime.now()
+
+    while True:
+        license_key = "PAY-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=12))
+        if license_key not in licenses:
+            break
+
+    current_expiry_raw = users[username].get("license_expiry", "")
+    try:
+        current_expiry = datetime.strptime(current_expiry_raw, "%Y-%m-%d")
+        base_date = current_expiry if current_expiry > now else now
+    except:
+        base_date = now
+
+    new_expiry = base_date + timedelta(days=days)
+
+    users[username]["license_type"] = "pro"
+    users[username]["license_key"] = license_key
+    users[username]["license_expiry"] = new_expiry.strftime("%Y-%m-%d")
+
+    licenses[license_key] = {
+        "days": days,
+        "used": True,
+        "used_by": username,
+        "created_at": now.strftime("%Y-%m-%d %H:%M:%S"),
+        "used_at": now.strftime("%Y-%m-%d %H:%M:%S"),
+        "source": "payment_simulation",
+        "plan_key": plan_key
+    }
+
+    order_id = generate_order_id()
+    orders.append({
+        "order_id": order_id,
+        "username": username,
+        "plan_key": plan_key,
+        "plan_name": plan["name"],
+        "price": plan["price"],
+        "days": days,
+        "license_key": license_key,
+        "created_at": now.strftime("%Y-%m-%d %H:%M:%S"),
+        "status": "paid"
+    })
+
+    save_users(users)
+    save_licenses(licenses)
+    save_orders(orders)
+
+    return True, "Ödeme başarılı, lisans otomatik tanımlandı.", {
+        "order_id": order_id,
+        "plan_name": plan["name"],
+        "price": plan["price"],
+        "days": days,
+        "license_key": license_key,
+        "expiry": new_expiry.strftime("%Y-%m-%d")
+    }
 
 # -----------------------
 # HOME
@@ -309,7 +382,12 @@ def dashboard():
 def users():
     if not admin_required():
         return redirect(url_for("dashboard"))
-    return render_template("users.html", users=load_users(), username=current_username())
+
+    return render_template(
+        "users.html",
+        users=load_users(),
+        username=current_username()
+    )
 
 # -----------------------
 # ADD USER
@@ -344,7 +422,6 @@ def add_user():
                 "license_key": generate_license_key(),
                 "license_expiry": expiry.strftime("%Y-%m-%d")
             }
-
             save_users(users)
             message = "Kullanıcı + lisans oluşturuldu."
 
@@ -531,9 +608,6 @@ def activate_license():
             error = "Lisans kodu boş olamaz."
         else:
             ok, msg = activate_pool_license(username, entered_key)
-            if not ok:
-                ok, msg = activate_demo_pro_license(username, entered_key)
-
             if ok:
                 message = msg
             else:
@@ -552,28 +626,84 @@ def activate_license():
     )
 
 # -----------------------
-# BUY LICENSE (SIMULATION)
+# PRICING
 # -----------------------
-@app.route("/buy-license")
-def buy_license():
+@app.route("/pricing")
+def pricing():
     if not login_required():
         return redirect(url_for("login"))
 
-    key = generate_pool_license(30)
+    settings = load_settings()
+    return render_template(
+        "pricing.html",
+        app_name=settings.get("app_name", "SpamShield Premium"),
+        plans=PLANS,
+        username=current_username()
+    )
 
-    return f"""
-    <html>
-    <head><meta charset='UTF-8'><title>Satın Alma Başarılı</title></head>
-    <body style="background:#0b1220;color:white;font-family:Arial;padding:30px;">
-        <h2>Satın alma başarılı</h2>
-        <p>Tek kullanımlık lisans kodun:</p>
-        <p style="font-size:24px;font-weight:bold;">{key}</p>
-        <p>Bu kod bir kez kullanılabilir.</p>
-        <a href="/activate-license" style="color:#60a5fa;">Lisansı aktifleştir</a><br><br>
-        <a href="/dashboard" style="color:#60a5fa;">Dashboard'a dön</a>
-    </body>
-    </html>
-    """
+# -----------------------
+# BUY PLAN (PAYMENT SIMULATION)
+# -----------------------
+@app.route("/buy-plan/<plan_key>", methods=["POST"])
+def buy_plan(plan_key):
+    if not login_required():
+        return redirect(url_for("login"))
+
+    ok, msg, order_data = issue_paid_license(current_username(), plan_key)
+
+    if not ok:
+        return f"<h2>Hata</h2><p>{msg}</p><a href='/pricing'>Geri dön</a>"
+
+    settings = load_settings()
+    return render_template(
+        "payment_success.html",
+        app_name=settings.get("app_name", "SpamShield Premium"),
+        message=msg,
+        order=order_data
+    )
+
+# -----------------------
+# BUY LICENSE OLD ROUTE
+# -----------------------
+@app.route("/buy-license")
+def buy_license():
+    return redirect(url_for("pricing"))
+
+# -----------------------
+# ADMIN LICENSE PANEL
+# -----------------------
+@app.route("/admin/licenses", methods=["GET", "POST"])
+def admin_licenses():
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    message = ""
+    error = ""
+
+    if request.method == "POST":
+        try:
+            days = int(request.form.get("days", "30").strip())
+            if days <= 0:
+                error = "Geçerli gün sayısı gir."
+            else:
+                new_key = generate_pool_license(days)
+                message = f"Yeni lisans oluşturuldu: {new_key}"
+        except:
+            error = "Gün sayısı hatalı."
+
+    licenses = load_licenses()
+    license_items = sorted(
+        licenses.items(),
+        key=lambda x: x[1].get("created_at", ""),
+        reverse=True
+    )
+
+    return render_template(
+        "admin_licenses.html",
+        licenses=license_items,
+        message=message,
+        error=error
+    )
 
 # -----------------------
 # LANDING
@@ -602,4 +732,6 @@ if __name__ == "__main__":
     load_settings()
     if not os.path.exists(LICENSES_FILE):
         save_licenses({})
+    if not os.path.exists(ORDERS_FILE):
+        save_orders([])
     app.run(host="0.0.0.0", port=5000, debug=True)
