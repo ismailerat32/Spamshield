@@ -1,8 +1,10 @@
 __pycache__/
 *.pyc
+*.pyo
 
 # secrets
 .env
+.env.*
 
 # runtime data
 users.json
@@ -10,20 +12,20 @@ licenses.json
 settings.json
 config.json
 
-# data
+# mail / secret configs
 data/
+mail_settings.json
 
 # logs
 logs/
+*.log
 
 # database
 *.db
 
-# temp
-*.tmp
-
-# test files
+# temp / tests
 test_*.py
 *.save
+*.tmp
 
 .DS_Store

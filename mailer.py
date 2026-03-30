@@ -1,54 +1,29 @@
 import os
-import requests
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
-def send_mail(host, port, user, password, to_email, subject, body):
-    provider = os.getenv("MAIL_PROVIDER", "").strip().lower()
+def send_mail(host=None, port=None, user=None, password=None, to_email="", subject="", body=""):
+    smtp_host = host or os.getenv("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(port or os.getenv("SMTP_PORT", "587"))
+    smtp_user = user or os.getenv("SMTP_USER", "")
+    smtp_pass = password or os.getenv("SMTP_PASS", "")
 
-    if provider == "sendgrid":
-        api_key = os.getenv("SENDGRID_API_KEY", "").strip()
-        from_email = os.getenv("SENDGRID_FROM_EMAIL", "").strip()
+    if not smtp_user or not smtp_pass:
+        return False, "SMTP ayarları eksik"
 
-        print("MAIL_DEBUG provider: sendgrid", flush=True)
-        print("MAIL_DEBUG sendgrid_api_key_set:", bool(api_key), flush=True)
-        print("MAIL_DEBUG sendgrid_from_email:", from_email, flush=True)
-        print("MAIL_DEBUG target_email:", to_email, flush=True)
+    try:
+        msg = MIMEMultipart()
+        msg["From"] = smtp_user
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain", "utf-8"))
 
-        if not api_key:
-            raise RuntimeError("SENDGRID_API_KEY eksik")
-        if not from_email:
-            raise RuntimeError("SENDGRID_FROM_EMAIL eksik")
-
-        response = requests.post(
-            "https://api.sendgrid.com/v3/mail/send",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "personalizations": [
-                    {
-                        "to": [{"email": to_email}]
-                    }
-                ],
-                "from": {"email": from_email},
-                "subject": subject,
-                "content": [
-                    {
-                        "type": "text/plain",
-                        "value": body
-                    }
-                ]
-            },
-            timeout=20
-        )
-
-        print("MAIL_DEBUG sendgrid_status:", response.status_code, flush=True)
-
-        if response.status_code not in (200, 202):
-            print("MAIL_ERROR sendgrid_response:", response.text, flush=True)
-            raise RuntimeError(f"SendGrid hata kodu: {response.status_code}")
-
-        print("MAIL_SUCCESS gönderildi", flush=True)
-        return
-
-    raise RuntimeError("Geçerli MAIL_PROVIDER ayarlı değil")
+        server = smtplib.SMTP(smtp_host, smtp_port)
+        server.starttls()
+        server.login(smtp_user, smtp_pass)
+        server.sendmail(smtp_user, to_email, msg.as_string())
+        server.quit()
+        return True, "Mail gönderildi"
+    except Exception as e:
+        return False, f"Mail hatası: {e}"
