@@ -1,9 +1,18 @@
 from flask import Flask, render_template, redirect, url_for, request, session
+from dotenv import load_dotenv
 import json
 import os
 from datetime import datetime, timedelta
 import random
 import string
+import uuid
+import base64
+import hashlib
+import hmac
+import requests
+import iyzipay
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
 app = Flask(__name__)
 app.secret_key = "spamshield-secret-key"
@@ -14,26 +23,14 @@ LICENSES_FILE = "licenses.json"
 ORDERS_FILE = "orders.json"
 
 PLANS = {
-    "pro30": {
-        "name": "PRO 30 Gün",
-        "days": 30,
-        "price": "99 TL"
-    },
-    "pro90": {
-        "name": "PRO 90 Gün",
-        "days": 90,
-        "price": "249 TL"
-    },
-    "pro365": {
-        "name": "PRO 365 Gün",
-        "days": 365,
-        "price": "799 TL"
-    }
+    "pro30": {"name": "PRO 30 Gün", "days": 30, "price": "99.00"},
+    "pro90": {"name": "PRO 90 Gün", "days": 90, "price": "249.00"},
+    "pro365": {"name": "PRO 365 Gün", "days": 365, "price": "799.00"},
 }
 
-# -----------------------
+# =======================
 # BASIC HELPERS
-# -----------------------
+# =======================
 def read_json(path, default):
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
@@ -44,39 +41,9 @@ def write_json(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# -----------------------
-# LICENSE KEY GENERATORS
-# -----------------------
-def generate_license_key():
-    parts = []
-    for _ in range(4):
-        part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-        parts.append(part)
-    return "SPM-" + "-".join(parts)
-
-def generate_pool_license(days=30):
-    licenses = load_licenses()
-
-    while True:
-        key = "LIC-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=12))
-        if key not in licenses:
-            break
-
-    licenses[key] = {
-        "days": int(days),
-        "used": False,
-        "used_by": "",
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
-    save_licenses(licenses)
-    return key
-
-def generate_order_id():
-    return "ORD-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-
-# -----------------------
-# USERS
-# -----------------------
+# =======================
+# DATA LOAD/SAVE
+# =======================
 def load_users():
     users = read_json(USERS_FILE, None)
     if users is not None:
@@ -97,9 +64,6 @@ def load_users():
 def save_users(users):
     write_json(USERS_FILE, users)
 
-# -----------------------
-# SETTINGS
-# -----------------------
 def load_settings():
     settings = read_json(SETTINGS_FILE, None)
     if settings is not None:
@@ -116,27 +80,21 @@ def load_settings():
 def save_settings(settings):
     write_json(SETTINGS_FILE, settings)
 
-# -----------------------
-# LICENSE POOL
-# -----------------------
 def load_licenses():
     return read_json(LICENSES_FILE, {})
 
 def save_licenses(licenses):
     write_json(LICENSES_FILE, licenses)
 
-# -----------------------
-# ORDERS
-# -----------------------
 def load_orders():
     return read_json(ORDERS_FILE, [])
 
 def save_orders(orders):
     write_json(ORDERS_FILE, orders)
 
-# -----------------------
-# SESSION / AUTH HELPERS
-# -----------------------
+# =======================
+# AUTH HELPERS
+# =======================
 def login_required():
     return session.get("logged_in", False)
 
@@ -152,14 +110,14 @@ def is_admin():
 def admin_required():
     return login_required() and is_admin()
 
-# -----------------------
+# =======================
 # LICENSE HELPERS
-# -----------------------
+# =======================
 def is_license_active(user):
     try:
         expiry = datetime.strptime(user.get("license_expiry", ""), "%Y-%m-%d")
         return expiry >= datetime.now()
-    except:
+    except Exception:
         return False
 
 def days_left(user):
@@ -167,135 +125,103 @@ def days_left(user):
         expiry = datetime.strptime(user.get("license_expiry", ""), "%Y-%m-%d")
         delta = expiry - datetime.now()
         return max(delta.days, 0)
-    except:
+    except Exception:
         return 0
 
-def activate_pool_license(username, entered_key):
-    entered_key = entered_key.strip().upper()
-    users = load_users()
+def generate_pool_license(days=30):
     licenses = load_licenses()
 
+    while True:
+        key = "LIC-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=12))
+        if key not in licenses:
+            break
+
+    licenses[key] = {
+        "days": int(days),
+        "used": False,
+        "used_by": "",
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "source": "admin_pool"
+    }
+    save_licenses(licenses)
+    return key
+
+def generate_auto_license_key():
+    return "AUTO-" + str(uuid.uuid4()).split("-")[0].upper()
+
+def apply_days_to_user(username, days, license_key):
+    users = load_users()
     if username not in users:
         return False, "Kullanıcı bulunamadı."
 
-    if entered_key not in licenses:
+    now = datetime.now()
+    current_expiry_raw = users[username].get("license_expiry", "")
+
+    try:
+        current_expiry = datetime.strptime(current_expiry_raw, "%Y-%m-%d")
+        base_date = current_expiry if current_expiry > now else now
+    except Exception:
+        base_date = now
+
+    new_expiry = base_date + timedelta(days=int(days))
+
+    users[username]["license_type"] = "pro"
+    users[username]["license_expiry"] = new_expiry.strftime("%Y-%m-%d")
+    users[username]["license_key"] = license_key
+    save_users(users)
+
+    return True, new_expiry.strftime("%Y-%m-%d")
+
+def activate_manual_license(username, entered_key):
+    licenses = load_licenses()
+    key = entered_key.strip().upper()
+
+    if key not in licenses:
         return False, "Geçersiz lisans kodu."
 
-    if licenses[entered_key]["used"]:
+    if licenses[key].get("used"):
         return False, "Bu lisans zaten kullanılmış."
 
-    extra_days = int(licenses[entered_key].get("days", 30))
-    now = datetime.now()
+    days = int(licenses[key].get("days", 30))
+    ok, expiry_or_msg = apply_days_to_user(username, days, key)
+    if not ok:
+        return False, expiry_or_msg
 
-    current_expiry_raw = users[username].get("license_expiry", "")
-    try:
-        current_expiry = datetime.strptime(current_expiry_raw, "%Y-%m-%d")
-        base_date = current_expiry if current_expiry > now else now
-    except:
-        base_date = now
-
-    new_expiry = base_date + timedelta(days=extra_days)
-
-    users[username]["license_type"] = "pro"
-    users[username]["license_key"] = entered_key
-    users[username]["license_expiry"] = new_expiry.strftime("%Y-%m-%d")
-
-    licenses[entered_key]["used"] = True
-    licenses[entered_key]["used_by"] = username
-    licenses[entered_key]["used_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    save_users(users)
+    licenses[key]["used"] = True
+    licenses[key]["used_by"] = username
+    licenses[key]["used_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     save_licenses(licenses)
 
-    return True, f"PRO aktif edildi. +{extra_days} gün eklendi."
+    return True, f"PRO aktif edildi. +{days} gün eklendi."
 
-def issue_paid_license(username, plan_key):
-    users = load_users()
-    licenses = load_licenses()
-    orders = load_orders()
+# =======================
+# IYZICO HELPERS
+# =======================
+def get_iyzico_config():
+    api_key = os.getenv("IYZICO_API_KEY", "").strip()
+    secret_key = os.getenv("IYZICO_SECRET_KEY", "").strip()
+    base_url = os.getenv("IYZICO_BASE_URL", "sandbox-api.iyzipay.com").strip()
+    app_base_url = os.getenv("APP_BASE_URL", "http://127.0.0.1:5000").strip()
+    return api_key, secret_key, base_url, app_base_url
 
-    if username not in users:
-        return False, "Kullanıcı bulunamadı.", None
+def get_plan_price_and_days(plan_key):
+    plan = PLANS.get(plan_key)
+    if not plan:
+        return None, None
+    return plan["price"], plan["days"]
 
-    if plan_key not in PLANS:
-        return False, "Geçersiz plan.", None
 
-    plan = PLANS[plan_key]
-    days = int(plan["days"])
-    now = datetime.now()
-
-    while True:
-        license_key = "PAY-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=12))
-        if license_key not in licenses:
-            break
-
-    current_expiry_raw = users[username].get("license_expiry", "")
-    try:
-        current_expiry = datetime.strptime(current_expiry_raw, "%Y-%m-%d")
-        base_date = current_expiry if current_expiry > now else now
-    except:
-        base_date = now
-
-    new_expiry = base_date + timedelta(days=days)
-
-    users[username]["license_type"] = "pro"
-    users[username]["license_key"] = license_key
-    users[username]["license_expiry"] = new_expiry.strftime("%Y-%m-%d")
-
-    licenses[license_key] = {
-        "days": days,
-        "used": True,
-        "used_by": username,
-        "created_at": now.strftime("%Y-%m-%d %H:%M:%S"),
-        "used_at": now.strftime("%Y-%m-%d %H:%M:%S"),
-        "source": "payment_simulation",
-        "plan_key": plan_key
-    }
-
-    order_id = generate_order_id()
-    orders.append({
-        "order_id": order_id,
-        "username": username,
-        "plan_key": plan_key,
-        "plan_name": plan["name"],
-        "price": plan["price"],
-        "days": days,
-        "license_key": license_key,
-        "created_at": now.strftime("%Y-%m-%d %H:%M:%S"),
-        "status": "paid"
-    })
-
-    save_users(users)
-    save_licenses(licenses)
-    save_orders(orders)
-
-    return True, "Ödeme başarılı, lisans otomatik tanımlandı.", {
-        "order_id": order_id,
-        "plan_name": plan["name"],
-        "price": plan["price"],
-        "days": days,
-        "license_key": license_key,
-        "expiry": new_expiry.strftime("%Y-%m-%d")
-    }
-
-# -----------------------
-# HOME
-# -----------------------
 @app.route("/")
 def home():
     if login_required():
         return redirect(url_for("dashboard"))
     return redirect(url_for("login"))
 
-# -----------------------
-# LOGIN
-# -----------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip().lower()
         password = request.form.get("password", "").strip()
-
         users = load_users()
 
         if username in users and users[username]["password"] == password:
@@ -312,9 +238,6 @@ def login():
 
     return render_template("login.html", error="")
 
-# -----------------------
-# REGISTER
-# -----------------------
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -349,9 +272,6 @@ def register():
 
     return render_template("register.html", error="")
 
-# -----------------------
-# DASHBOARD
-# -----------------------
 @app.route("/dashboard")
 def dashboard():
     if not login_required():
@@ -375,23 +295,12 @@ def dashboard():
         license_key=user.get("license_key", "")
     )
 
-# -----------------------
-# USERS
-# -----------------------
 @app.route("/users")
 def users():
     if not admin_required():
         return redirect(url_for("dashboard"))
+    return render_template("users.html", users=load_users(), username=current_username())
 
-    return render_template(
-        "users.html",
-        users=load_users(),
-        username=current_username()
-    )
-
-# -----------------------
-# ADD USER
-# -----------------------
 @app.route("/add-user", methods=["GET", "POST"])
 def add_user():
     if not admin_required():
@@ -414,22 +323,18 @@ def add_user():
             error = "Bu kullanıcı zaten mevcut."
         else:
             expiry = datetime.now() + timedelta(days=settings.get("trial_days", 7))
-
             users[username] = {
                 "password": password,
                 "role": role,
                 "license_type": "trial",
-                "license_key": generate_license_key(),
+                "license_key": "TRIAL",
                 "license_expiry": expiry.strftime("%Y-%m-%d")
             }
             save_users(users)
-            message = "Kullanıcı + lisans oluşturuldu."
+            message = "Kullanıcı oluşturuldu."
 
     return render_template("add_user.html", message=message, error=error)
 
-# -----------------------
-# DELETE USER
-# -----------------------
 @app.route("/delete-user/<username>", methods=["POST"])
 def delete_user(username):
     if not admin_required():
@@ -447,85 +352,6 @@ def delete_user(username):
 
     return redirect(url_for("users"))
 
-# -----------------------
-# MANAGE LICENSE
-# -----------------------
-@app.route("/manage-license/<username>", methods=["GET", "POST"])
-def manage_license(username):
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    username = username.strip().lower()
-    users = load_users()
-
-    if username not in users:
-        return redirect(url_for("users"))
-
-    message = ""
-    error = ""
-    user = users[username]
-
-    if request.method == "POST":
-        action = request.form.get("action", "").strip()
-
-        if action == "extend":
-            try:
-                extra_days = int(request.form.get("extra_days", "0").strip())
-                if extra_days <= 0:
-                    error = "Geçerli bir gün sayısı gir."
-                else:
-                    now = datetime.now()
-                    current_expiry_raw = user.get("license_expiry", "")
-                    try:
-                        current_expiry = datetime.strptime(current_expiry_raw, "%Y-%m-%d")
-                        base_date = current_expiry if current_expiry > now else now
-                    except:
-                        base_date = now
-
-                    new_expiry = base_date + timedelta(days=extra_days)
-                    user["license_expiry"] = new_expiry.strftime("%Y-%m-%d")
-                    save_users(users)
-                    message = f"{username} için +{extra_days} gün eklendi."
-            except:
-                error = "Gün sayısı hatalı."
-
-        elif action == "make_pro":
-            user["license_type"] = "pro"
-            if user.get("license_key") in ["", "TRIAL"]:
-                user["license_key"] = generate_license_key()
-            if not user.get("license_expiry"):
-                user["license_expiry"] = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
-            save_users(users)
-            message = f"{username} PRO yapıldı."
-
-        elif action == "make_trial":
-            settings = load_settings()
-            user["license_type"] = "trial"
-            user["license_key"] = "TRIAL"
-            user["license_expiry"] = (datetime.now() + timedelta(days=settings.get("trial_days", 7))).strftime("%Y-%m-%d")
-            save_users(users)
-            message = f"{username} trial yapıldı."
-
-        elif action == "reset_license":
-            user["license_key"] = generate_license_key()
-            save_users(users)
-            message = f"{username} için lisans kodu yenilendi."
-
-    users = load_users()
-    user = users[username]
-
-    return render_template(
-        "manage_license.html",
-        target_username=username,
-        target_user=user,
-        message=message,
-        error=error,
-        days_left=days_left(user)
-    )
-
-# -----------------------
-# CHANGE PASSWORD
-# -----------------------
 @app.route("/change", methods=["GET", "POST"])
 def change():
     if not login_required():
@@ -557,9 +383,6 @@ def change():
 
     return render_template("change.html", message=message, error=error)
 
-# -----------------------
-# SETTINGS
-# -----------------------
 @app.route("/setting", methods=["GET", "POST"])
 def setting():
     if not admin_required():
@@ -578,7 +401,7 @@ def setting():
 
         try:
             settings["trial_days"] = int(trial_days)
-        except:
+        except Exception:
             pass
 
         if license_mode:
@@ -589,9 +412,6 @@ def setting():
 
     return render_template("setting.html", config=settings, message=message)
 
-# -----------------------
-# ACTIVATE LICENSE
-# -----------------------
 @app.route("/activate-license", methods=["GET", "POST"])
 def activate_license():
     if not login_required():
@@ -603,11 +423,10 @@ def activate_license():
 
     if request.method == "POST":
         entered_key = request.form.get("license_key", "").strip()
-
         if not entered_key:
             error = "Lisans kodu boş olamaz."
         else:
-            ok, msg = activate_pool_license(username, entered_key)
+            ok, msg = activate_manual_license(username, entered_key)
             if ok:
                 message = msg
             else:
@@ -625,9 +444,6 @@ def activate_license():
         days_left="∞" if user.get("role") == "admin" else days_left(user)
     )
 
-# -----------------------
-# PRICING
-# -----------------------
 @app.route("/pricing")
 def pricing():
     if not login_required():
@@ -641,37 +457,198 @@ def pricing():
         username=current_username()
     )
 
-# -----------------------
-# BUY PLAN (PAYMENT SIMULATION)
-# -----------------------
-@app.route("/buy-plan/<plan_key>", methods=["POST"])
-def buy_plan(plan_key):
+
+
+
+import iyzipay
+
+def get_iyzico_options():
+    api_key = os.getenv("IYZICO_API_KEY", "").strip()
+    secret_key = os.getenv("IYZICO_SECRET_KEY", "").strip()
+    base_url = os.getenv("IYZICO_BASE_URL", "sandbox-api.iyzipay.com").strip()
+    return {
+        "api_key": api_key,
+        "secret_key": secret_key,
+        "base_url": base_url,
+    }
+
+@app.route("/buy/<plan_key>")
+def buy(plan_key):
     if not login_required():
         return redirect(url_for("login"))
 
-    ok, msg, order_data = issue_paid_license(current_username(), plan_key)
+    username = current_username()
+    users = load_users()
+    if username not in users:
+        return redirect(url_for("login"))
 
-    if not ok:
-        return f"<h2>Hata</h2><p>{msg}</p><a href='/pricing'>Geri dön</a>"
+    options = get_iyzico_options()
+    app_base_url = os.getenv("APP_BASE_URL", "http://127.0.0.1:5000").strip()
 
-    settings = load_settings()
-    return render_template(
-        "payment_success.html",
-        app_name=settings.get("app_name", "SpamShield Premium"),
-        message=msg,
-        order=order_data
-    )
+    if not options["api_key"] or not options["secret_key"]:
+        return "<h2>iyzico ayarları eksik</h2><p>.env içindeki IYZICO_API_KEY ve IYZICO_SECRET_KEY kontrol et.</p>"
 
-# -----------------------
-# BUY LICENSE OLD ROUTE
-# -----------------------
-@app.route("/buy-license")
-def buy_license():
-    return redirect(url_for("pricing"))
+    price, _days = get_plan_price_and_days(plan_key)
+    if not price:
+        return "<h2>Geçersiz plan</h2><p>Plan bulunamadı.</p>"
 
-# -----------------------
-# ADMIN LICENSE PANEL
-# -----------------------
+    request_data = {
+        "locale": "tr",
+        "conversationId": str(uuid.uuid4()),
+        "price": price,
+        "paidPrice": price,
+        "currency": "TRY",
+        "basketId": f"BASKET-{username}-{plan_key}",
+        "paymentGroup": "PRODUCT",
+        "callbackUrl": f"{app_base_url}/callback?user={username}&plan={plan_key}",
+        "enabledInstallments": [1],
+        "buyer": {
+            "id": username,
+            "name": username,
+            "surname": "User",
+            "gsmNumber": "+905555555555",
+            "email": f"test@test.com",
+            "identityNumber": "74300864791",
+            "registrationAddress": "Test Address",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "zipCode": "34000",
+            "ip": "127.0.0.1"
+        },
+        "shippingAddress": {
+            "contactName": username,
+            "city": "Istanbul",
+            "country": "Turkey",
+            "address": "Test Address",
+            "zipCode": "34000"
+        },
+        "billingAddress": {
+            "contactName": username,
+            "city": "Istanbul",
+            "country": "Turkey",
+            "address": "Test Address",
+            "zipCode": "34000"
+        },
+        "basketItems": [
+            {
+                "id": plan_key,
+                "name": PLANS[plan_key]["name"],
+                "category1": "Software",
+                "itemType": "VIRTUAL",
+                "price": price
+            }
+        ]
+    }
+
+    try:
+        checkout_form_initialize = iyzipay.CheckoutFormInitialize().create(request_data, options)
+        data = json.loads(checkout_form_initialize.read().decode("utf-8"))
+    except Exception as e:
+        return f"<h2>iyzico bağlantı hatası</h2><p>{e}</p>"
+
+    if data.get("status") == "success" and data.get("paymentPageUrl"):
+        return redirect(data["paymentPageUrl"])
+
+    return f"<h2>Ödeme başlatılamadı</h2><p>{data.get('errorMessage', 'Bilinmeyen iyzico hatası')}</p>"
+
+@app.route("/callback", methods=["GET", "POST"])
+def callback():
+    token = (request.form.get("token") or request.args.get("token") or "").strip()
+    username = (request.args.get("user") or "").strip().lower()
+    plan_key = (request.args.get("plan") or "").strip()
+
+    if not token:
+        return "<h2>Ödeme doğrulanamadı</h2><p>Token bulunamadı.</p>"
+
+    users = load_users()
+    if username not in users:
+        return "<h2>Ödeme doğrulanamadı</h2><p>Kullanıcı bulunamadı.</p>"
+
+    plan = PLANS.get(plan_key)
+    if not plan:
+        return "<h2>Ödeme doğrulanamadı</h2><p>Geçersiz plan bilgisi.</p>"
+
+    api_key = os.getenv("IYZICO_API_KEY", "").strip()
+    secret_key = os.getenv("IYZICO_SECRET_KEY", "").strip()
+    base_url = os.getenv("IYZICO_BASE_URL", "sandbox-api.iyzipay.com").strip()
+
+    if not api_key or not secret_key or not base_url:
+        return "<h2>iyzico ayarları eksik</h2><p>.env dosyasını kontrol et.</p>"
+
+    options = {
+        "api_key": api_key,
+        "secret_key": secret_key,
+        "base_url": base_url
+    }
+
+    request_data = {
+        "locale": "tr",
+        "conversationId": str(uuid.uuid4()),
+        "token": token
+    }
+
+    try:
+        checkout_form = iyzipay.CheckoutForm().retrieve(request_data, options)
+        result = json.loads(checkout_form.read().decode("utf-8"))
+    except Exception as e:
+        return f"<h2>Ödeme doğrulanamadı</h2><p>{e}</p>"
+
+    payment_status = str(result.get("paymentStatus", "")).upper()
+    status = str(result.get("status", "")).lower()
+
+    if status == "success" and payment_status == "SUCCESS":
+        days = int(plan["days"])
+        license_key = generate_auto_license_key()
+
+        ok, expiry_or_msg = apply_days_to_user(username, days, license_key)
+        if not ok:
+            return f"<h2>Lisans atanamadı</h2><p>{expiry_or_msg}</p>"
+
+        provider_payment_id = str(result.get("paymentId", ""))
+
+        orders = load_orders()
+        orders.append({
+            "order_id": "ORD-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)),
+            "username": username,
+            "plan_key": plan_key,
+            "plan_name": plan["name"],
+            "price": plan["price"],
+            "days": plan["days"],
+            "license_key": license_key,
+            "provider": "iyzico",
+            "provider_payment_id": provider_payment_id,
+            "status": "paid",
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+        save_orders(orders)
+
+        return f"""
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Ödeme Başarılı</title>
+        </head>
+        <body style="background:#0b1220;color:white;font-family:Arial;padding:30px;">
+            <h2>Ödeme başarılı ✅</h2>
+            <p>Kullanıcı: <b>{username}</b></p>
+            <p>Plan: <b>{plan["name"]}</b></p>
+            <p>Lisans verildi.</p>
+            <p>Yeni lisans anahtarı: <b>{license_key}</b></p>
+            <p>Bitiş tarihi: <b>{expiry_or_msg}</b></p>
+            <br>
+            <a href="/dashboard" style="color:#60a5fa;">Dashboard'a dön</a>
+        </body>
+        </html>
+        """
+
+    error_message = result.get("errorMessage", "Ödeme başarısız")
+    return f"""
+    <h2>Ödeme başarısız ❌</h2>
+    <pre style="white-space:pre-wrap;">{json.dumps(result, ensure_ascii=False, indent=2)}</pre>
+    <p>{error_message}</p>
+    """
+
+
 @app.route("/admin/licenses", methods=["GET", "POST"])
 def admin_licenses():
     if not admin_required():
@@ -688,15 +665,11 @@ def admin_licenses():
             else:
                 new_key = generate_pool_license(days)
                 message = f"Yeni lisans oluşturuldu: {new_key}"
-        except:
+        except Exception:
             error = "Gün sayısı hatalı."
 
     licenses = load_licenses()
-    license_items = sorted(
-        licenses.items(),
-        key=lambda x: x[1].get("created_at", ""),
-        reverse=True
-    )
+    license_items = sorted(licenses.items(), key=lambda x: x[1].get("created_at", ""), reverse=True)
 
     return render_template(
         "admin_licenses.html",
@@ -705,9 +678,6 @@ def admin_licenses():
         error=error
     )
 
-# -----------------------
-# LANDING
-# -----------------------
 @app.route("/landing")
 def landing():
     settings = load_settings()
@@ -716,17 +686,111 @@ def landing():
         app_name=settings.get("app_name", "SpamShield Premium")
     )
 
-# -----------------------
-# LOGOUT
-# -----------------------
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("login"))
 
-# -----------------------
-# RUN
-# -----------------------
+@app.route("/buyfix/<plan_key>")
+def buyfix(plan_key):
+    if not login_required():
+        return redirect(url_for("login"))
+
+    username = session.get("username", "").strip().lower()
+    users = load_users()
+
+    if username not in users:
+        return redirect(url_for("login"))
+
+    api_key = os.getenv("IYZICO_API_KEY", "").strip()
+    secret_key = os.getenv("IYZICO_SECRET_KEY", "").strip()
+    base_url = os.getenv("IYZICO_BASE_URL", "sandbox-api.iyzipay.com").strip()
+    app_base_url = os.getenv("APP_BASE_URL", "").strip()
+
+    if not api_key or not secret_key or not base_url:
+        return "<h2>iyzico ayarları eksik</h2><p>.env içindeki IYZICO_API_KEY / IYZICO_SECRET_KEY / IYZICO_BASE_URL kontrol et.</p>"
+
+    if not app_base_url:
+        return "<h2>APP_BASE_URL eksik</h2><p>.env içine APP_BASE_URL ekle.</p>"
+
+    price_map = {
+        "pro30": "99.00",
+        "pro90": "249.00",
+        "pro365": "799.00"
+    }
+
+    price = price_map.get(plan_key)
+    if not price:
+        return "<h2>Geçersiz plan</h2><p>Plan bulunamadı.</p>"
+
+    options = {
+        "api_key": api_key,
+        "secret_key": secret_key,
+        "base_url": base_url
+    }
+
+    request_data = {
+        "locale": "tr",
+        "conversationId": str(uuid.uuid4()),
+        "price": str(price),
+        "paidPrice": str(price),
+        "currency": "TRY",
+        "basketId": f"BASKET-{username}-{plan_key}",
+        "paymentGroup": "PRODUCT",
+        "callbackUrl": f"{app_base_url}/callback?user={username}&plan={plan_key}",
+        "enabledInstallments": [1],
+        "buyer": {
+            "id": username,
+            "name": username,
+            "surname": "User",
+            "gsmNumber": "+905555555555",
+            "email": "test@test.com",
+            "identityNumber": "74300864791",
+            "registrationAddress": "Test Address",
+            "city": "Istanbul",
+            "country": "Turkey",
+            "zipCode": "34000",
+            "ip": "127.0.0.1"
+        },
+        "shippingAddress": {
+            "contactName": username,
+            "city": "Istanbul",
+            "country": "Turkey",
+            "address": "Test Address",
+            "zipCode": "34000"
+        },
+        "billingAddress": {
+            "contactName": username,
+            "city": "Istanbul",
+            "country": "Turkey",
+            "address": "Test Address",
+            "zipCode": "34000"
+        },
+        "basketItems": [
+            {
+                "id": plan_key,
+                "name": "SpamShield Pro",
+                "category1": "Software",
+                "itemType": "VIRTUAL",
+                "price": str(price)
+            }
+        ]
+    }
+
+    try:
+        checkout_form_initialize = iyzipay.CheckoutFormInitialize().create(request_data, options)
+        data = json.loads(checkout_form_initialize.read().decode("utf-8"))
+    except Exception as e:
+        return f"<h2>iyzico bağlantı hatası</h2><p>{e}</p>"
+
+    if data.get("status") == "success" and data.get("paymentPageUrl"):
+        return redirect(data["paymentPageUrl"])
+
+    return f"""
+    <h2>Ödeme başlatılamadı</h2>
+    <pre style="white-space:pre-wrap;">{json.dumps(data, ensure_ascii=False, indent=2)}</pre>
+    """
+
 if __name__ == "__main__":
     load_users()
     load_settings()
@@ -735,3 +799,5 @@ if __name__ == "__main__":
     if not os.path.exists(ORDERS_FILE):
         save_orders([])
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+# ===== FIX FORCE ROUTE =====
