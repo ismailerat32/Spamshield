@@ -30,3 +30,11 @@ test_*.py
 *.tmp
 
 .DS_Store
+
+.env
+users.json
+orders.json
+licenses.json
+*.log
+__pycache__/
+*.tar.gz
