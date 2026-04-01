@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ismail erat
+# All rights reserved.
+
 #!/usr/bin/env python3
 
 import json

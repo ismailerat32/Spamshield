@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ismail erat
+# All rights reserved.
+
 import os
 import smtplib
 from email.mime.text import MIMEText

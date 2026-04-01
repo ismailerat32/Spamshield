@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ismail erat
+# All rights reserved.
+
 import re
 
 SPAM_KEYWORDS = [

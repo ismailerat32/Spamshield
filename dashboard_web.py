@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ismail erat
+# All rights reserved.
+
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import os
 import json

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ismail erat
+# All rights reserved.
+
 from flask import Flask, render_template, redirect, url_for, request, session
 from dotenv import load_dotenv
 import json
@@ -6,10 +9,6 @@ from datetime import datetime, timedelta
 import random
 import string
 import uuid
-import base64
-import hashlib
-import hmac
-import requests
 import iyzipay
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
@@ -197,20 +196,41 @@ def activate_manual_license(username, entered_key):
 # =======================
 # IYZICO HELPERS
 # =======================
-def get_iyzico_config():
+def get_iyzico_options():
     api_key = os.getenv("IYZICO_API_KEY", "").strip()
     secret_key = os.getenv("IYZICO_SECRET_KEY", "").strip()
     base_url = os.getenv("IYZICO_BASE_URL", "sandbox-api.iyzipay.com").strip()
-    app_base_url = os.getenv("APP_BASE_URL", "http://127.0.0.1:5000").strip()
-    return api_key, secret_key, base_url, app_base_url
 
-def get_plan_price_and_days(plan_key):
-    plan = PLANS.get(plan_key)
-    if not plan:
-        return None, None
-    return plan["price"], plan["days"]
+    return {
+        "api_key": api_key,
+        "secret_key": secret_key,
+        "base_url": base_url
+    }
 
+def get_app_base_url():
+    return os.getenv("APP_BASE_URL", "http://127.0.0.1:5000").strip()
 
+def record_paid_order(username, plan_key, license_key, provider_payment_id=""):
+    orders = load_orders()
+    plan = PLANS[plan_key]
+    orders.append({
+        "order_id": "ORD-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)),
+        "username": username,
+        "plan_key": plan_key,
+        "plan_name": plan["name"],
+        "price": plan["price"],
+        "days": plan["days"],
+        "license_key": license_key,
+        "provider": "iyzico",
+        "provider_payment_id": provider_payment_id,
+        "status": "paid",
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    })
+    save_orders(orders)
+
+# =======================
+# ROUTES
+# =======================
 @app.route("/")
 def home():
     if login_required():
@@ -457,40 +477,31 @@ def pricing():
         username=current_username()
     )
 
-
-
-
-import iyzipay
-
-def get_iyzico_options():
-    api_key = os.getenv("IYZICO_API_KEY", "").strip()
-    secret_key = os.getenv("IYZICO_SECRET_KEY", "").strip()
-    base_url = os.getenv("IYZICO_BASE_URL", "sandbox-api.iyzipay.com").strip()
-    return {
-        "api_key": api_key,
-        "secret_key": secret_key,
-        "base_url": base_url,
-    }
-
-@app.route("/buy/<plan_key>")
-def buy(plan_key):
+@app.route("/buyfix/<plan_key>")
+def buyfix(plan_key):
     if not login_required():
         return redirect(url_for("login"))
 
-    username = current_username()
+    username = session.get("username", "").strip().lower()
     users = load_users()
+
     if username not in users:
         return redirect(url_for("login"))
 
     options = get_iyzico_options()
-    app_base_url = os.getenv("APP_BASE_URL", "http://127.0.0.1:5000").strip()
+    app_base_url = get_app_base_url()
 
-    if not options["api_key"] or not options["secret_key"]:
-        return "<h2>iyzico ayarları eksik</h2><p>.env içindeki IYZICO_API_KEY ve IYZICO_SECRET_KEY kontrol et.</p>"
+    if not options["api_key"] or not options["secret_key"] or not options["base_url"]:
+        return "<h2>iyzico ayarları eksik</h2><p>.env içindeki IYZICO_API_KEY / IYZICO_SECRET_KEY / IYZICO_BASE_URL kontrol et.</p>"
 
-    price, _days = get_plan_price_and_days(plan_key)
-    if not price:
+    if not app_base_url:
+        return "<h2>APP_BASE_URL eksik</h2><p>.env içine APP_BASE_URL ekle.</p>"
+
+    plan = PLANS.get(plan_key)
+    if not plan:
         return "<h2>Geçersiz plan</h2><p>Plan bulunamadı.</p>"
+
+    price = str(plan["price"])
 
     request_data = {
         "locale": "tr",
@@ -507,7 +518,7 @@ def buy(plan_key):
             "name": username,
             "surname": "User",
             "gsmNumber": "+905555555555",
-            "email": f"test@test.com",
+            "email": "test@test.com",
             "identityNumber": "74300864791",
             "registrationAddress": "Test Address",
             "city": "Istanbul",
@@ -532,7 +543,7 @@ def buy(plan_key):
         "basketItems": [
             {
                 "id": plan_key,
-                "name": PLANS[plan_key]["name"],
+                "name": plan["name"],
                 "category1": "Software",
                 "itemType": "VIRTUAL",
                 "price": price
@@ -549,7 +560,10 @@ def buy(plan_key):
     if data.get("status") == "success" and data.get("paymentPageUrl"):
         return redirect(data["paymentPageUrl"])
 
-    return f"<h2>Ödeme başlatılamadı</h2><p>{data.get('errorMessage', 'Bilinmeyen iyzico hatası')}</p>"
+    return f"""
+    <h2>Ödeme başlatılamadı</h2>
+    <pre style="white-space:pre-wrap;">{json.dumps(data, ensure_ascii=False, indent=2)}</pre>
+    """
 
 @app.route("/callback", methods=["GET", "POST"])
 def callback():
@@ -568,18 +582,9 @@ def callback():
     if not plan:
         return "<h2>Ödeme doğrulanamadı</h2><p>Geçersiz plan bilgisi.</p>"
 
-    api_key = os.getenv("IYZICO_API_KEY", "").strip()
-    secret_key = os.getenv("IYZICO_SECRET_KEY", "").strip()
-    base_url = os.getenv("IYZICO_BASE_URL", "sandbox-api.iyzipay.com").strip()
-
-    if not api_key or not secret_key or not base_url:
+    options = get_iyzico_options()
+    if not options["api_key"] or not options["secret_key"] or not options["base_url"]:
         return "<h2>iyzico ayarları eksik</h2><p>.env dosyasını kontrol et.</p>"
-
-    options = {
-        "api_key": api_key,
-        "secret_key": secret_key,
-        "base_url": base_url
-    }
 
     request_data = {
         "locale": "tr",
@@ -605,22 +610,11 @@ def callback():
             return f"<h2>Lisans atanamadı</h2><p>{expiry_or_msg}</p>"
 
         provider_payment_id = str(result.get("paymentId", ""))
+        record_paid_order(username, plan_key, license_key, provider_payment_id)
 
-        orders = load_orders()
-        orders.append({
-            "order_id": "ORD-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)),
-            "username": username,
-            "plan_key": plan_key,
-            "plan_name": plan["name"],
-            "price": plan["price"],
-            "days": plan["days"],
-            "license_key": license_key,
-            "provider": "iyzico",
-            "provider_payment_id": provider_payment_id,
-            "status": "paid",
-            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        })
-        save_orders(orders)
+        wa_number = "905387726101"
+        wa_text = f"Merhaba {username}%0A%0ALisansınız hazır 🎉%0AKod: {license_key}%0A%0Aİyi kullanımlar 🚀"
+        wa_link = f"https://wa.me/{wa_number}?text={wa_text.replace(' ', '%20')}"
 
         return f"""
         <html>
@@ -635,6 +629,13 @@ def callback():
             <p>Lisans verildi.</p>
             <p>Yeni lisans anahtarı: <b>{license_key}</b></p>
             <p>Bitiş tarihi: <b>{expiry_or_msg}</b></p>
+
+            <p>
+                <a href="{wa_link}" target="_blank" style="color:lime;">
+                    WhatsApp ile lisansı gönder 📲
+                </a>
+            </p>
+
             <br>
             <a href="/dashboard" style="color:#60a5fa;">Dashboard'a dön</a>
         </body>
@@ -647,7 +648,6 @@ def callback():
     <pre style="white-space:pre-wrap;">{json.dumps(result, ensure_ascii=False, indent=2)}</pre>
     <p>{error_message}</p>
     """
-
 
 @app.route("/admin/licenses", methods=["GET", "POST"])
 def admin_licenses():
@@ -691,106 +691,6 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
-@app.route("/buyfix/<plan_key>")
-def buyfix(plan_key):
-    if not login_required():
-        return redirect(url_for("login"))
-
-    username = session.get("username", "").strip().lower()
-    users = load_users()
-
-    if username not in users:
-        return redirect(url_for("login"))
-
-    api_key = os.getenv("IYZICO_API_KEY", "").strip()
-    secret_key = os.getenv("IYZICO_SECRET_KEY", "").strip()
-    base_url = os.getenv("IYZICO_BASE_URL", "sandbox-api.iyzipay.com").strip()
-    app_base_url = os.getenv("APP_BASE_URL", "").strip()
-
-    if not api_key or not secret_key or not base_url:
-        return "<h2>iyzico ayarları eksik</h2><p>.env içindeki IYZICO_API_KEY / IYZICO_SECRET_KEY / IYZICO_BASE_URL kontrol et.</p>"
-
-    if not app_base_url:
-        return "<h2>APP_BASE_URL eksik</h2><p>.env içine APP_BASE_URL ekle.</p>"
-
-    price_map = {
-        "pro30": "99.00",
-        "pro90": "249.00",
-        "pro365": "799.00"
-    }
-
-    price = price_map.get(plan_key)
-    if not price:
-        return "<h2>Geçersiz plan</h2><p>Plan bulunamadı.</p>"
-
-    options = {
-        "api_key": api_key,
-        "secret_key": secret_key,
-        "base_url": base_url
-    }
-
-    request_data = {
-        "locale": "tr",
-        "conversationId": str(uuid.uuid4()),
-        "price": str(price),
-        "paidPrice": str(price),
-        "currency": "TRY",
-        "basketId": f"BASKET-{username}-{plan_key}",
-        "paymentGroup": "PRODUCT",
-        "callbackUrl": f"{app_base_url}/callback?user={username}&plan={plan_key}",
-        "enabledInstallments": [1],
-        "buyer": {
-            "id": username,
-            "name": username,
-            "surname": "User",
-            "gsmNumber": "+905555555555",
-            "email": "test@test.com",
-            "identityNumber": "74300864791",
-            "registrationAddress": "Test Address",
-            "city": "Istanbul",
-            "country": "Turkey",
-            "zipCode": "34000",
-            "ip": "127.0.0.1"
-        },
-        "shippingAddress": {
-            "contactName": username,
-            "city": "Istanbul",
-            "country": "Turkey",
-            "address": "Test Address",
-            "zipCode": "34000"
-        },
-        "billingAddress": {
-            "contactName": username,
-            "city": "Istanbul",
-            "country": "Turkey",
-            "address": "Test Address",
-            "zipCode": "34000"
-        },
-        "basketItems": [
-            {
-                "id": plan_key,
-                "name": "SpamShield Pro",
-                "category1": "Software",
-                "itemType": "VIRTUAL",
-                "price": str(price)
-            }
-        ]
-    }
-
-    try:
-        checkout_form_initialize = iyzipay.CheckoutFormInitialize().create(request_data, options)
-        data = json.loads(checkout_form_initialize.read().decode("utf-8"))
-    except Exception as e:
-        return f"<h2>iyzico bağlantı hatası</h2><p>{e}</p>"
-
-    if data.get("status") == "success" and data.get("paymentPageUrl"):
-        return redirect(data["paymentPageUrl"])
-
-    return f"""
-    <h2>Ödeme başlatılamadı</h2>
-    <pre style="white-space:pre-wrap;">{json.dumps(data, ensure_ascii=False, indent=2)}</pre>
-    """
-
 if __name__ == "__main__":
     load_users()
     load_settings()
@@ -799,5 +699,3 @@ if __name__ == "__main__":
     if not os.path.exists(ORDERS_FILE):
         save_orders([])
     app.run(host="0.0.0.0", port=5000, debug=True)
-
-# ===== FIX FORCE ROUTE =====
