@@ -1,48 +1,29 @@
-# 🛡 SpamShield
+# SpamShield Premium
 
-Modern, lisans sistemine sahip spam kontrol ve kullanıcı yönetim paneli.
+© 2026 ismail erat - All rights reserved.
 
----
+## 🚀 Proje Hakkında
+SpamShield Premium, SMS spam filtreleme ve lisanslı kullanım sistemi içeren bir yazılımdır.
 
-## 🚀 Özellikler
+## 💳 Özellikler
+- iyzico ödeme entegrasyonu
+- otomatik lisans üretimi
+- kullanıcı bazlı lisans yönetimi
+- WhatsApp ile lisans gönderimi
+- admin panel
 
-- 🔐 Kullanıcı kayıt ve giriş sistemi
-- 👥 Admin panel (kullanıcı yönetimi)
-- 🔑 Lisans sistemi (Trial + Pro)
-- ⏳ Süre bazlı lisans kontrolü
-- 💳 Tek kullanımlık lisans kodları
-- ⚙️ Ayar yönetimi paneli
-- 📊 Modern dashboard
-- 📱 Mobil uyumlu arayüz
+## ⚠️ Lisans ve Kullanım
+Bu yazılım özel mülktür (proprietary).
 
----
+Aşağıdakiler kesinlikle yasaktır:
+- İzinsiz kopyalama
+- Dağıtım
+- Satış
+- Kaynak kod paylaşımı
 
-## 🧠 Teknoloji
+## 📜 Yasal
+Bu proje sahibine aittir:
 
-- Backend: Flask (Python)
-- Frontend: HTML + CSS
-- Veri: JSON tabanlı
+**ismail erat**
 
----
-
-## ⚡ Kurulum
-
-```bash
-git clone https://github.com/ismailerat32/Spamshield.git
-cd Spamshield
-python app.py
-```
-
----
-
-## 🔐 Güvenlik
-
-- SMTP bilgileri `.env` ile korunur
-- Hassas veriler repoya dahil edilmez
-- `.gitignore` aktif
-
----
-
-## 👨‍💻 Geliştirici
-
-ismail erat
+Tüm hakları saklıdır.
