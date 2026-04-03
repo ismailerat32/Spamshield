@@ -15,7 +15,28 @@ import random
 import string
 
 app = Flask(__name__)
-app.secret_key = "spamshield-secret-key"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-this-now")
+app.config["DEBUG"] = os.environ.get("FLASK_DEBUG", "0") == "1"
+
+def apply_runtime_env_overrides():
+    import json
+    users_file = globals().get("USERS_FILE", "data/users.json")
+    admin_password = os.environ.get("ADMIN_PASSWORD", "").strip()
+
+    if admin_password and os.path.exists(users_file):
+        try:
+            with open(users_file, "r", encoding="utf-8") as f:
+                users = json.load(f)
+
+            if "admin" in users:
+                users["admin"]["password"] = admin_password
+                with open(users_file, "w", encoding="utf-8") as f:
+                    json.dump(users, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print("ENV_OVERRIDE_ERROR:", e)
+
+apply_runtime_env_overrides()
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-this-now")
 
 USERS_FILE = "users.json"
 SETTINGS_FILE = "settings.json"
@@ -863,9 +884,9 @@ if __name__ == "__main__":
     load_settings()
     if not os.path.exists(LICENSES_FILE):
         save_licenses({})
-    import os
-port = int(os.environ.get("PORT", 5000))
-app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 5000))
+local_debug = os.environ.get("FLASK_DEBUG", "0") == "1"
+app.run(host="0.0.0.0", port=port, debug=local_debug)
 
 
 # -----------------------
