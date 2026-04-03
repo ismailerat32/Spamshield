@@ -58,12 +58,6 @@ def generate_license_key():
         parts.append(part)
     return "SPM-" + "-".join(parts)
 
-
-def generate_reset_code():
-    import random
-    import string
-    return "RST-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-
 def generate_pool_license(days=30):
     licenses = load_licenses()
 
@@ -718,154 +712,9 @@ def api_feedback():
             "message": str(e)
         }), 500
 
-# -----------------------
-# STATS API
-# -----------------------
-
-@app.route("/api/stats")
-def api_stats():
-    try:
-        logs = load_logs()
-
-        spam = 0
-        temiz = 0
-
-        for log in logs:
-            status = str(log.get("status", "")).upper()
-            if status == "SPAM":
-                spam += 1
-            elif status == "TEMIZ":
-                temiz += 1
-
-        return jsonify({
-            "status": "success",
-            "total": len(logs),
-            "spam": spam,
-            "temiz": temiz
-        })
-
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
-
-@app.route("/forgot-password", methods=["GET", "POST"])
-def forgot_password():
-    import time
-
-    users = load_users()
-
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-
-        if not username:
-            return render_template("forgot.html", error="Kullanıcı adı gerekli")
-
-        if username not in users:
-            return render_template("forgot.html", error="Kullanıcı bulunamadı")
-
-        user = users[username]
-        now_ts = int(time.time())
-        last_request_at = int(user.get("reset_code_last_request_at", 0) or 0)
-        wait_seconds = 30 - (now_ts - last_request_at)
-
-        if last_request_at and wait_seconds > 0:
-            return render_template(
-                "forgot.html",
-                error=f"Yeni kod için {wait_seconds} saniye bekle",
-                username=username
-            )
-
-        reset_code = generate_reset_code()
-        expires_at = now_ts + (3 * 60)
-
-        user["reset_code"] = reset_code
-        user["reset_code_expires_at"] = expires_at
-        user["reset_code_used"] = False
-        user["reset_attempts"] = 0
-        user["reset_code_last_request_at"] = now_ts
-        save_users(users)
-
-        return render_template(
-            "forgot.html",
-            success="Kod hazır!",
-            reset_code=reset_code,
-            username=username,
-            expires_at=expires_at
-        )
-
-    return render_template("forgot.html")
-
-@app.route("/reset-password", methods=["GET", "POST"])
-def reset_password():
-    import time
-
-    users = load_users()
-
-    if request.method == "POST":
-        username = request.form.get("username") or request.args.get("username", "")
-        code = request.form.get("code") or request.args.get("code", "")
-
-        username = username.strip()
-        code = code.strip()
-        new_password = request.form.get("password", "").strip()
-
-        if not username or not code or not new_password:
-            return render_template("reset.html", error="Tüm alanları doldur")
-
-        if username not in users:
-            return render_template("reset.html", error="Kullanıcı bulunamadı")
-
-        user = users[username]
-        saved_code = str(user.get("reset_code", "")).strip()
-        expires_at = int(user.get("reset_code_expires_at", 0) or 0)
-        used = bool(user.get("reset_code_used", False))
-        now_ts = int(time.time())
-
-        attempts = int(user.get("reset_attempts", 0) or 0)
-        max_attempts = 5
-
-        if attempts >= max_attempts:
-            return render_template("reset.html", error="Çok fazla hatalı deneme yapıldı. Yeni kod oluştur.")
-
-        if not saved_code or saved_code != code:
-            user["reset_attempts"] = attempts + 1
-            save_users(users)
-            kalan = max_attempts - user["reset_attempts"]
-            if kalan < 0:
-                kalan = 0
-            return render_template("reset.html", error=f"Kod yanlış veya geçersiz. Kalan deneme: {kalan}")
-
-        if used:
-            return render_template("reset.html", error="Bu kod daha önce kullanılmış")
-
-        if not expires_at or now_ts > expires_at:
-            user["reset_code"] = ""
-            user["reset_code_expires_at"] = 0
-            user["reset_code_used"] = False
-            user["reset_attempts"] = 0
-            save_users(users)
-            return render_template("reset.html", error="Kodun süresi dolmuş")
-
-        user["password"] = new_password
-        user["reset_code_used"] = True
-        user["reset_code"] = ""
-        user["reset_code_expires_at"] = 0
-        user["reset_attempts"] = 0
-        save_users(users)
-
-        return render_template("reset.html", success="Şifre başarıyla değiştirildi")
-
-    return render_template("reset.html")
 if __name__ == "__main__":
     load_users()
     load_settings()
     if not os.path.exists(LICENSES_FILE):
         save_licenses({})
     app.run(host="0.0.0.0", port=5000, debug=True)
-
-
-# -----------------------
-# PASSWORD RESET
-# -----------------------

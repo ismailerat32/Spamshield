@@ -1,32 +1,37 @@
+# Python
 __pycache__/
 *.pyc
-*.pyo
 
-# secrets
-.env
-.env.*
-!.env.example
+# Backup files
+*.bak
+*.bak_*
+*.save
 
-# runtime data
-users.json
-licenses.json
-settings.json
-config.json
-
-# mail / secret configs
-data/
-mail_settings.json
-
-# logs
+# Logs & temp
 logs/
 *.log
+logs.json
 
-# database
+# Data / local db
+data/
 *.db
+*.json
 
-# temp / tests
-test_*.py
-*.save
-*.tmp
+# ML models
+*.pkl
 
+# Env
+.env
+
+# Termux / build
+build/
+dist/
+
+# Test / scripts
+fix_*.py
+patch_*.py
+upgrade_*.py
+add_*.py
+
+# OS
 .DS_Store
