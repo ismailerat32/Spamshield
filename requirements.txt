@@ -1,5 +1,2 @@
-flask
-python-dotenv
+Flask
 gunicorn
-werkzeug
-requests
