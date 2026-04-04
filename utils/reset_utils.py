@@ -11,6 +11,7 @@ USERS_FILE = os.path.join(BASE_DIR, "users.json")
 RESET_TOKENS_FILE = os.path.join(DATA_DIR, "reset_tokens.json")
 
 TOKEN_TTL_MINUTES = 30
+CODE_TTL_MINUTES = 10
 
 
 def _ensure_file(path, default_data):
@@ -57,8 +58,8 @@ def _now_utc():
     return datetime.now(timezone.utc)
 
 
-def _token_hash(raw_token: str) -> str:
-    return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+def _token_hash(raw_value: str) -> str:
+    return hashlib.sha256(raw_value.encode("utf-8")).hexdigest()
 
 
 def find_user_by_identity(identity: str):
@@ -101,6 +102,7 @@ def create_reset_token(username: str) -> str:
 
     tokens = load_reset_tokens()
     tokens[hashed] = {
+        "type": "link",
         "username": username,
         "used": False,
         "expires_at": expires_at,
@@ -111,8 +113,32 @@ def create_reset_token(username: str) -> str:
     return raw_token
 
 
+def create_reset_code(username: str) -> str:
+    invalidate_existing_tokens(username)
+
+    code = str(secrets.randbelow(900000) + 100000)
+    hashed = _token_hash(code)
+    expires_at = (_now_utc() + timedelta(minutes=CODE_TTL_MINUTES)).isoformat()
+
+    tokens = load_reset_tokens()
+    tokens[hashed] = {
+        "type": "code",
+        "username": username,
+        "used": False,
+        "expires_at": expires_at,
+        "created_at": _now_utc().isoformat()
+    }
+    save_reset_tokens(tokens)
+
+    return code
+
+
 def is_token_format_valid(token: str) -> bool:
     return isinstance(token, str) and len(token) == 64 and all(c in "0123456789abcdefABCDEF" for c in token)
+
+
+def is_code_format_valid(code: str) -> bool:
+    return isinstance(code, str) and len(code) == 6 and code.isdigit()
 
 
 def find_valid_token_record(raw_token: str):
@@ -123,7 +149,7 @@ def find_valid_token_record(raw_token: str):
     tokens = load_reset_tokens()
     record = tokens.get(hashed)
 
-    if not record:
+    if not record or record.get("type") != "link":
         return None
 
     if record.get("used", False):
@@ -144,8 +170,37 @@ def find_valid_token_record(raw_token: str):
     }
 
 
-def mark_token_used(raw_token: str):
-    hashed = _token_hash(raw_token)
+def find_valid_code_record(code: str):
+    if not is_code_format_valid(code):
+        return None
+
+    hashed = _token_hash(code)
+    tokens = load_reset_tokens()
+    record = tokens.get(hashed)
+
+    if not record or record.get("type") != "code":
+        return None
+
+    if record.get("used", False):
+        return None
+
+    expires_at = record.get("expires_at", "")
+    try:
+        expires_dt = datetime.fromisoformat(expires_at)
+    except Exception:
+        return None
+
+    if _now_utc() > expires_dt:
+        return None
+
+    return {
+        "token_hash": hashed,
+        "username": record.get("username", "")
+    }
+
+
+def mark_token_used(raw_value: str):
+    hashed = _token_hash(raw_value)
     tokens = load_reset_tokens()
 
     if hashed in tokens:

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Şifremi Unuttum - SpamShield</title>
+    <title>Kod ile Şifre Sıfırla - SpamShield</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -53,7 +53,7 @@
             padding: 14px 16px;
             border: 0;
             border-radius: 14px;
-            background: linear-gradient(135deg, #2563eb, #06b6d4);
+            background: linear-gradient(135deg, #10b981, #06b6d4);
             color: #fff;
             font-weight: 700;
         }
@@ -68,67 +68,34 @@
             border: 1px solid rgba(239,68,68,.25);
             color: #fecaca;
         }
-        .success {
-            background: rgba(34,197,94,.12);
-            border: 1px solid rgba(34,197,94,.25);
-            color: #bbf7d0;
-        }
-        .box {
-            margin-top: 16px;
-            padding: 14px;
-            background: rgba(255,255,255,.04);
-            border: 1px dashed rgba(255,255,255,.14);
-            border-radius: 14px;
-            word-break: break-all;
-        }
-        .box a { color: #93c5fd; text-decoration: none; }
-        .code {
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: 6px;
-            color: #fcd34d;
-        }
         .back { margin-top: 18px; text-align: center; }
         .back a { color: #93c5fd; text-decoration: none; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>Şifremi Unuttum</h1>
-        <p>Kullanıcı adı veya e-posta gir. Sistem eşleşme bulursa sıfırlama linki ve 6 haneli kod üretir.</p>
+        <h1>Kod ile Şifre Sıfırla</h1>
+        <p>6 haneli sıfırlama kodunu gir ve yeni şifreni oluştur.</p>
 
         {% if error %}
             <div class="alert error">{{ error }}</div>
         {% endif %}
 
-        {% if success %}
-            <div class="alert success">{{ message }}</div>
+        <form method="POST" action="/reset-code">
+            <label for="code">6 haneli kod</label>
+            <input type="text" id="code" name="code" maxlength="6" required>
 
-            {% if reset_code %}
-                <div class="box">
-                    <strong>6 haneli sıfırlama kodu:</strong><br><br>
-                    <div class="code">{{ reset_code }}</div>
-                    <br>
-                    <a href="/reset-code">Kod ile şifre sıfırla →</a>
-                </div>
-            {% endif %}
+            <label for="password">Yeni şifre</label>
+            <input type="password" id="password" name="password" required>
 
-            {% if reset_link %}
-                <div class="box">
-                    <strong>Yedek sıfırlama bağlantısı:</strong><br><br>
-                    <a href="{{ reset_link }}">{{ reset_link }}</a>
-                </div>
-            {% endif %}
-        {% endif %}
+            <label for="confirm_password">Yeni şifre tekrar</label>
+            <input type="password" id="confirm_password" name="confirm_password" required>
 
-        <form method="POST" action="/forgot-password">
-            <label for="identity">Kullanıcı adı veya e-posta</label>
-            <input type="text" id="identity" name="identity" required>
-            <button class="btn" type="submit">Sıfırlama Bilgisi Oluştur</button>
+            <button class="btn" type="submit">Şifreyi Güncelle</button>
         </form>
 
         <div class="back">
-            <a href="/login">← Giriş sayfasına dön</a>
+            <a href="/forgot-password">← Şifremi unuttum sayfasına dön</a>
         </div>
     </div>
 </body>

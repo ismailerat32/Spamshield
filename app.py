@@ -46,7 +46,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from utils.reset_utils import (
     find_user_by_identity,
     create_reset_token,
+    create_reset_code,
     find_valid_token_record,
+    find_valid_code_record,
     mark_token_used,
     reset_user_password,
     cleanup_expired_tokens
@@ -821,21 +823,25 @@ def forgot_password():
                 success=False,
                 error="Lütfen kullanıcı adı veya e-posta girin.",
                 message=None,
-                reset_link=None
+                reset_link=None,
+                reset_code=None
             )
 
         username, user = find_user_by_identity(identity)
         reset_link = None
+        reset_code = None
 
         if username and user:
             raw_token = create_reset_token(username)
             reset_link = url_for("reset_password", token=raw_token, _external=True)
+            reset_code = create_reset_code(username)
 
         return render_template(
             "forgot.html",
             success=True,
-            message="Bu bilgi sistemde varsa şifre sıfırlama bağlantısı oluşturuldu.",
+            message="Bu bilgi sistemde varsa sıfırlama bilgisi oluşturuldu.",
             reset_link=reset_link,
+            reset_code=reset_code,
             error=None
         )
 
@@ -844,10 +850,11 @@ def forgot_password():
         success=False,
         error=None,
         message=None,
-        reset_link=None
+        reset_link=None,
+        reset_code=None
     )
 
-    return render_template("forgot.html")
+
 
 @app.route("/reset-password", methods=["GET", "POST"])
 def reset_password():
@@ -1099,6 +1106,54 @@ def buy_license():
 # -----------------------
 # ADMIN LICENSE PANEL
 # -----------------------
+
+
+
+@app.route("/reset-code", methods=["GET", "POST"])
+def reset_code():
+    cleanup_expired_tokens()
+
+    if request.method == "POST":
+        code = (request.form.get("code", "") or "").strip()
+        password = (request.form.get("password", "") or "").strip()
+        confirm_password = (request.form.get("confirm_password", "") or "").strip()
+
+        record = find_valid_code_record(code)
+        if not record:
+            return render_template(
+                "reset_code.html",
+                error="Geçersiz, kullanılmış veya süresi dolmuş kod.",
+                success=None
+            )
+
+        if len(password) < 8:
+            return render_template(
+                "reset_code.html",
+                error="Şifre en az 8 karakter olmalıdır.",
+                success=None
+            )
+
+        if password != confirm_password:
+            return render_template(
+                "reset_code.html",
+                error="Şifreler eşleşmiyor.",
+                success=None
+            )
+
+        username = record["username"]
+        ok = reset_user_password(username, password)
+
+        if not ok:
+            return render_template(
+                "reset_code.html",
+                error="Kullanıcı bulunamadı veya işlem başarısız.",
+                success=None
+            )
+
+        mark_token_used(code)
+        return render_template("reset_success.html")
+
+    return render_template("reset_code.html", error=None, success=None)
 
 
 if __name__ == "__main__":
