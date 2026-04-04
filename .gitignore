@@ -12,10 +12,9 @@ logs/
 *.log
 logs.json
 
-# Data / local db
+# Data / local db (SENSITIVE)
 data/
-*.db
-*.json
+users.json
 
 # ML models
 *.pkl

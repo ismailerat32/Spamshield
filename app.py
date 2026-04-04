@@ -1,3 +1,30 @@
+
+
+def license_required():
+    from datetime import datetime
+
+    username = session.get("username")
+    if not username:
+        return redirect(url_for("login"))
+
+    users = load_users()
+    if username not in users:
+        return redirect(url_for("login"))
+
+    user = users[username]
+    expiry = user.get("license_expiry", "")
+
+    if not expiry:
+        return redirect(url_for("activate_license"))
+
+    try:
+        exp_date = datetime.strptime(expiry, "%Y-%m-%d")
+        if exp_date < datetime.utcnow():
+            return redirect(url_for("activate_license"))
+    except:
+        return redirect(url_for("activate_license"))
+
+    return None
 # =========================================
 # SpamShield © 2026
 # Owner: ismail erat
@@ -13,6 +40,17 @@ import os
 from datetime import datetime, timedelta
 import random
 import string
+
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from utils.reset_utils import (
+    find_user_by_identity,
+    create_reset_token,
+    find_valid_token_record,
+    mark_token_used,
+    reset_user_password,
+    cleanup_expired_tokens
+)
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-this-now")
@@ -247,20 +285,36 @@ def login():
         password = request.form.get("password", "").strip()
 
         users = load_users()
+        user = users.get(username)
 
-        if username in users and users[username]["password"] == password:
-            session["logged_in"] = True
-            session["username"] = username
+        if user:
+            stored_hash = user.get("password_hash", "")
+            stored_plain = user.get("password", "")
 
-            user = users[username]
-            if not is_license_active(user):
-                return redirect(url_for("landing"))
+            valid = False
 
-            return redirect(url_for("dashboard"))
+            if stored_hash:
+                valid = check_password_hash(stored_hash, password)
+            elif stored_plain:
+                if stored_plain == password:
+                    valid = True
+                    users[username]["password_hash"] = generate_password_hash(password)
+                    users[username].pop("password", None)
+                    save_users(users)
+
+            if valid:
+                session["logged_in"] = True
+                session["username"] = username
+
+                if not is_license_active(user):
+                    return redirect(url_for("landing"))
+
+                return redirect(url_for("dashboard"))
 
         return render_template("login.html", error="Kullanıcı adı veya şifre yanlış.")
 
     return render_template("login.html", error="")
+
 
 # -----------------------
 # REGISTER
@@ -287,7 +341,7 @@ def register():
         expiry = datetime.now() + timedelta(days=settings.get("trial_days", 7))
 
         users[username] = {
-            "password": password,
+            "password_hash": generate_password_hash(password),
             "role": "user",
             "license_type": "trial",
             "license_key": "TRIAL",
@@ -299,11 +353,16 @@ def register():
 
     return render_template("register.html", error="")
 
+
 # -----------------------
 # DASHBOARD
 # -----------------------
 @app.route("/dashboard")
 def dashboard():
+    lock = license_required()
+    if lock:
+        return lock
+
     if not login_required():
         return redirect(url_for("login"))
 
@@ -366,7 +425,7 @@ def add_user():
             expiry = datetime.now() + timedelta(days=settings.get("trial_days", 7))
 
             users[username] = {
-                "password": password,
+                "password_hash": generate_password_hash(password),
                 "role": role,
                 "license_type": "trial",
                 "license_key": generate_license_key(),
@@ -376,6 +435,7 @@ def add_user():
             message = "Kullanıcı + lisans oluşturuldu."
 
     return render_template("add_user.html", message=message, error=error)
+
 
 # -----------------------
 # DELETE USER
@@ -542,102 +602,79 @@ def setting():
 # -----------------------
 # ACTIVATE LICENSE
 # -----------------------
-@app.route("/activate-license", methods=["GET", "POST"])
-def activate_license():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    message = ""
-    error = ""
-    username = current_username()
-
-    if request.method == "POST":
-        entered_key = request.form.get("license_key", "").strip()
-
-        if not entered_key:
-            error = "Lisans kodu boş olamaz."
-        else:
-            ok, msg = activate_pool_license(username, entered_key)
-            if ok:
-                message = msg
-            else:
-                error = msg
-
-    users = load_users()
-    user = users.get(username, {})
-
-    return render_template(
-        "activate_license.html",
-        message=message,
-        error=error,
-        current_license=user.get("license_key", ""),
-        license_type=user.get("license_type", "trial"),
-        days_left="∞" if user.get("role") == "admin" else days_left(user)
-    )
-
-# -----------------------
-# BUY LICENSE (SIMULATION)
-# -----------------------
-@app.route("/buy-license")
-def buy_license():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    key = generate_pool_license(30)
-
-    return f"""
-    <html>
-    <head><meta charset='UTF-8'><title>Satın Alma Başarılı</title></head>
-    <body style="background:#0b1220;color:white;font-family:Arial;padding:30px;">
-        <h2>Satın alma başarılı</h2>
-        <p>Tek kullanımlık lisans kodun:</p>
-        <p style="font-size:24px;font-weight:bold;">{key}</p>
-        <p>Bu kod bir kez kullanılabilir.</p>
-        <a href="/activate-license" style="color:#60a5fa;">Lisansı aktifleştir</a><br><br>
-        <a href="/dashboard" style="color:#60a5fa;">Dashboard'a dön</a>
-    </body>
-    </html>
-    """
-
-# -----------------------
-# ADMIN LICENSE PANEL
-# -----------------------
 @app.route("/admin/licenses", methods=["GET", "POST"])
 def admin_licenses():
+    if not login_required():
+        return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("dashboard"))
 
-    message = ""
-    error = ""
+    users = load_users()
+    licenses = load_licenses()
 
     if request.method == "POST":
-        try:
-            days = int(request.form.get("days", "30").strip())
-            if days <= 0:
-                error = "Geçerli gün sayısı gir."
-            else:
-                new_key = generate_pool_license(days)
-                message = f"Yeni lisans oluşturuldu: {new_key}"
-        except:
-            error = "Gün sayısı hatalı."
+        username = request.form.get("username", "").strip()
+        plan = request.form.get("plan", "pro").strip() or "pro"
+        duration_days_raw = request.form.get("duration_days", "30").strip()
 
-    licenses = load_licenses()
-    license_items = sorted(
-        licenses.items(),
-        key=lambda x: x[1].get("created_at", ""),
-        reverse=True
-    )
+        if not username:
+            return render_template(
+                "admin_licenses.html",
+                users=users,
+                licenses=licenses,
+                error="Kullanıcı adı gerekli"
+            )
+
+        if username not in users:
+            return render_template(
+                "admin_licenses.html",
+                users=users,
+                licenses=licenses,
+                error="Kullanıcı bulunamadı"
+            )
+
+        try:
+            duration_days = int(duration_days_raw)
+        except Exception:
+            duration_days = 30
+
+        if duration_days < 1:
+            duration_days = 1
+
+        from datetime import datetime, timedelta
+
+        license_key = generate_license_key()
+        created_at = datetime.utcnow().strftime("%Y-%m-%d")
+        expires_at = (datetime.utcnow() + timedelta(days=duration_days)).strftime("%Y-%m-%d")
+
+        licenses[license_key] = {
+            "username": username,
+            "username": username,
+            "plan": plan,
+            "status": "active",
+            "created_at": created_at,
+            "expires_at": expires_at
+        }
+        save_licenses(licenses)
+        sync_user_license(username, license_key, plan, expires_at)
+
+        users = load_users()
+        licenses = load_licenses()
+
+        return render_template(
+            "admin_licenses.html",
+            users=users,
+            licenses=licenses,
+            success="Lisans oluşturuldu",
+            new_license_key=license_key
+        )
 
     return render_template(
         "admin_licenses.html",
-        licenses=license_items,
-        message=message,
-        error=error
+        users=users,
+        licenses=licenses
     )
 
-# -----------------------
-# LANDING
-# -----------------------
 @app.route("/landing")
 def landing():
     settings = load_settings()
@@ -773,48 +810,42 @@ def api_stats():
 
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
-    import time
-
-    users = load_users()
+    cleanup_expired_tokens()
 
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
+        identity = (request.form.get("identity", "") or "").strip()
 
-        if not username:
-            return render_template("forgot.html", error="Kullanıcı adı gerekli")
-
-        if username not in users:
-            return render_template("forgot.html", error="Kullanıcı bulunamadı")
-
-        user = users[username]
-        now_ts = int(time.time())
-        last_request_at = int(user.get("reset_code_last_request_at", 0) or 0)
-        wait_seconds = 30 - (now_ts - last_request_at)
-
-        if last_request_at and wait_seconds > 0:
+        if not identity:
             return render_template(
                 "forgot.html",
-                error=f"Yeni kod için {wait_seconds} saniye bekle",
-                username=username
+                success=False,
+                error="Lütfen kullanıcı adı veya e-posta girin.",
+                message=None,
+                reset_link=None
             )
 
-        reset_code = generate_reset_code()
-        expires_at = now_ts + (3 * 60)
+        username, user = find_user_by_identity(identity)
+        reset_link = None
 
-        user["reset_code"] = reset_code
-        user["reset_code_expires_at"] = expires_at
-        user["reset_code_used"] = False
-        user["reset_attempts"] = 0
-        user["reset_code_last_request_at"] = now_ts
-        save_users(users)
+        if username and user:
+            raw_token = create_reset_token(username)
+            reset_link = url_for("reset_password", token=raw_token, _external=True)
 
         return render_template(
             "forgot.html",
-            success="Kod hazır!",
-            reset_code=reset_code,
-            username=username,
-            expires_at=expires_at
+            success=True,
+            message="Bu bilgi sistemde varsa şifre sıfırlama bağlantısı oluşturuldu.",
+            reset_link=reset_link,
+            error=None
         )
+
+    return render_template(
+        "forgot.html",
+        success=False,
+        error=None,
+        message=None,
+        reset_link=None
+    )
 
     return render_template("forgot.html")
 
@@ -879,6 +910,197 @@ def reset_password():
         return render_template("reset.html", success="Şifre başarıyla değiştirildi")
 
     return render_template("reset.html")
+
+# === LICENSE SYSTEM PHASE 1 START ===
+LICENSES_FILE = "data/licenses.json"
+
+def load_licenses():
+    import json
+    import os
+
+    if not os.path.exists(LICENSES_FILE):
+        with open(LICENSES_FILE, "w", encoding="utf-8") as f:
+            json.dump({}, f, ensure_ascii=False, indent=2)
+
+    try:
+        with open(LICENSES_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+def save_licenses(data):
+    import json
+    with open(LICENSES_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def generate_license_key():
+    import random
+    import string
+    chars = string.ascii_uppercase + string.digits
+    while True:
+        parts = []
+        for _ in range(3):
+            parts.append("".join(random.choice(chars) for _ in range(4)))
+        key = "SSHD-" + "-".join(parts)
+        licenses = load_licenses()
+        if key not in licenses:
+            return key
+
+def get_current_username():
+    try:
+        return str(session.get("username", "")).strip()
+    except Exception:
+        return ""
+
+def days_left_from_expiry(expiry_str):
+    from datetime import datetime
+    try:
+        exp = datetime.strptime(expiry_str, "%Y-%m-%d").date()
+        today = datetime.utcnow().date()
+        return (exp - today).days
+    except Exception:
+        return -1
+
+def sync_user_license(username, license_key, plan, expires_at):
+    users = load_users()
+    if username not in users:
+        return False
+
+    users[username]["license_key"] = license_key
+    users[username]["license_type"] = plan
+    users[username]["license_expiry"] = expires_at
+    save_users(users)
+    return True
+
+@app.route("/my-license", methods=["GET"])
+def my_license():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    username = get_current_username()
+    users = load_users()
+    licenses = load_licenses()
+
+    if username not in users:
+        return redirect(url_for("login"))
+
+    user = users[username]
+    license_key = str(user.get("license_key", "")).strip()
+    license_data = licenses.get(license_key, {}) if license_key else {}
+    expiry = str(user.get("license_expiry", "")).strip()
+    remaining_days = days_left_from_expiry(expiry) if expiry else -1
+
+    return render_template(
+        "my_license.html",
+        username=username,
+        user=user,
+        license_key=license_key,
+        license_data=license_data,
+        remaining_days=remaining_days
+    )
+
+@app.route("/activate-license", methods=["GET", "POST"])
+def activate_license():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    message = ""
+    error = ""
+    username = current_username()
+
+    if request.method == "POST":
+        entered_key = request.form.get("license_key", "").strip()
+
+        if not entered_key:
+            error = "Lisans kodu boş olamaz."
+        else:
+            ok, msg = activate_pool_license(username, entered_key)
+            if ok:
+                message = msg
+            else:
+                error = msg
+
+    users = load_users()
+    user = users.get(username, {})
+
+    return render_template(
+        "activate_license.html",
+        message=message,
+        error=error,
+        current_license=user.get("license_key", ""),
+        license_type=user.get("license_type", "trial"),
+        days_left="∞" if user.get("role") == "admin" else days_left(user)
+    )
+
+# -----------------------
+# BUY LICENSE (SIMULATION)
+# -----------------------
+
+
+
+PAYMENT_REQUESTS_FILE = "data/payment_requests.json"
+
+def load_payment_requests():
+    import json
+    import os
+    if not os.path.exists(PAYMENT_REQUESTS_FILE):
+        with open(PAYMENT_REQUESTS_FILE, "w", encoding="utf-8") as f:
+            json.dump([], f, ensure_ascii=False, indent=2)
+    try:
+        with open(PAYMENT_REQUESTS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+def save_payment_requests(data):
+    import json
+    with open(PAYMENT_REQUESTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+@app.route("/pricing")
+def pricing():
+    if not login_required():
+        return redirect(url_for("login"))
+    return render_template("pricing.html")
+
+@app.route("/admin/payment-requests")
+def admin_payment_requests():
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    requests_data = load_payment_requests()
+    return render_template("admin_payment_requests.html", requests=requests_data)
+
+@app.route("/buy-license")
+def buy_license():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    key = generate_pool_license(30)
+
+    return f"""
+    <html>
+    <head><meta charset='UTF-8'><title>Satın Alma Başarılı</title></head>
+    <body style="background:#0b1220;color:white;font-family:Arial;padding:30px;">
+        <h2>Satın alma başarılı</h2>
+        <p>Tek kullanımlık lisans kodun:</p>
+        <p style="font-size:24px;font-weight:bold;">{key}</p>
+        <p>Bu kod bir kez kullanılabilir.</p>
+        <a href="/activate-license" style="color:#60a5fa;">Lisansı aktifleştir</a><br><br>
+        <a href="/dashboard" style="color:#60a5fa;">Dashboard'a dön</a>
+    </body>
+    </html>
+    """
+
+# -----------------------
+# ADMIN LICENSE PANEL
+# -----------------------
+
+
 if __name__ == "__main__":
     load_users()
     load_settings()
@@ -892,3 +1114,137 @@ app.run(host="0.0.0.0", port=port, debug=local_debug)
 # -----------------------
 # PASSWORD RESET
 # -----------------------
+# =========================
+# 💳 SATIN ALMA SAYFASI
+# =========================
+@app.route("/pricing")
+def pricing():
+    return render_template("pricing.html")
+
+
+# =========================
+# 💳 LİSANS SATIN AL
+# =========================
+@app.route("/buy-license", methods=["POST"])
+def buy_license():
+    users = load_users()
+    username = request.form.get("username")
+
+    if not username or username not in users:
+        return "Kullanıcı bulunamadı", 400
+
+    license_key = generate_unique_license_key(users)
+
+    if "pending_payments" not in users[username]:
+        users[username]["pending_payments"] = []
+
+    users[username]["pending_payments"].append({
+        "license_key": license_key,
+        "status": "pending"
+    })
+
+    save_users(users)
+
+    return redirect(url_for("dashboard"))
+
+
+# =========================
+# 🛠 ADMIN ÖDEME ONAY
+# =========================
+@app.route("/admin/payment-requests")
+def admin_payment_requests():
+    users = load_users()
+    all_requests = []
+
+    for uname, u in users.items():
+        for p in u.get("pending_payments", []):
+            all_requests.append({
+                "username": uname,
+                "license_key": p["license_key"],
+                "status": p["status"]
+            })
+
+    return render_template("admin_payments.html", requests=all_requests)
+
+
+# =========================
+# ✅ ADMIN ONAY
+# =========================
+@app.route("/admin/approve-payment/<username>/<license_key>")
+def approve_payment(username, license_key):
+    users = load_users()
+
+    for p in users[username].get("pending_payments", []):
+        if p["license_key"] == license_key:
+            p["status"] = "approved"
+            users[username]["license_key"] = license_key
+            users[username]["license_type"] = "pro"
+
+    save_users(users)
+    return redirect(url_for("admin_payment_requests"))
+
+
+# =========================
+# 🔑 LİSANS AKTİVASYON
+# =========================
+@app.route("/activate-license", methods=["GET", "POST"])
+def activate_license():
+    users = load_users()
+    message = None
+
+    if request.method == "POST":
+        username = request.form.get("username")
+        license_key = request.form.get("license_key")
+
+        if username not in users:
+            message = "Kullanıcı bulunamadı"
+        else:
+            found = False
+
+            for uname, u in users.items():
+                for p in u.get("pending_payments", []):
+                    if p["license_key"] == license_key and p["status"] == "approved":
+                        users[username]["license_key"] = license_key
+                        users[username]["license_type"] = "pro"
+                        users[username]["license_expiry"] = "2099-01-01"
+
+                        found = True
+
+            if found:
+                save_users(users)
+                message = "Lisans başarıyla aktifleştirildi ✅"
+            else:
+                message = "Geçersiz veya onaylanmamış lisans ❌"
+
+    return render_template("activate.html", message=message)
+
+
+# =========================
+# 🔐 ŞİFRE RESET (YENİ ŞİFRE)
+# =========================
+@app.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    users = load_users()
+    message = None
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        code = request.form.get("code", "").strip()
+        new_password = request.form.get("password", "").strip()
+
+        if username not in users:
+            message = "Kullanıcı bulunamadı"
+        else:
+            saved_code = users[username].get("reset_code")
+
+            if not saved_code or saved_code != code:
+                message = "Kod geçersiz ❌"
+            else:
+                users[username]["password"] = new_password
+                users[username]["reset_code"] = None
+                save_users(users)
+
+                message = "Şifre başarıyla değiştirildi ✅"
+
+    return render_template("reset_password.html", message=message)
+

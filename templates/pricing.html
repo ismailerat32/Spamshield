@@ -1,20 +1,56 @@
 <!DOCTYPE html>
-<html>
-<head><title>Premium</title>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Paketler</title>
 <style>
-body{background:#0f1115;color:#fff;font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
-.pricing-card{background:#111827;border-radius:20px;padding:40px;text-align:center;border:1px solid #3b82f6}
-.price{font-size:48px;color:#3b82f6;margin:20px 0}
-button{background:#3b82f6;color:#fff;padding:12px 30px;border:none;border-radius:10px;cursor:pointer}
-a{color:#3b82f6}
+body{background:linear-gradient(135deg,#0f172a,#0b1f5e,#1e3a8a);font-family:Arial,sans-serif;color:#fff;margin:0;min-height:100vh}
+.wrap{max-width:1100px;margin:40px auto;padding:20px}
+h1{text-align:center;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.card{background:rgba(3,15,45,.95);padding:24px;border-radius:22px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.price{font-size:34px;font-weight:bold;margin:16px 0}
+ul{padding-left:18px;color:#cbd5e1}
+a.btn{display:inline-block;margin-top:18px;padding:14px 18px;border-radius:14px;background:#1db446;color:#fff;text-decoration:none;font-weight:bold}
+.link{display:inline-block;margin-top:24px;color:#bfdbfe;text-decoration:none}
 </style>
 </head>
 <body>
-<div class="pricing-card">
-<h1>💎 SpamShield Premium</h1>
-<div class="price">₺49,99 / Ay</div>
-<form method="POST" action="/create-order"><button type="submit">Satın Al</button></form>
-<br><a href="/dashboard">Geri Dön</a>
+<div class="wrap">
+    <h1>SpamShield Paketleri</h1>
+    <div class="grid">
+        <div class="card">
+            <h2>Trial</h2>
+            <div class="price">Ücretsiz</div>
+            <ul>
+                <li>Sınırlı kullanım</li>
+                <li>Test amaçlı</li>
+                <li>Kısa süreli erişim</li>
+            </ul>
+            <a class="btn" href="/buy-license">Talep Oluştur</a>
+        </div>
+        <div class="card">
+            <h2>Pro</h2>
+            <div class="price">₺199</div>
+            <ul>
+                <li>Standart koruma</li>
+                <li>Lisans aktivasyonu</li>
+                <li>Yenileme desteği</li>
+            </ul>
+            <a class="btn" href="/buy-license">Satın Al</a>
+        </div>
+        <div class="card">
+            <h2>Premium</h2>
+            <div class="price">₺399</div>
+            <ul>
+                <li>Gelişmiş kullanım</li>
+                <li>Öncelikli destek</li>
+                <li>Uzun süreli lisans</li>
+            </ul>
+            <a class="btn" href="/buy-license">Satın Al</a>
+        </div>
+    </div>
+    <a class="link" href="/dashboard">Dashboard'a dön</a>
 </div>
 </body>
 </html>

@@ -169,7 +169,7 @@ button {
                 type="text"
                 name="username"
                 placeholder="Kullanıcı adını gir"
-                value="{{ request.form.get('username', request.args.get('username', '')) }}"
+                value="{{ username | default(request.form.get('username', request.args.get('username', ''))) }}"
                 required
             >
 

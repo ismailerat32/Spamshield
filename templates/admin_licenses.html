@@ -2,142 +2,211 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lisans Havuzu</title>
+<title>Admin Lisans Yönetimi</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#0b1220;color:#fff}
-.topbar{position:fixed;top:0;left:0;right:0;height:64px;background:rgba(15,23,42,.92);backdrop-filter:blur(10px);border-bottom:1px solid #23324b;display:flex;align-items:center;padding:0 14px;z-index:1100}
-.topbar-left{display:flex;align-items:center;gap:12px}
-.menu-btn{width:44px;height:44px;border:none;border-radius:14px;background:#1f2937;color:#fff;font-size:22px;cursor:pointer}
-.brand{font-size:22px;font-weight:800}
-.sidebar{position:fixed;top:64px;left:0;width:88px;height:calc(100vh - 64px);background:rgba(15,23,42,.90);border-right:1px solid #23324b;padding:14px 10px;overflow-y:auto;transition:.25s ease;z-index:1000}
-.sidebar.expanded{width:230px}
-.sidebar a{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;background:#1c2739;border:1px solid #23324b;padding:13px 14px;border-radius:16px;margin-bottom:10px;white-space:nowrap;overflow:hidden}
-.sidebar a:hover,.sidebar a.active{background:#2563eb}
-.icon{font-size:24px;min-width:28px;text-align:center}
-.label{opacity:0;transition:.2s ease;font-size:16px;font-weight:600}
-.sidebar.expanded .label{opacity:1}
-.content{margin-top:64px;margin-left:88px;padding:18px;transition:.25s ease}
-.content.expanded{margin-left:230px}
-.card{background:#10192c;border:1px solid #23324b;border-radius:22px;padding:22px;margin-bottom:18px}
-label{display:block;margin:12px 0 6px;color:#cbd5e1}
-input{width:100%;padding:12px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:#fff}
-button{margin-top:16px;padding:12px 16px;border:none;border-radius:12px;background:#16a34a;color:#fff;font-weight:bold;cursor:pointer}
-.ok{background:#14532d;padding:10px;border-radius:10px;margin-bottom:12px;word-break:break-all}
-.err{background:#7f1d1d;padding:10px;border-radius:10px;margin-bottom:12px}
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
-th,td{padding:12px;border-bottom:1px solid #23324b;text-align:left}
-.badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800}
-.badge.used{background:rgba(220,38,38,.18);color:#fca5a5;border:1px solid rgba(220,38,38,.35)}
-.badge.free{background:rgba(22,163,74,.18);color:#86efac;border:1px solid rgba(22,163,74,.35)}
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:900}
-.overlay.show{display:block}
-@media (max-width:768px){
-  .brand{font-size:18px}
-  .sidebar{left:-240px;width:220px}
-  .sidebar.expanded{left:0;width:220px}
-  .label{opacity:1}
-  .content{margin-left:0;padding:14px}
-  .content.expanded{margin-left:0}
+body {
+    background: linear-gradient(135deg, #0f172a, #0b1f5e, #1e3a8a);
+    font-family: Arial, sans-serif;
+    color: white;
+    margin: 0;
+    min-height: 100vh;
+}
+.wrap {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 20px;
+}
+.card {
+    background: rgba(3, 15, 45, 0.95);
+    padding: 24px;
+    border-radius: 22px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    margin-bottom: 24px;
+}
+h1, h2 {
+    margin-top: 0;
+}
+label {
+    display: block;
+    margin: 14px 0 8px;
+    color: #cbd5e1;
+}
+input, select, button {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: #020b2a;
+    color: white;
+    font-size: 15px;
+}
+button {
+    background: #1db446;
+    border: 0;
+    font-weight: bold;
+    margin-top: 16px;
+}
+.msg-ok {
+    background: rgba(16, 185, 129, .18);
+    border: 1px solid rgba(16, 185, 129, .35);
+    color: #d1fae5;
+    padding: 14px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+}
+.msg-err {
+    background: rgba(239, 68, 68, .14);
+    border: 1px solid rgba(239, 68, 68, .35);
+    color: #fee2e2;
+    padding: 14px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+}
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+.table-wrap {
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    font-size: 14px;
+}
+.code {
+    font-family: monospace;
+    background: rgba(255,255,255,.06);
+    padding: 6px 10px;
+    border-radius: 10px;
+    display: inline-block;
+}
+.link {
+    color: #bfdbfe;
+    text-decoration: none;
+}
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 </head>
 <body>
+<div class="wrap">
+    <div class="card">
+        <h1>Admin Lisans Yönetimi</h1>
 
-<div class="topbar">
-  <div class="topbar-left">
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-    <div class="brand">🛡 SpamShield</div>
-  </div>
-</div>
+        {% if error %}
+        <div class="msg-err">{{ error }}</div>
+        {% endif %}
 
-<div id="overlay" class="overlay" onclick="closeSidebarMobile()"></div>
-
-<div id="sidebar" class="sidebar">
-  <a href="/dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
-  <a href="/users"><span class="icon">👥</span><span class="label">Kullanıcılar</span></a>
-  <a href="/add-user"><span class="icon">➕</span><span class="label">Kullanıcı Ekle</span></a>
-  <a href="/change"><span class="icon">🔑</span><span class="label">Şifre Değiştir</span></a>
-  <a href="/setting"><span class="icon">⚙️</span><span class="label">Ayarlar</span></a>
-  <a href="/activate-license"><span class="icon">💳</span><span class="label">Lisans</span></a>
-  <a href="/admin/licenses" class="active"><span class="icon">🧾</span><span class="label">Lisans Havuzu</span></a>
-  <a href="/landing"><span class="icon">🌐</span><span class="label">Landing</span></a>
-  <a href="/logout"><span class="icon">🚪</span><span class="label">Çıkış</span></a>
-</div>
-
-<div id="content" class="content">
-  <div class="card">
-    <h2>Yeni Lisans Üret</h2>
-
-    {% if message %}<div class="ok">{{ message }}</div>{% endif %}
-    {% if error %}<div class="err">{{ error }}</div>{% endif %}
-
-    <form method="POST" action="/admin/licenses">
-      <label>Kaç Günlük Lisans?</label>
-      <input type="number" name="days" value="30" min="1" required>
-      <button type="submit">Lisans Oluştur</button>
-    </form>
-  </div>
-
-  <div class="card">
-    <h2>Lisans Havuzu</h2>
-    <div class="table-wrap">
-      <table>
-        <tr>
-          <th>Kod</th>
-          <th>Gün</th>
-          <th>Durum</th>
-          <th>Kullanan</th>
-          <th>Oluşturulma</th>
-        </tr>
-
-        {% for key, data in licenses %}
-        <tr>
-          <td>{{ key }}</td>
-          <td>{{ data["days"] }}</td>
-          <td>
-            {% if data["used"] %}
-              <span class="badge used">Kullanıldı</span>
-            {% else %}
-              <span class="badge free">Hazır</span>
+        {% if success %}
+        <div class="msg-ok">
+            {{ success }}
+            {% if new_license_key %}
+            <div style="margin-top:10px;">
+                Yeni lisans:
+                <span class="code">{{ new_license_key }}</span>
+            </div>
             {% endif %}
-          </td>
-          <td>{{ data.get("used_by", "") }}</td>
-          <td>{{ data.get("created_at", "") }}</td>
-        </tr>
-        {% endfor %}
-      </table>
+        </div>
+        {% endif %}
+
+        <div class="grid">
+            <div>
+                <h2>Yeni Lisans Oluştur</h2>
+                <form method="POST">
+                    <label>Kullanıcı Adı</label>
+                    <input type="text" name="username" placeholder="kullanıcı adı" required>
+
+                    <label>Paket</label>
+                    <select name="plan">
+                        <option value="trial">trial</option>
+                        <option value="pro" selected>pro</option>
+                        <option value="premium">premium</option>
+                    </select>
+
+                    <label>Süre (gün)</label>
+                    <input type="number" name="duration_days" value="30" min="1" required>
+
+                    <button type="submit">Lisans Oluştur</button>
+                </form>
+            </div>
+
+            <div>
+                <h2>Kullanıcılar</h2>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Kullanıcı</th>
+                                <th>Rol</th>
+                                <th>Lisans</th>
+                                <th>Bitiş</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for uname, u in users.items() %}
+                            <tr>
+                                <td>{{ uname }}</td>
+                                <td>{{ u.get("role", "-") }}</td>
+                                <td>{{ u.get("license_type", "-") }}</td>
+                                <td>{{ u.get("license_expiry", "-") }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <div class="card">
+        <h2>Lisanslar</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Anahtar</th>
+                        <th>Kullanıcı</th>
+                        <th>Paket</th>
+                        <th>Durum</th>
+                        <th>Başlangıç</th>
+                        <th>Bitiş</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, lic in licenses.items() %}
+                    <tr>
+                        <td><span class="code">{{ key }}</span></td>
+                        <td>{{ lic.get("username", "-") }}</td>
+                        <td>{{ lic.get("plan", "-") }}</td>
+                        <td>{{ lic.get("status", "-") }}</td>
+                        <td>{{ lic.get("created_at", "-") }}</td>
+                        <td>{{ lic.get("expires_at", "-") }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not licenses %}
+                    <tr>
+                        <td colspan="6">Henüz lisans yok</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top:18px;">
+            <a class="link" href="/dashboard">Dashboard'a dön</a>
+        </div>
+    </div>
 </div>
-
-<script>
-const sidebar=document.getElementById("sidebar");
-const content=document.getElementById("content");
-const overlay=document.getElementById("overlay");
-function isMobile(){ return window.innerWidth <= 768; }
-function toggleSidebar(){
-  if(isMobile()){
-    sidebar.classList.toggle("expanded");
-    overlay.classList.toggle("show");
-  }else{
-    sidebar.classList.toggle("expanded");
-    content.classList.toggle("expanded");
-  }
-}
-function closeSidebarMobile(){
-  if(isMobile()){
-    sidebar.classList.remove("expanded");
-    overlay.classList.remove("show");
-  }
-}
-window.addEventListener("resize",()=>{
-  if(!isMobile()) overlay.classList.remove("show");
-  else content.classList.remove("expanded");
-});
-</script>
-
 </body>
 </html>
