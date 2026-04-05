@@ -11,12 +11,12 @@ LOG_DIR = os.path.join(BASE_DIR, "logs")
 SEEN_IDS_FILE = os.path.join(DATA_DIR, "seen_ids.json")
 LOG_FILE = os.path.join(LOG_DIR, "sms_daemon.log")
 
-SMS_LIMIT = 5
+SMS_LIMIT = 100
 SMS_TIMEOUT = 30
 POLL_INTERVAL = 10
 
 ENABLE_NOTIFICATIONS = True
-ENABLE_AUTO_DELETE = False
+ENABLE_AUTO_DELETE = True
 
 SPAM_WORDS = [
     "bonus",
