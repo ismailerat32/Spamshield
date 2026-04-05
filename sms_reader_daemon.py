@@ -4,6 +4,8 @@ import time
 import logging
 import subprocess
 
+from utils.ai_filter import ai_analyze_message
+
 BASE_DIR = os.path.expanduser("~/spamshield_test_final/spamshield_release")
 DATA_DIR = os.path.join(BASE_DIR, "data")
 LOG_DIR = os.path.join(BASE_DIR, "logs")
@@ -11,12 +13,32 @@ LOG_DIR = os.path.join(BASE_DIR, "logs")
 SEEN_IDS_FILE = os.path.join(DATA_DIR, "seen_ids.json")
 LOG_FILE = os.path.join(LOG_DIR, "sms_daemon.log")
 
-SMS_LIMIT = 100
+SMS_LIMIT = 5
 SMS_TIMEOUT = 30
 POLL_INTERVAL = 10
 
 ENABLE_NOTIFICATIONS = True
-ENABLE_AUTO_DELETE = True
+ENABLE_AUTO_DELETE = False
+
+WHITELIST_SENDERS = [
+    "HALKBANK",
+    "HALKBANK.",
+    "BURGAN BANK",
+    "GARANTI",
+    "AKBANK",
+    "ZIRAAT",
+    "VAKIFBANK",
+    "ISBANK",
+    "ENPARA",
+    "QNB",
+    "PTT",
+    "TRENDYOL",
+    "HEPSIBURADA",
+    "YURTICI",
+    "ARAS",
+    "MNG",
+    "PTTKARGO",
+]
 
 SPAM_WORDS = [
     "bonus",
@@ -32,6 +54,9 @@ SPAM_WORDS = [
     "tanitim iptali",
     "hoşgeldin bonusu",
     "hosgeldin bonusu",
+    "yatırım fırsatı",
+    "yatirim firsati",
+    "deneme bonusu",
 ]
 
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -96,7 +121,11 @@ def get_sms_list(limit=SMS_LIMIT):
 
     return []
 
-def analyze_message(body):
+def is_whitelisted_sender(sender):
+    sender_upper = str(sender or "").upper()
+    return any(item.upper() in sender_upper for item in WHITELIST_SENDERS)
+
+def keyword_score(body):
     text = (body or "").lower()
     score = 0
 
@@ -107,8 +136,36 @@ def analyze_message(body):
     if "http://" in text or "https://" in text:
         score += 30
 
-    status = "SPAM" if score >= 40 else "TEMIZ"
-    return status, score
+    return score
+
+def hybrid_analyze(sender, body):
+    if is_whitelisted_sender(sender):
+        return {
+            "status": "TEMIZ",
+            "score": 0,
+            "reason": "WHITELIST",
+            "ai_enabled": False
+        }
+
+    kw_score = keyword_score(body)
+    ai = ai_analyze_message(body)
+
+    total_score = kw_score + ai.get("score", 0)
+
+    # AI spam dediyse daha güvenli davran
+    if ai.get("enabled") and ai.get("result") == "SPAM":
+        total_score += 20
+
+    status = "SPAM" if total_score >= 40 else "TEMIZ"
+
+    return {
+        "status": status,
+        "score": total_score,
+        "reason": f"KW:{kw_score} + AI:{ai.get('score', 0)}",
+        "ai_enabled": ai.get("enabled", False),
+        "ai_result": ai.get("result", "UNKNOWN"),
+        "ai_error": ai.get("error")
+    }
 
 def notify_spam(sender, score, body):
     if not ENABLE_NOTIFICATIONS:
@@ -149,7 +206,7 @@ def delete_sms(sms_id):
 
 def main():
     seen_ids = load_seen_ids()
-    log_print("📡 SpamShield daemon başlatıldı...")
+    log_print("📡 SpamShield AI+Hybrid daemon başlatıldı...")
 
     while True:
         messages = get_sms_list(SMS_LIMIT)
@@ -165,13 +222,19 @@ def main():
             received = sms.get("received", "")
             body = sms.get("body", "")
 
-            status, score = analyze_message(body)
+            result = hybrid_analyze(sender, body)
+            status = result["status"]
+            score = result["score"]
 
             log_print("-" * 60)
             log_print(f"Gönderen : {sender}")
             log_print(f"Tarih    : {received}")
             log_print(f"Durum    : {status}")
             log_print(f"Skor     : {score}")
+            log_print(f"Neden    : {result.get('reason')}")
+            log_print(f"AI       : {result.get('ai_result', 'UNKNOWN')} | aktif={result.get('ai_enabled')}")
+            if result.get("ai_error"):
+                log_print(f"AI Hata  : {result.get('ai_error')}")
             log_print(f"Mesaj    : {body[:300]}")
 
             if status == "SPAM":
