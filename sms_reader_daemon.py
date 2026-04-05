@@ -15,6 +15,9 @@ SMS_LIMIT = 5
 SMS_TIMEOUT = 30
 POLL_INTERVAL = 10
 
+ENABLE_NOTIFICATIONS = True
+ENABLE_AUTO_DELETE = False
+
 SPAM_WORDS = [
     "bonus",
     "freebet",
@@ -23,6 +26,7 @@ SPAM_WORDS = [
     "kredi",
     "kampanya",
     "bit.ly",
+    "tinyurl",
     "hemen başvur",
     "hemen basvur",
     "tanitim iptali",
@@ -106,6 +110,43 @@ def analyze_message(body):
     status = "SPAM" if score >= 40 else "TEMIZ"
     return status, score
 
+def notify_spam(sender, score, body):
+    if not ENABLE_NOTIFICATIONS:
+        return
+
+    short_sender = str(sender)[:30]
+    short_body = (body or "").replace("\n", " ")[:90]
+
+    try:
+        subprocess.run(
+            [
+                "termux-notification",
+                "--title", "🚫 SpamShield Uyarı",
+                "--content", f"{short_sender} | Skor: {score} | {short_body}"
+            ],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+    except Exception as e:
+        log_print(f"⚠️ Bildirim gönderilemedi: {e}")
+
+def delete_sms(sms_id):
+    if not ENABLE_AUTO_DELETE:
+        return False
+
+    try:
+        result = subprocess.run(
+            ["termux-sms-delete", "-i", str(sms_id)],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        return result.returncode == 0
+    except Exception as e:
+        log_print(f"⚠️ SMS silme hatası: {e}")
+        return False
+
 def main():
     seen_ids = load_seen_ids()
     log_print("📡 SpamShield daemon başlatıldı...")
@@ -132,6 +173,16 @@ def main():
             log_print(f"Durum    : {status}")
             log_print(f"Skor     : {score}")
             log_print(f"Mesaj    : {body[:300]}")
+
+            if status == "SPAM":
+                notify_spam(sender, score, body)
+
+                if ENABLE_AUTO_DELETE:
+                    deleted = delete_sms(sms_id)
+                    if deleted:
+                        log_print(f"🗑 SMS silindi: {sms_id}")
+                    else:
+                        log_print(f"⚠️ SMS silinemedi: {sms_id}")
 
         save_seen_ids(seen_ids)
         time.sleep(POLL_INTERVAL)
