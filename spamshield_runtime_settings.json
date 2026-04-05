@@ -1,0 +1,8 @@
+{
+  "enable_notifications": true,
+  "enable_vibration": true,
+  "enable_auto_delete": false,
+  "sms_limit": 5,
+  "poll_interval": 10,
+  "spam_threshold": 40
+}

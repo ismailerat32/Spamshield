@@ -12,13 +12,16 @@ LOG_DIR = os.path.join(BASE_DIR, "logs")
 
 SEEN_IDS_FILE = os.path.join(DATA_DIR, "seen_ids.json")
 LOG_FILE = os.path.join(LOG_DIR, "sms_daemon.log")
+RUNTIME_SETTINGS_FILE = os.path.join(BASE_DIR, "spamshield_runtime_settings.json")
 
-SMS_LIMIT = 5
-SMS_TIMEOUT = 30
-POLL_INTERVAL = 10
-
-ENABLE_NOTIFICATIONS = True
-ENABLE_AUTO_DELETE = False
+DEFAULT_SETTINGS = {
+    "enable_notifications": True,
+    "enable_vibration": True,
+    "enable_auto_delete": False,
+    "sms_limit": 5,
+    "poll_interval": 10,
+    "spam_threshold": 40
+}
 
 WHITELIST_SENDERS = [
     "HALKBANK",
@@ -37,7 +40,7 @@ WHITELIST_SENDERS = [
     "YURTICI",
     "ARAS",
     "MNG",
-    "PTTKARGO",
+    "PTTKARGO"
 ]
 
 SPAM_WORDS = [
@@ -56,7 +59,7 @@ SPAM_WORDS = [
     "hosgeldin bonusu",
     "yatırım fırsatı",
     "yatirim firsati",
-    "deneme bonusu",
+    "deneme bonusu"
 ]
 
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -72,6 +75,24 @@ def log_print(msg):
     print(msg, flush=True)
     logging.info(msg)
 
+def load_runtime_settings():
+    if not os.path.exists(RUNTIME_SETTINGS_FILE):
+        with open(RUNTIME_SETTINGS_FILE, "w", encoding="utf-8") as f:
+            json.dump(DEFAULT_SETTINGS, f, ensure_ascii=False, indent=2)
+        return DEFAULT_SETTINGS.copy()
+
+    try:
+        with open(RUNTIME_SETTINGS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        merged = DEFAULT_SETTINGS.copy()
+        if isinstance(data, dict):
+            merged.update(data)
+        return merged
+    except Exception as e:
+        log_print(f"⚠️ Ayar dosyası okunamadı: {e}")
+        return DEFAULT_SETTINGS.copy()
+
 def load_seen_ids():
     if not os.path.exists(SEEN_IDS_FILE):
         return set()
@@ -86,7 +107,7 @@ def save_seen_ids(seen_ids):
     with open(SEEN_IDS_FILE, "w", encoding="utf-8") as f:
         json.dump(sorted(list(seen_ids)), f, ensure_ascii=False, indent=2)
 
-def get_sms_list(limit=SMS_LIMIT):
+def get_sms_list(limit=5, timeout=30):
     commands = [
         ["termux-sms-list", "-t", "inbox", "-l", str(limit)],
         ["termux-sms-list", "-l", str(limit)],
@@ -98,7 +119,7 @@ def get_sms_list(limit=SMS_LIMIT):
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=SMS_TIMEOUT
+                timeout=timeout
             )
 
             if result.returncode != 0:
@@ -138,13 +159,15 @@ def keyword_score(body):
 
     return score
 
-def hybrid_analyze(sender, body):
+def hybrid_analyze(sender, body, spam_threshold):
     if is_whitelisted_sender(sender):
         return {
             "status": "TEMIZ",
             "score": 0,
             "reason": "WHITELIST",
-            "ai_enabled": False
+            "ai_enabled": False,
+            "ai_result": "UNKNOWN",
+            "ai_error": None
         }
 
     kw_score = keyword_score(body)
@@ -152,11 +175,10 @@ def hybrid_analyze(sender, body):
 
     total_score = kw_score + ai.get("score", 0)
 
-    # AI spam dediyse daha güvenli davran
     if ai.get("enabled") and ai.get("result") == "SPAM":
         total_score += 20
 
-    status = "SPAM" if total_score >= 40 else "TEMIZ"
+    status = "SPAM" if total_score >= spam_threshold else "TEMIZ"
 
     return {
         "status": status,
@@ -168,9 +190,6 @@ def hybrid_analyze(sender, body):
     }
 
 def notify_spam(sender, score, body):
-    if not ENABLE_NOTIFICATIONS:
-        return
-
     short_sender = str(sender)[:30]
     short_body = (body or "").replace("\n", " ")[:90]
 
@@ -188,10 +207,18 @@ def notify_spam(sender, score, body):
     except Exception as e:
         log_print(f"⚠️ Bildirim gönderilemedi: {e}")
 
-def delete_sms(sms_id):
-    if not ENABLE_AUTO_DELETE:
-        return False
+def vibrate_alert():
+    try:
+        subprocess.run(
+            ["termux-vibrate", "-d", "300"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+    except Exception as e:
+        log_print(f"⚠️ Titreşim hatası: {e}")
 
+def delete_sms(sms_id):
     try:
         result = subprocess.run(
             ["termux-sms-delete", "-i", str(sms_id)],
@@ -209,7 +236,16 @@ def main():
     log_print("📡 SpamShield AI+Hybrid daemon başlatıldı...")
 
     while True:
-        messages = get_sms_list(SMS_LIMIT)
+        settings = load_runtime_settings()
+
+        enable_notifications = bool(settings.get("enable_notifications", True))
+        enable_vibration = bool(settings.get("enable_vibration", True))
+        enable_auto_delete = bool(settings.get("enable_auto_delete", False))
+        sms_limit = int(settings.get("sms_limit", 5))
+        poll_interval = int(settings.get("poll_interval", 10))
+        spam_threshold = int(settings.get("spam_threshold", 40))
+
+        messages = get_sms_list(limit=sms_limit, timeout=30)
 
         for sms in messages:
             sms_id = str(sms.get("_id", ""))
@@ -222,7 +258,7 @@ def main():
             received = sms.get("received", "")
             body = sms.get("body", "")
 
-            result = hybrid_analyze(sender, body)
+            result = hybrid_analyze(sender, body, spam_threshold)
             status = result["status"]
             score = result["score"]
 
@@ -238,9 +274,13 @@ def main():
             log_print(f"Mesaj    : {body[:300]}")
 
             if status == "SPAM":
-                notify_spam(sender, score, body)
+                if enable_notifications:
+                    notify_spam(sender, score, body)
 
-                if ENABLE_AUTO_DELETE:
+                if enable_vibration:
+                    vibrate_alert()
+
+                if enable_auto_delete:
                     deleted = delete_sms(sms_id)
                     if deleted:
                         log_print(f"🗑 SMS silindi: {sms_id}")
@@ -248,7 +288,7 @@ def main():
                         log_print(f"⚠️ SMS silinemedi: {sms_id}")
 
         save_seen_ids(seen_ids)
-        time.sleep(POLL_INTERVAL)
+        time.sleep(poll_interval)
 
 if __name__ == "__main__":
     main()
