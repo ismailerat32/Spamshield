@@ -34,3 +34,9 @@ add_*.py
 
 # OS
 .DS_Store
+
+# SpamShield debug / backup
+sms_reader_daemon.py.*
+*.bak_*
+*.debug_*
+*.disabled
