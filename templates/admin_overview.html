@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpamShield Admin Panel</title>
+    <style>
+        body {
+            margin: 0;
+            background: #0f1115;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        .wrap {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+        .card {
+            background: #1a1f29;
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 0 8px rgba(0,0,0,.35);
+        }
+        .card h3 {
+            margin: 0 0 10px;
+            font-size: 15px;
+            color: #9ecbff;
+        }
+        .value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .links {
+            margin: 20px 0;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .links a {
+            background: #2563eb;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a1f29;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #2c3442;
+            text-align: left;
+            font-size: 14px;
+            vertical-align: top;
+        }
+        th {
+            background: #232b38;
+        }
+        .status-on {
+            color: #4ade80;
+            font-weight: bold;
+        }
+        .status-off {
+            color: #f87171;
+            font-weight: bold;
+        }
+        .small {
+            color: #cbd5e1;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>🛡️ SpamShield Admin Panel</h1>
+
+    <div class="grid">
+        <div class="card">
+            <h3>Toplam Kullanıcı</h3>
+            <div class="value">{{ stats.total_users }}</div>
+        </div>
+        <div class="card">
+            <h3>Spam Log Sayısı</h3>
+            <div class="value">{{ stats.spam_log_count }}</div>
+        </div>
+        <div class="card">
+            <h3>Bildirim</h3>
+            <div class="value {% if stats.notifications %}status-on{% else %}status-off{% endif %}">
+                {% if stats.notifications %}Açık{% else %}Kapalı{% endif %}
+            </div>
+        </div>
+        <div class="card">
+            <h3>Titreşim</h3>
+            <div class="value {% if stats.vibration %}status-on{% else %}status-off{% endif %}">
+                {% if stats.vibration %}Açık{% else %}Kapalı{% endif %}
+            </div>
+        </div>
+        <div class="card">
+            <h3>Otomatik Silme</h3>
+            <div class="value {% if stats.auto_delete %}status-on{% else %}status-off{% endif %}">
+                {% if stats.auto_delete %}Açık{% else %}Kapalı{% endif %}
+            </div>
+        </div>
+        <div class="card">
+            <h3>Spam Threshold</h3>
+            <div class="value">{{ stats.spam_threshold }}</div>
+        </div>
+        <div class="card">
+            <h3>SMS Limit</h3>
+            <div class="value">{{ stats.sms_limit }}</div>
+        </div>
+        <div class="card">
+            <h3>Polling Süresi</h3>
+            <div class="value">{{ stats.poll_interval }}</div>
+        </div>
+    </div>
+
+    <div class="links">
+        <a href="/admin/settings">⚙️ Ayarlar</a>
+        <a href="/admin/spam-logs">📜 Tüm Spam Logları</a>
+        <a href="/dashboard">🏠 Dashboard</a>
+    </div>
+
+    <h2>Son Yakalanan Spamlar</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Tarih</th>
+                <th>Gönderen</th>
+                <th>Skor</th>
+                <th>Neden</th>
+                <th>Mesaj</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in recent_logs %}
+            <tr>
+                <td>{{ log.time }}</td>
+                <td>{{ log.sender }}</td>
+                <td>{{ log.score }}</td>
+                <td>{{ log.reason }}</td>
+                <td class="small">{{ log.body[:140] }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">Henüz spam log kaydı yok.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

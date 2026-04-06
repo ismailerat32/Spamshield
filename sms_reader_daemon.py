@@ -2,12 +2,14 @@ import os
 import json
 import time
 import subprocess
+from datetime import datetime
 
 BASE_DIR = os.path.expanduser("~/spamshield_test_final/spamshield_release")
 DATA_DIR = os.path.join(BASE_DIR, "data")
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 
 SEEN_IDS_FILE = os.path.join(DATA_DIR, "seen_ids.json")
+SPAM_LOGS_FILE = os.path.join(DATA_DIR, "spam_logs.json")
 RUNTIME_SETTINGS_FILE = os.path.join(BASE_DIR, "spamshield_runtime_settings.json")
 LOG_FILE = os.path.join(LOG_DIR, "sms_daemon.log")
 
@@ -122,6 +124,28 @@ def save_seen_ids(seen_ids):
             json.dump(sorted(list(seen_ids)), f, ensure_ascii=False, indent=2)
     except Exception as e:
         log_print(f"⚠️ seen_ids kayıt hatası: {e}")
+
+
+def load_spam_logs():
+    if not os.path.exists(SPAM_LOGS_FILE):
+        return []
+    try:
+        with open(SPAM_LOGS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def save_spam_log(entry):
+    logs = load_spam_logs()
+    logs.insert(0, entry)
+    logs = logs[:300]
+    try:
+        with open(SPAM_LOGS_FILE, "w", encoding="utf-8") as f:
+            json.dump(logs, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        log_print(f"⚠️ spam log kayıt hatası: {e}")
 
 
 def get_sms_list(limit=5, timeout=20):
@@ -296,6 +320,16 @@ def main():
 
             if result["status"] == "SPAM":
                 log_print("🚨 SPAM YAKALANDI")
+
+                save_spam_log({
+                    "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "sender": sender,
+                    "body": body,
+                    "score": result["score"],
+                    "reason": result["reason"],
+                    "sms_id": sms_id,
+                    "auto_delete": enable_auto_delete
+                })
 
                 if enable_notifications:
                     send_notification(
