@@ -1,42 +1,21 @@
-# Python
+# backups
+*.bak
+*.backup
+*.old
+*.fix*
+*.whitelist_*
+*.dashboard_*
+
+# python
 __pycache__/
 *.pyc
 
-# Backup files
-*.bak
-*.bak_*
-*.save
-
-# Logs & temp
+# logs
 logs/
+
+# runtime data
+data/*.json
+!data/.keep
+
+# misc
 *.log
-logs.json
-
-# Data / local db (SENSITIVE)
-data/
-users.json
-
-# ML models
-*.pkl
-
-# Env
-.env
-
-# Termux / build
-build/
-dist/
-
-# Test / scripts
-fix_*.py
-patch_*.py
-upgrade_*.py
-add_*.py
-
-# OS
-.DS_Store
-
-# SpamShield debug / backup
-sms_reader_daemon.py.*
-*.bak_*
-*.debug_*
-*.disabled
