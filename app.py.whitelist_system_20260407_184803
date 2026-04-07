@@ -271,32 +271,6 @@ def activate_pool_license(username, entered_key):
 # -----------------------
 # HOME
 # -----------------------
-
-
-WHITELIST_FILE = "data/whitelist.json"
-
-def load_whitelist():
-    import json, os
-    if not os.path.exists(WHITELIST_FILE):
-        return []
-    try:
-        with open(WHITELIST_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return []
-
-def save_whitelist(data):
-    import json
-    with open(WHITELIST_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-def add_to_whitelist(sender):
-    sender = str(sender).upper()
-    wl = load_whitelist()
-    if sender not in wl:
-        wl.append(sender)
-        save_whitelist(wl)
-
 @app.route("/")
 def home():
     if login_required():
@@ -1240,14 +1214,6 @@ def admin_overview():
 
 SPAM_LOGS_FILE = "data/spam_logs.json"
 
-
-
-def save_spam_logs(logs):
-    SPAM_LOGS_FILE = "data/spam_logs.json"
-    import json
-    with open(SPAM_LOGS_FILE, "w", encoding="utf-8") as f:
-        json.dump(logs, f, indent=2, ensure_ascii=False)
-
 def load_spam_logs():
     if not os.path.exists(SPAM_LOGS_FILE):
         return []
@@ -1257,106 +1223,6 @@ def load_spam_logs():
         return data if isinstance(data, list) else []
     except Exception:
         return []
-
-
-
-@app.route("/admin/mark-clean", methods=["POST"])
-def admin_mark_clean():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    sender = request.form.get("sender", "").upper()
-    body = request.form.get("body", "")
-
-    WHITELIST_FILE = "data/whitelist.json"
-
-    import json, os
-
-    if os.path.exists(WHITELIST_FILE):
-        with open(WHITELIST_FILE, "r", encoding="utf-8") as f:
-            whitelist = json.load(f)
-    else:
-        whitelist = []
-
-    if sender and sender not in whitelist:
-        whitelist.append(sender)
-
-    with open(WHITELIST_FILE, "w", encoding="utf-8") as f:
-        json.dump(whitelist, f, indent=2, ensure_ascii=False)
-
-    spam_logs = load_spam_logs()
-    cleaned_logs = []
-
-    removed = False
-    for log in spam_logs:
-        log_sender = str(log.get("sender", "")).upper()
-        log_body = str(log.get("body", ""))
-
-        if (not removed) and log_sender == sender and log_body == body:
-            removed = True
-            continue
-
-        cleaned_logs.append(log)
-
-    save_spam_logs(cleaned_logs)
-
-    return redirect(url_for("admin_spam_logs"))
-
-
-
-@app.route("/admin/whitelist")
-def admin_whitelist():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    whitelist = load_whitelist()
-    return render_template("admin_whitelist.html", whitelist=whitelist)
-
-
-
-
-@app.route("/admin/whitelist/add", methods=["POST"])
-def admin_whitelist_add():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    sender = request.form.get("sender", "").upper().strip()
-
-    if not sender:
-        return redirect(url_for("admin_whitelist"))
-
-    whitelist = load_whitelist()
-
-    if sender not in whitelist:
-        whitelist.append(sender)
-        save_whitelist(whitelist)
-
-    return redirect(url_for("admin_whitelist"))
-
-@app.route("/admin/whitelist/remove", methods=["POST"])
-def admin_whitelist_remove():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    sender = request.form.get("sender", "").upper().strip()
-
-    whitelist = load_whitelist()
-    whitelist = [x for x in whitelist if str(x).upper().strip() != sender]
-    save_whitelist(whitelist)
-
-    return redirect(url_for("admin_whitelist"))
 
 @app.route("/admin/spam-logs")
 def admin_spam_logs():
@@ -1406,9 +1272,6 @@ def save_runtime_settings(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 @app.route("/admin/settings", methods=["GET", "POST"])
-
-
-
 def admin_settings():
     if not login_required():
         return redirect(url_for("login"))

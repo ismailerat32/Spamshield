@@ -7,7 +7,7 @@
     <style>
         body {
             margin: 0;
-            background: #0b1020;
+            background: #0f1115;
             color: #fff;
             font-family: Arial, sans-serif;
         }
@@ -34,29 +34,16 @@
             color: #9ecbff;
             margin-bottom: 8px;
             font-size: 14px;
-            line-height: 1.5;
         }
         .body {
             color: #e5e7eb;
             white-space: pre-wrap;
             word-break: break-word;
             line-height: 1.5;
-            margin-bottom: 14px;
         }
         .reason {
             color: #fbbf24;
             font-weight: bold;
-        }
-        .btn-clean {
-            border: none;
-            background: #16a34a;
-            color: white;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-        .muted {
-            color: #cbd5e1;
         }
     </style>
 </head>
@@ -75,17 +62,10 @@
             <strong>Skor:</strong> {{ log.score }} |
             <strong>Neden:</strong> <span class="reason">{{ log.reason }}</span>
         </div>
-
         <div class="body">{{ log.body }}</div>
-
-        <form method="POST" action="/admin/mark-clean">
-            <input type="hidden" name="sender" value="{{ log.sender }}">
-            <input type="hidden" name="body" value="{{ log.body }}">
-            <button class="btn-clean" type="submit">✅ Spam değil</button>
-        </form>
     </div>
     {% else %}
-    <div class="log-card muted">Henüz spam log kaydı yok.</div>
+    <div class="log-card">Henüz spam log kaydı yok.</div>
     {% endfor %}
 </div>
 </body>

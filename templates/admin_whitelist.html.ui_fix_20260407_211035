@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whitelist Paneli</title>
+
+<style>
+body {
+    margin:0;
+    background:#0b1020;
+    color:white;
+    font-family:Arial;
+}
+
+.wrap {
+    max-width:1100px;
+    margin:30px auto;
+    padding:20px;
+}
+
+.top h1 {
+    font-size:40px;
+}
+
+.card {
+    background:#1a1f2e;
+    padding:16px;
+    border-radius:16px;
+    margin-bottom:12px;
+}
+
+.row {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+input {
+    padding:10px;
+    border-radius:10px;
+    border:none;
+    width:70%;
+}
+
+.btn-add {
+    background:#22c55e;
+    border:none;
+    padding:10px 14px;
+    border-radius:10px;
+    color:white;
+    font-weight:bold;
+}
+
+.btn-remove {
+    background:#dc2626;
+    border:none;
+    padding:8px 12px;
+    border-radius:10px;
+    color:white;
+}
+</style>
+
+</head>
+<body>
+
+<div class="wrap">
+
+<div class="top">
+    <h1>🧠 Whitelist Paneli</h1>
+    <a href="/admin">← Admin panele dön</a>
+</div>
+
+<!-- EKLEME -->
+<div class="card">
+    <form method="POST" action="/admin/whitelist/add">
+        <input type="text" name="sender" placeholder="Örn: HALKBANK" required>
+        <button class="btn-add">➕ Ekle</button>
+    </form>
+</div>
+
+<!-- LİSTE -->
+{% for sender in whitelist %}
+<div class="card">
+    <div class="row">
+        <strong>{{ sender }}</strong>
+
+        <form method="POST" action="/admin/whitelist/remove">
+            <input type="hidden" name="sender" value="{{ sender }}">
+            <button class="btn-remove">❌</button>
+        </form>
+    </div>
+</div>
+{% else %}
+<div class="card">Liste boş</div>
+{% endfor %}
+
+</div>
+
+</body>
+</html>

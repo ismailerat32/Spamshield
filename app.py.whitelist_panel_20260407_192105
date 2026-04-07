@@ -1305,59 +1305,6 @@ def admin_mark_clean():
 
     return redirect(url_for("admin_spam_logs"))
 
-
-
-@app.route("/admin/whitelist")
-def admin_whitelist():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    whitelist = load_whitelist()
-    return render_template("admin_whitelist.html", whitelist=whitelist)
-
-
-
-
-@app.route("/admin/whitelist/add", methods=["POST"])
-def admin_whitelist_add():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    sender = request.form.get("sender", "").upper().strip()
-
-    if not sender:
-        return redirect(url_for("admin_whitelist"))
-
-    whitelist = load_whitelist()
-
-    if sender not in whitelist:
-        whitelist.append(sender)
-        save_whitelist(whitelist)
-
-    return redirect(url_for("admin_whitelist"))
-
-@app.route("/admin/whitelist/remove", methods=["POST"])
-def admin_whitelist_remove():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    sender = request.form.get("sender", "").upper().strip()
-
-    whitelist = load_whitelist()
-    whitelist = [x for x in whitelist if str(x).upper().strip() != sender]
-    save_whitelist(whitelist)
-
-    return redirect(url_for("admin_whitelist"))
-
 @app.route("/admin/spam-logs")
 def admin_spam_logs():
     if not login_required():

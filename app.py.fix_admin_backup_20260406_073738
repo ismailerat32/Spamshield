@@ -271,32 +271,6 @@ def activate_pool_license(username, entered_key):
 # -----------------------
 # HOME
 # -----------------------
-
-
-WHITELIST_FILE = "data/whitelist.json"
-
-def load_whitelist():
-    import json, os
-    if not os.path.exists(WHITELIST_FILE):
-        return []
-    try:
-        with open(WHITELIST_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return []
-
-def save_whitelist(data):
-    import json
-    with open(WHITELIST_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-def add_to_whitelist(sender):
-    sender = str(sender).upper()
-    wl = load_whitelist()
-    if sender not in wl:
-        wl.append(sender)
-        save_whitelist(wl)
-
 @app.route("/")
 def home():
     if login_required():
@@ -1206,209 +1180,7 @@ def save_runtime_settings(data):
         json.dump(data, f, indent=2)
 
 
-
-
-@app.route("/admin")
-@app.route("/admin/")
-def admin_overview():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    users = load_users()
-    runtime_settings = load_runtime_settings()
-    spam_logs = load_spam_logs() if 'load_spam_logs' in globals() else []
-
-    stats = {
-        "total_users": len(users),
-        "spam_log_count": len(spam_logs),
-        "notifications": runtime_settings.get("enable_notifications", True),
-        "vibration": runtime_settings.get("enable_vibration", True),
-        "auto_delete": runtime_settings.get("enable_auto_delete", False),
-        "sms_limit": runtime_settings.get("sms_limit", 5),
-        "poll_interval": runtime_settings.get("poll_interval", 10),
-        "spam_threshold": runtime_settings.get("spam_threshold", 40)
-    }
-
-    recent_logs = spam_logs[:10] if isinstance(spam_logs, list) else []
-
-    return render_template("admin_overview.html", stats=stats, recent_logs=recent_logs)
-
-
-
-SPAM_LOGS_FILE = "data/spam_logs.json"
-
-
-
-def save_spam_logs(logs):
-    SPAM_LOGS_FILE = "data/spam_logs.json"
-    import json
-    with open(SPAM_LOGS_FILE, "w", encoding="utf-8") as f:
-        json.dump(logs, f, indent=2, ensure_ascii=False)
-
-def load_spam_logs():
-    if not os.path.exists(SPAM_LOGS_FILE):
-        return []
-    try:
-        with open(SPAM_LOGS_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return data if isinstance(data, list) else []
-    except Exception:
-        return []
-
-
-
-@app.route("/admin/mark-clean", methods=["POST"])
-def admin_mark_clean():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    sender = request.form.get("sender", "").upper()
-    body = request.form.get("body", "")
-
-    WHITELIST_FILE = "data/whitelist.json"
-
-    import json, os
-
-    if os.path.exists(WHITELIST_FILE):
-        with open(WHITELIST_FILE, "r", encoding="utf-8") as f:
-            whitelist = json.load(f)
-    else:
-        whitelist = []
-
-    if sender and sender not in whitelist:
-        whitelist.append(sender)
-
-    with open(WHITELIST_FILE, "w", encoding="utf-8") as f:
-        json.dump(whitelist, f, indent=2, ensure_ascii=False)
-
-    spam_logs = load_spam_logs()
-    cleaned_logs = []
-
-    removed = False
-    for log in spam_logs:
-        log_sender = str(log.get("sender", "")).upper()
-        log_body = str(log.get("body", ""))
-
-        if (not removed) and log_sender == sender and log_body == body:
-            removed = True
-            continue
-
-        cleaned_logs.append(log)
-
-    save_spam_logs(cleaned_logs)
-
-    return redirect(url_for("admin_spam_logs"))
-
-
-
-@app.route("/admin/whitelist")
-def admin_whitelist():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    whitelist = load_whitelist()
-    return render_template("admin_whitelist.html", whitelist=whitelist)
-
-
-
-
-@app.route("/admin/whitelist/add", methods=["POST"])
-def admin_whitelist_add():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    sender = request.form.get("sender", "").upper().strip()
-
-    if not sender:
-        return redirect(url_for("admin_whitelist"))
-
-    whitelist = load_whitelist()
-
-    if sender not in whitelist:
-        whitelist.append(sender)
-        save_whitelist(whitelist)
-
-    return redirect(url_for("admin_whitelist"))
-
-@app.route("/admin/whitelist/remove", methods=["POST"])
-def admin_whitelist_remove():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    sender = request.form.get("sender", "").upper().strip()
-
-    whitelist = load_whitelist()
-    whitelist = [x for x in whitelist if str(x).upper().strip() != sender]
-    save_whitelist(whitelist)
-
-    return redirect(url_for("admin_whitelist"))
-
-@app.route("/admin/spam-logs")
-def admin_spam_logs():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    spam_logs = load_spam_logs()
-    return render_template("admin_spam_logs.html", spam_logs=spam_logs)
-
-
-
-
-# =========================
-# ⚙️ ADMIN SETTINGS
-# =========================
-RUNTIME_SETTINGS_FILE = "spamshield_runtime_settings.json"
-
-def load_runtime_settings():
-    defaults = {
-        "enable_notifications": True,
-        "enable_vibration": True,
-        "enable_auto_delete": False,
-        "sms_limit": 5,
-        "poll_interval": 10,
-        "spam_threshold": 40
-    }
-
-    if not os.path.exists(RUNTIME_SETTINGS_FILE):
-        with open(RUNTIME_SETTINGS_FILE, "w", encoding="utf-8") as f:
-            json.dump(defaults, f, ensure_ascii=False, indent=2)
-        return defaults
-
-    try:
-        with open(RUNTIME_SETTINGS_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        if isinstance(data, dict):
-            defaults.update(data)
-        return defaults
-    except Exception:
-        return defaults
-
-def save_runtime_settings(data):
-    with open(RUNTIME_SETTINGS_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
 @app.route("/admin/settings", methods=["GET", "POST"])
-
-
-
 def admin_settings():
     if not login_required():
         return redirect(url_for("login"))
@@ -1423,25 +1195,13 @@ def admin_settings():
         settings["enable_vibration"] = "enable_vibration" in request.form
         settings["enable_auto_delete"] = "enable_auto_delete" in request.form
 
-        try:
-            settings["sms_limit"] = int(request.form.get("sms_limit", 5))
-        except:
-            settings["sms_limit"] = 5
-
-        try:
-            settings["poll_interval"] = int(request.form.get("poll_interval", 10))
-        except:
-            settings["poll_interval"] = 10
-
-        try:
-            settings["spam_threshold"] = int(request.form.get("spam_threshold", 40))
-        except:
-            settings["spam_threshold"] = 40
+        settings["sms_limit"] = int(request.form.get("sms_limit", 5))
+        settings["poll_interval"] = int(request.form.get("poll_interval", 10))
+        settings["spam_threshold"] = int(request.form.get("spam_threshold", 40))
 
         save_runtime_settings(settings)
 
     return render_template("admin_settings.html", settings=settings)
-
 
 if __name__ == "__main__":
     load_users()
@@ -1483,6 +1243,52 @@ def approve_payment(username, license_key):
 # =========================
 # 📊 SPAMSHIELD ADMIN OVERVIEW + LOGS
 # =========================
-# =========================
-# 📊 SPAM LOGS + ADMIN ROUTES
-# =========================
+SPAM_LOGS_FILE = "data/spam_logs.json"
+
+def load_spam_logs():
+    if not os.path.exists(SPAM_LOGS_FILE):
+        return []
+    try:
+        with open(SPAM_LOGS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+@app.route("/admin")
+def admin_overview():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    runtime_settings = load_runtime_settings()
+    spam_logs = load_spam_logs()
+
+    stats = {
+        "total_users": len(users),
+        "spam_log_count": len(spam_logs),
+        "notifications": runtime_settings.get("enable_notifications", True),
+        "vibration": runtime_settings.get("enable_vibration", True),
+        "auto_delete": runtime_settings.get("enable_auto_delete", False),
+        "sms_limit": runtime_settings.get("sms_limit", 5),
+        "poll_interval": runtime_settings.get("poll_interval", 10),
+        "spam_threshold": runtime_settings.get("spam_threshold", 40)
+    }
+
+    recent_logs = spam_logs[:10]
+
+    return render_template("admin_overview.html", stats=stats, recent_logs=recent_logs)
+
+@app.route("/admin/spam-logs")
+def admin_spam_logs():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    spam_logs = load_spam_logs()
+    return render_template("admin_spam_logs.html", spam_logs=spam_logs)

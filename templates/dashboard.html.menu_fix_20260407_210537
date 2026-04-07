@@ -311,17 +311,3 @@ loadLogs();
 </body>
 </html>
        
-
-
-<a href="/admin/whitelist" style="
-display:block;
-padding:12px;
-margin-top:8px;
-background:#7c3aed;
-color:white;
-border-radius:12px;
-text-decoration:none;
-font-weight:bold;
-">
-🧠 Beyaz Liste
-</a>

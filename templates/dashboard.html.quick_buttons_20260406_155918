@@ -154,9 +154,6 @@ body{
 <div id="sidebar" class="sidebar">
   <a href="/dashboard" class="active"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
   <a href="/users"><span class="icon">👥</span><span class="label">Kullanıcılar</span></a>
-<a href="/admin/whitelist" class="menu-item">
-    🧠 Beyaz Liste
-</a>
   <a href="/add-user"><span class="icon">➕</span><span class="label">Kullanıcı Ekle</span></a>
   <a href="/change"><span class="icon">🔑</span><span class="label">Şifre Değiştir</span></a>
   <a href="/setting"><span class="icon">⚙️</span><span class="label">Ayarlar</span></a>
@@ -274,54 +271,6 @@ async function loadLogs(){
 setInterval(loadLogs, 3000);
 loadLogs();
 </script>
-
-</script>
-
-<!-- BURAYA EKLİYORSUN -->
-<div style="margin:20px; display:flex; gap:10px; flex-wrap:wrap;">
-    
-    <a href="/admin/settings" style="
-        flex:1;
-        text-align:center;
-        padding:12px;
-        background:#00c853;
-        color:white;
-        border-radius:10px;
-        text-decoration:none;
-        font-weight:bold;
-    ">
-        ⚙️ Spam Ayarları
-    </a>
-
-    <a href="/admin/spam-logs" style="
-        flex:1;
-        text-align:center;
-        padding:12px;
-        background:#2962ff;
-        color:white;
-        border-radius:10px;
-        text-decoration:none;
-        font-weight:bold;
-    ">
-        📜 Spam Logları
-    </a>
-
-</div>
-
 </body>
 </html>
        
-
-
-<a href="/admin/whitelist" style="
-display:block;
-padding:12px;
-margin-top:8px;
-background:#7c3aed;
-color:white;
-border-radius:12px;
-text-decoration:none;
-font-weight:bold;
-">
-🧠 Beyaz Liste
-</a>
