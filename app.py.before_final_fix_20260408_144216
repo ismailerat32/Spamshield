@@ -1264,10 +1264,74 @@ def load_spam_logs():
 
 
 
-
-
 @app.route("/admin/mark-clean", methods=["POST"])
 def admin_mark_clean():
+    if not login_required():
+        
+    try:
+        learn(request.form.get("body", ""), "clean")
+    except Exception as e:
+        print("AI LEARN ERROR:", e)
+return redirect(url_for("login"))
+
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    sender = request.form.get("sender", "").upper()
+    body = request.form.get("body", "")
+
+    WHITELIST_FILE = "data/whitelist.json"
+
+    import json, os
+
+    if os.path.exists(WHITELIST_FILE):
+        with open(WHITELIST_FILE, "r", encoding="utf-8") as f:
+            whitelist = json.load(f)
+    else:
+        whitelist = []
+
+    if sender and sender not in whitelist:
+        whitelist.append(sender)
+
+    with open(WHITELIST_FILE, "w", encoding="utf-8") as f:
+        json.dump(whitelist, f, indent=2, ensure_ascii=False)
+
+    spam_logs = load_spam_logs()
+    cleaned_logs = []
+
+    removed = False
+    for log in spam_logs:
+        log_sender = str(log.get("sender", "")).upper()
+        log_body = str(log.get("body", ""))
+
+        if (not removed) and log_sender == sender and log_body == body:
+            removed = True
+            continue
+
+        cleaned_logs.append(log)
+
+    save_spam_logs(cleaned_logs)
+
+    return redirect(url_for("admin_spam_logs"))
+
+
+
+@app.route("/admin/whitelist")
+def admin_whitelist():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    whitelist = load_whitelist()
+    return render_template("admin_whitelist.html", whitelist=whitelist)
+
+
+
+
+@app.route("/admin/whitelist/add", methods=["POST"])
+def admin_whitelist_add():
     if not login_required():
         return redirect(url_for("login"))
 
@@ -1275,28 +1339,33 @@ def admin_mark_clean():
         return redirect(url_for("dashboard"))
 
     sender = request.form.get("sender", "").upper().strip()
-    body = request.form.get("body", "")
 
-    # WHITELIST
+    if not sender:
+        return redirect(url_for("admin_whitelist"))
+
     whitelist = load_whitelist()
-    if sender and sender not in whitelist:
+
+    if sender not in whitelist:
         whitelist.append(sender)
         save_whitelist(whitelist)
 
-    # AI öğrenme
-    try:
-        from ai_model import learn
-        learn(body, "clean")
-    except Exception as e:
-        print("AI ERROR:", e)
+    return redirect(url_for("admin_whitelist"))
 
-    # logdan sil
-    logs = load_spam_logs()
-    logs = [x for x in logs if not (x.get("sender") == sender and x.get("body") == body)]
-    save_spam_logs(logs)
+@app.route("/admin/whitelist/remove", methods=["POST"])
+def admin_whitelist_remove():
+    if not login_required():
+        return redirect(url_for("login"))
 
-    return redirect(url_for("admin_spam_logs"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
 
+    sender = request.form.get("sender", "").upper().strip()
+
+    whitelist = load_whitelist()
+    whitelist = [x for x in whitelist if str(x).upper().strip() != sender]
+    save_whitelist(whitelist)
+
+    return redirect(url_for("admin_whitelist"))
 
 @app.route("/admin/spam-logs")
 def admin_spam_logs():

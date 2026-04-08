@@ -1,8 +1,3 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-import json
-import os
-from datetime import datetime
-
 
 
 def license_required():
@@ -39,24 +34,12 @@ def license_required():
 # software without permission is prohibited.
 # =========================================
 
+from flask import Flask, render_template, redirect, url_for, request, session, jsonify
 import json
 import os
 from datetime import datetime, timedelta
 import random
 import string
-
-from werkzeug.security import generate_password_hash, check_password_hash
-
-from utils.reset_utils import (
-    find_user_by_identity,
-    create_reset_token,
-    create_reset_code,
-    find_valid_token_record,
-    find_valid_code_record,
-    mark_token_used,
-    reset_user_password,
-    cleanup_expired_tokens
-)
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-this-now")
@@ -275,32 +258,6 @@ def activate_pool_license(username, entered_key):
 # -----------------------
 # HOME
 # -----------------------
-
-
-WHITELIST_FILE = "data/whitelist.json"
-
-def load_whitelist():
-    import json, os
-    if not os.path.exists(WHITELIST_FILE):
-        return []
-    try:
-        with open(WHITELIST_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return []
-
-def save_whitelist(data):
-    import json
-    with open(WHITELIST_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-def add_to_whitelist(sender):
-    sender = str(sender).upper()
-    wl = load_whitelist()
-    if sender not in wl:
-        wl.append(sender)
-        save_whitelist(wl)
-
 @app.route("/")
 def home():
     if login_required():
@@ -317,36 +274,20 @@ def login():
         password = request.form.get("password", "").strip()
 
         users = load_users()
-        user = users.get(username)
 
-        if user:
-            stored_hash = user.get("password_hash", "")
-            stored_plain = user.get("password", "")
+        if username in users and users[username]["password"] == password:
+            session["logged_in"] = True
+            session["username"] = username
 
-            valid = False
+            user = users[username]
+            if not is_license_active(user):
+                return redirect(url_for("landing"))
 
-            if stored_hash:
-                valid = check_password_hash(stored_hash, password)
-            elif stored_plain:
-                if stored_plain == password:
-                    valid = True
-                    users[username]["password_hash"] = generate_password_hash(password)
-                    users[username].pop("password", None)
-                    save_users(users)
-
-            if valid:
-                session["logged_in"] = True
-                session["username"] = username
-
-                if not is_license_active(user):
-                    return redirect(url_for("landing"))
-
-                return redirect(url_for("dashboard"))
+            return redirect(url_for("dashboard"))
 
         return render_template("login.html", error="Kullanıcı adı veya şifre yanlış.")
 
     return render_template("login.html", error="")
-
 
 # -----------------------
 # REGISTER
@@ -373,7 +314,7 @@ def register():
         expiry = datetime.now() + timedelta(days=settings.get("trial_days", 7))
 
         users[username] = {
-            "password_hash": generate_password_hash(password),
+            "password": password,
             "role": "user",
             "license_type": "trial",
             "license_key": "TRIAL",
@@ -384,7 +325,6 @@ def register():
         return redirect(url_for("login"))
 
     return render_template("register.html", error="")
-
 
 # -----------------------
 # DASHBOARD
@@ -457,7 +397,7 @@ def add_user():
             expiry = datetime.now() + timedelta(days=settings.get("trial_days", 7))
 
             users[username] = {
-                "password_hash": generate_password_hash(password),
+                "password": password,
                 "role": role,
                 "license_type": "trial",
                 "license_key": generate_license_key(),
@@ -467,7 +407,6 @@ def add_user():
             message = "Kullanıcı + lisans oluşturuldu."
 
     return render_template("add_user.html", message=message, error=error)
-
 
 # -----------------------
 # DELETE USER
@@ -633,6 +572,30 @@ def setting():
 
 # -----------------------
 # ACTIVATE LICENSE
+# -----------------------
+@app.route("/buy-license")
+def buy_license():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    key = generate_pool_license(30)
+
+    return f"""
+    <html>
+    <head><meta charset='UTF-8'><title>Satın Alma Başarılı</title></head>
+    <body style="background:#0b1220;color:white;font-family:Arial;padding:30px;">
+        <h2>Satın alma başarılı</h2>
+        <p>Tek kullanımlık lisans kodun:</p>
+        <p style="font-size:24px;font-weight:bold;">{key}</p>
+        <p>Bu kod bir kez kullanılabilir.</p>
+        <a href="/activate-license" style="color:#60a5fa;">Lisansı aktifleştir</a><br><br>
+        <a href="/dashboard" style="color:#60a5fa;">Dashboard'a dön</a>
+    </body>
+    </html>
+    """
+
+# -----------------------
+# ADMIN LICENSE PANEL
 # -----------------------
 @app.route("/admin/licenses", methods=["GET", "POST"])
 def admin_licenses():
@@ -842,49 +805,50 @@ def api_stats():
 
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
-    cleanup_expired_tokens()
+    import time
+
+    users = load_users()
 
     if request.method == "POST":
-        identity = (request.form.get("identity", "") or "").strip()
+        username = request.form.get("username", "").strip()
 
-        if not identity:
+        if not username:
+            return render_template("forgot.html", error="Kullanıcı adı gerekli")
+
+        if username not in users:
+            return render_template("forgot.html", error="Kullanıcı bulunamadı")
+
+        user = users[username]
+        now_ts = int(time.time())
+        last_request_at = int(user.get("reset_code_last_request_at", 0) or 0)
+        wait_seconds = 30 - (now_ts - last_request_at)
+
+        if last_request_at and wait_seconds > 0:
             return render_template(
                 "forgot.html",
-                success=False,
-                error="Lütfen kullanıcı adı veya e-posta girin.",
-                message=None,
-                reset_link=None,
-                reset_code=None
+                error=f"Yeni kod için {wait_seconds} saniye bekle",
+                username=username
             )
 
-        username, user = find_user_by_identity(identity)
-        reset_link = None
-        reset_code = None
+        reset_code = generate_reset_code()
+        expires_at = now_ts + (3 * 60)
 
-        if username and user:
-            raw_token = create_reset_token(username)
-            reset_link = url_for("reset_password", token=raw_token, _external=True)
-            reset_code = create_reset_code(username)
+        user["reset_code"] = reset_code
+        user["reset_code_expires_at"] = expires_at
+        user["reset_code_used"] = False
+        user["reset_attempts"] = 0
+        user["reset_code_last_request_at"] = now_ts
+        save_users(users)
 
         return render_template(
             "forgot.html",
-            success=True,
-            message="Bu bilgi sistemde varsa sıfırlama bilgisi oluşturuldu.",
-            reset_link=reset_link,
+            success="Kod hazır!",
             reset_code=reset_code,
-            error=None
+            username=username,
+            expires_at=expires_at
         )
 
-    return render_template(
-        "forgot.html",
-        success=False,
-        error=None,
-        message=None,
-        reset_link=None,
-        reset_code=None
-    )
-
-
+    return render_template("forgot.html")
 
 @app.route("/reset-password", methods=["GET", "POST"])
 def reset_password():
@@ -1075,314 +1039,6 @@ def activate_license():
 # -----------------------
 
 
-
-PAYMENT_REQUESTS_FILE = "data/payment_requests.json"
-
-def load_payment_requests():
-    import json
-    import os
-    if not os.path.exists(PAYMENT_REQUESTS_FILE):
-        with open(PAYMENT_REQUESTS_FILE, "w", encoding="utf-8") as f:
-            json.dump([], f, ensure_ascii=False, indent=2)
-    try:
-        with open(PAYMENT_REQUESTS_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            return data if isinstance(data, list) else []
-    except Exception:
-        return []
-
-def save_payment_requests(data):
-    import json
-    with open(PAYMENT_REQUESTS_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-@app.route("/pricing")
-def pricing():
-    if not login_required():
-        return redirect(url_for("login"))
-    return render_template("pricing.html")
-
-@app.route("/admin/payment-requests")
-def admin_payment_requests():
-    if not login_required():
-        return redirect(url_for("login"))
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    requests_data = load_payment_requests()
-    return render_template("admin_payment_requests.html", requests=requests_data)
-
-@app.route("/buy-license")
-def buy_license():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    key = generate_pool_license(30)
-
-    return f"""
-    <html>
-    <head><meta charset='UTF-8'><title>Satın Alma Başarılı</title></head>
-    <body style="background:#0b1220;color:white;font-family:Arial;padding:30px;">
-        <h2>Satın alma başarılı</h2>
-        <p>Tek kullanımlık lisans kodun:</p>
-        <p style="font-size:24px;font-weight:bold;">{key}</p>
-        <p>Bu kod bir kez kullanılabilir.</p>
-        <a href="/activate-license" style="color:#60a5fa;">Lisansı aktifleştir</a><br><br>
-        <a href="/dashboard" style="color:#60a5fa;">Dashboard'a dön</a>
-    </body>
-    </html>
-    """
-
-# -----------------------
-# ADMIN LICENSE PANEL
-# -----------------------
-
-
-
-@app.route("/reset-code", methods=["GET", "POST"])
-def reset_code():
-    cleanup_expired_tokens()
-
-    if request.method == "POST":
-        code = (request.form.get("code", "") or "").strip()
-        password = (request.form.get("password", "") or "").strip()
-        confirm_password = (request.form.get("confirm_password", "") or "").strip()
-
-        record = find_valid_code_record(code)
-        if not record:
-            return render_template(
-                "reset_code.html",
-                error="Geçersiz, kullanılmış veya süresi dolmuş kod.",
-                success=None
-            )
-
-        if len(password) < 8:
-            return render_template(
-                "reset_code.html",
-                error="Şifre en az 8 karakter olmalıdır.",
-                success=None
-            )
-
-        if password != confirm_password:
-            return render_template(
-                "reset_code.html",
-                error="Şifreler eşleşmiyor.",
-                success=None
-            )
-
-        username = record["username"]
-        ok = reset_user_password(username, password)
-
-        if not ok:
-            return render_template(
-                "reset_code.html",
-                error="Kullanıcı bulunamadı veya işlem başarısız.",
-                success=None
-            )
-
-        mark_token_used(code)
-        return render_template("reset_success.html")
-
-    return render_template("reset_code.html", error=None, success=None)
-
-# =========================
-# ⚙️ ADMIN SETTINGS
-# =========================
-import json
-
-SETTINGS_FILE = "spamshield_runtime_settings.json"
-
-def load_runtime_settings():
-    if not os.path.exists(SETTINGS_FILE):
-        return {
-            "enable_notifications": True,
-            "enable_vibration": True,
-            "enable_auto_delete": False,
-            "sms_limit": 5,
-            "poll_interval": 10,
-            "spam_threshold": 40
-        }
-    with open(SETTINGS_FILE, "r") as f:
-        return json.load(f)
-
-def save_runtime_settings(data):
-    with open(SETTINGS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-
-
-
-@app.route("/admin")
-@app.route("/admin/")
-def admin_overview():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    users = load_users()
-    runtime_settings = load_runtime_settings()
-    spam_logs = load_spam_logs() if 'load_spam_logs' in globals() else []
-
-    stats = {
-        "total_users": len(users),
-        "spam_log_count": len(spam_logs),
-        "notifications": runtime_settings.get("enable_notifications", True),
-        "vibration": runtime_settings.get("enable_vibration", True),
-        "auto_delete": runtime_settings.get("enable_auto_delete", False),
-        "sms_limit": runtime_settings.get("sms_limit", 5),
-        "poll_interval": runtime_settings.get("poll_interval", 10),
-        "spam_threshold": runtime_settings.get("spam_threshold", 40)
-    }
-
-    recent_logs = spam_logs[:10] if isinstance(spam_logs, list) else []
-
-    return render_template("admin_overview.html", stats=stats, recent_logs=recent_logs)
-
-
-
-SPAM_LOGS_FILE = "data/spam_logs.json"
-
-
-
-def save_spam_logs(logs):
-    SPAM_LOGS_FILE = "data/spam_logs.json"
-    import json
-    with open(SPAM_LOGS_FILE, "w", encoding="utf-8") as f:
-        json.dump(logs, f, indent=2, ensure_ascii=False)
-
-def load_spam_logs():
-    if not os.path.exists(SPAM_LOGS_FILE):
-        return []
-    try:
-        with open(SPAM_LOGS_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return data if isinstance(data, list) else []
-    except Exception:
-        return []
-
-
-
-
-
-@app.route("/admin/mark-clean", methods=["POST"])
-def admin_mark_clean():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    sender = request.form.get("sender", "").upper().strip()
-    body = request.form.get("body", "")
-
-    # WHITELIST
-    whitelist = load_whitelist()
-    if sender and sender not in whitelist:
-        whitelist.append(sender)
-        save_whitelist(whitelist)
-
-    # AI öğrenme
-    try:
-        from ai_model import learn
-        learn(body, "clean")
-    except Exception as e:
-        print("AI ERROR:", e)
-
-    # logdan sil
-    logs = load_spam_logs()
-    logs = [x for x in logs if not (x.get("sender") == sender and x.get("body") == body)]
-    save_spam_logs(logs)
-
-    return redirect(url_for("admin_spam_logs"))
-
-
-@app.route("/admin/spam-logs")
-def admin_spam_logs():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    spam_logs = load_spam_logs()
-    return render_template("admin_spam_logs.html", spam_logs=spam_logs)
-
-
-
-
-# =========================
-# ⚙️ ADMIN SETTINGS
-# =========================
-RUNTIME_SETTINGS_FILE = "spamshield_runtime_settings.json"
-
-def load_runtime_settings():
-    defaults = {
-        "enable_notifications": True,
-        "enable_vibration": True,
-        "enable_auto_delete": False,
-        "sms_limit": 5,
-        "poll_interval": 10,
-        "spam_threshold": 40
-    }
-
-    if not os.path.exists(RUNTIME_SETTINGS_FILE):
-        with open(RUNTIME_SETTINGS_FILE, "w", encoding="utf-8") as f:
-            json.dump(defaults, f, ensure_ascii=False, indent=2)
-        return defaults
-
-    try:
-        with open(RUNTIME_SETTINGS_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        if isinstance(data, dict):
-            defaults.update(data)
-        return defaults
-    except Exception:
-        return defaults
-
-def save_runtime_settings(data):
-    with open(RUNTIME_SETTINGS_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-@app.route("/admin/settings", methods=["GET", "POST"])
-
-
-
-def admin_settings():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    if not admin_required():
-        return redirect(url_for("dashboard"))
-
-    settings = load_runtime_settings()
-
-    if request.method == "POST":
-        settings["enable_notifications"] = "enable_notifications" in request.form
-        settings["enable_vibration"] = "enable_vibration" in request.form
-        settings["enable_auto_delete"] = "enable_auto_delete" in request.form
-
-        try:
-            settings["sms_limit"] = int(request.form.get("sms_limit", 5))
-        except:
-            settings["sms_limit"] = 5
-
-        try:
-            settings["poll_interval"] = int(request.form.get("poll_interval", 10))
-        except:
-            settings["poll_interval"] = 10
-
-        try:
-            settings["spam_threshold"] = int(request.form.get("spam_threshold", 40))
-        except:
-            settings["spam_threshold"] = 40
-
-        save_runtime_settings(settings)
-
-    return render_template("admin_settings.html", settings=settings)
-
-
 if __name__ == "__main__":
     load_users()
     load_settings()
@@ -1396,33 +1052,3 @@ app.run(host="0.0.0.0", port=port, debug=local_debug)
 # -----------------------
 # PASSWORD RESET
 # -----------------------
-
-
-# =========================
-# ✅ ADMIN ONAY
-# =========================
-@app.route("/admin/approve-payment/<username>/<license_key>")
-def approve_payment(username, license_key):
-    users = load_users()
-
-    for p in users[username].get("pending_payments", []):
-        if p["license_key"] == license_key:
-            p["status"] = "approved"
-            users[username]["license_key"] = license_key
-            users[username]["license_type"] = "pro"
-
-    save_users(users)
-    return redirect(url_for("admin_payment_requests"))
-
-
-# =========================
-# 🔑 LİSANS AKTİVASYON
-# =========================
-
-
-# =========================
-# 📊 SPAMSHIELD ADMIN OVERVIEW + LOGS
-# =========================
-# =========================
-# 📊 SPAM LOGS + ADMIN ROUTES
-# =========================

@@ -154,12 +154,8 @@ body{
 <div id="sidebar" class="sidebar">
   <a href="/dashboard" class="active"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
   <a href="/users"><span class="icon">👥</span><span class="label">Kullanıcılar</span></a>
-
-  <a href="/add-user"><span class="icon">➕</span><span class="label">Kullanıcı Ekle
-
-</span></a>
+  <a href="/add-user"><span class="icon">➕</span><span class="label">Kullanıcı Ekle</span></a>
   <a href="/change"><span class="icon">🔑</span><span class="label">Şifre Değiştir</span></a>
-
   <a href="/setting"><span class="icon">⚙️</span><span class="label">Ayarlar</span></a>
   <a href="/activate-license"><span class="icon">💳</span><span class="label">Lisans</span></a>
   {% if username == 'admin' %}
@@ -312,4 +308,3 @@ loadLogs();
 </body>
 </html>
        
-

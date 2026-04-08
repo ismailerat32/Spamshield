@@ -157,6 +157,9 @@ body{
 
   <a href="/add-user"><span class="icon">➕</span><span class="label">Kullanıcı Ekle
 
+<a href="/admin/whitelist" class="menu-item">
+    🧠 Beyaz Liste
+</a>
 </span></a>
   <a href="/change"><span class="icon">🔑</span><span class="label">Şifre Değiştir</span></a>
 

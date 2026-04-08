@@ -1,0 +1,142 @@
+import os
+import json
+import time
+import subprocess
+
+BASE_DIR = os.path.expanduser("~/spamshield_test_final/spamshield_release")
+DATA_DIR = os.path.join(BASE_DIR, "data")
+
+SEEN_IDS_FILE = os.path.join(DATA_DIR, "seen_ids.json")
+
+DEFAULT_SETTINGS = {
+    "enable_notifications": True,
+    "enable_vibration": True,
+    "enable_auto_delete": False,
+    "sms_limit": 5,
+    "poll_interval": 10,
+    "spam_threshold": 40
+}
+
+def load_seen_ids():
+    if not os.path.exists(SEEN_IDS_FILE):
+        return set()
+    try:
+        with open(SEEN_IDS_FILE, "r") as f:
+            return set(json.load(f))
+    except:
+        return set()
+
+def save_seen_ids(seen_ids):
+    with open(SEEN_IDS_FILE, "w") as f:
+        json.dump(list(seen_ids), f)
+
+def keyword_score(text):
+    text = (text or "").lower()
+    score = 0
+
+    words = ["bonus", "freebet", "casino", "bahis", "kredi", "kampanya", "iptal"]
+
+    for w in words:
+        if w in text:
+            score += 20
+
+    if "http://" in text or "https://" in text:
+        score += 40
+
+    return score
+
+def hybrid_analyze(sender, body, threshold):
+    body_l = (body or "").lower()
+    sender_l = (sender or "").lower()
+
+    # whitelist
+    whitelist = ["bank", "halkbank", "ziraat", "garanti", "trendyol", "ptt"]
+    for w in whitelist:
+        if w in sender_l:
+            return {"status": "TEMIZ", "score": 0}
+
+    score = keyword_score(body_l)
+    status = "SPAM" if score >= threshold else "TEMIZ"
+
+    return {"status": status, "score": score}
+
+def send_notification(title, content):
+    try:
+        subprocess.run(
+            ["termux-notification", "--title", title, "--content", content],
+            timeout=5
+        )
+    except Exception as e:
+        print("Bildirim hatası:", e)
+
+
+# 👇 BURASI SENİN KOYACAĞIN YER
+def delete_sms(sms_id):
+    try:
+        subprocess.run(
+            ["termux-sms-delete", "-i", str(sms_id)],
+            timeout=5
+        )
+        print(f"🗑️ SMS silindi: {sms_id}")
+    except Exception as e:
+        print("Silme hatası:", e)
+
+def main():
+    seen_ids = load_seen_ids()
+
+    print("📡 SpamShield daemon başlatıldı...")
+
+    while True:
+        try:
+            result = subprocess.run(
+                ["termux-sms-list", "-l", "5"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            messages = json.loads(result.stdout)
+
+            for sms in messages:
+                sms_id = str(sms.get("_id"))
+                sender = sms.get("number", "")
+                body = sms.get("body", "")
+
+                if sms_id in seen_ids:
+                    continue
+
+                seen_ids.add(sms_id)
+
+                result = hybrid_analyze(sender, body, 40)
+
+                print("-" * 50)
+                print("Gönderen:", sender)
+                print("Durum:", result["status"])
+                print("Mesaj:", body[:100])
+
+               if result["status"] == "SPAM":
+    print("🚨 SPAM YAKALANDI")
+
+    send_notification(
+        "🚨 SpamShield",
+        f"{sender}\n{body[:60]}"
+    )
+
+    try:
+        subprocess.run(["termux-vibrate", "-d", "300"], timeout=5)
+    except:
+        pass
+
+    # ✅ try kapandıktan SONRA
+    if DEFAULT_SETTINGS.get("enable_auto_delete"):
+        delete_sms(sms_id)
+
+            save_seen_ids(seen_ids)
+
+        except Exception as e:
+            print("Hata:", e)
+
+        time.sleep(10)
+
+if __name__ == "__main__":
+    main()
