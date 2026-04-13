@@ -1,0 +1,120 @@
+from flask import Flask, render_template
+import os, json
+
+app = Flask(__name__)
+
+BASE_DIR = "data"
+
+# =========================
+# JSON HELPER
+# =========================
+def _load_json_list(path):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except:
+        return []
+
+# =========================
+# ROUTES
+# =========================
+
+@app.route("/splash")
+def splash():
+    return render_template("splash.html")
+
+
+@app.route("/radial")
+def radial():
+    return render_template("radial_step1.html", stats=get_stats())
+
+@app.route("/")
+def home():
+    return render_template("splash.html")
+
+@app.route("/radial")
+def radial():
+    return render_template("radial_step1.html", stats=get_stats())
+
+@app.route("/analyze")
+def analyze():
+    return render_template("analyze.html")
+
+
+@app.route("/blocked")
+def blocked():
+    blocked_messages = _load_json_list("data/blocklist.json")
+    return render_template("blocked.html", blocked_messages=blocked_messages[::-1])
+
+
+@app.route("/notifications")
+def notifications():
+    blocked_messages = _load_json_list("data/blocklist.json")
+    watch_messages = _load_json_list("data/watchlist.json")
+
+    items = []
+
+    for msg in blocked_messages[-20:]:
+        items.append("SPAM engellendi: " + str(msg)[:90])
+
+    for msg in watch_messages[-20:]:
+        items.append("İnceleme adayı: " + str(msg)[:90])
+
+    items = items[-30:][::-1]
+
+    return render_template("notifications.html", notifications=items)
+
+
+@app.route("/control")
+def control():
+    messages = _load_json_list("data/watchlist.json")
+    return render_template("control_panel.html", messages=messages[::-1])
+
+
+@app.route("/reports")
+def reports():
+    return render_template("reports.html", stats=get_stats())
+
+
+@app.route("/settings")
+def settings():
+    return render_template("settings_page.html")
+
+
+@app.route("/community")
+def community():
+    return render_template("community.html")
+
+
+@app.route("/license")
+def license_page():
+    return render_template("license.html")
+
+
+@app.route("/protection")
+def protection():
+    return render_template("protection.html")
+
+
+# =========================
+# STATS
+# =========================
+def get_stats():
+    blocklist = _load_json_list("data/blocklist.json")
+    watchlist = _load_json_list("data/watchlist.json")
+
+    total = len(blocklist) + len(watchlist)
+
+    return {
+        "blocked_count": len(blocklist),
+        "watch_count": len(watchlist),
+        "total_count": total
+    }
+
+
+# =========================
+# RUN
+# =========================
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
+

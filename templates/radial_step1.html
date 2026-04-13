@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpamShield Radial Step 1</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/radial_step1.css') }}">
+</head>
+<body>
+  <div class="screen">
+    <div class="title">SpamShield PRO</div>
+    <div class="subtitle">Radial Control Panel - Step 1</div>
+
+    <div class="radial-wrap">
+      <div class="radial-menu" id="radialMenu">
+        <a class="slice slice1" href="javascript:void(0)" data-label="Analyze">
+  <span>Analyze</span>
+</a>
+
+<a class="slice slice2" href="javascript:void(0)" data-label="Blocked">
+  <span>Blocked</span>
+  <b class="badge">{{ stats.blocked_count }}</b>
+</a>
+
+<a class="slice slice3" href="javascript:void(0)" data-label="Notifications">
+  <span>Notify</span>
+  <b class="badge">{{ stats.watch_count }}</b>
+</a>
+
+<a class="slice slice4" href="javascript:void(0)" data-label="Reports">
+  <span>Reports</span>
+  <b class="badge">{{ stats.total_count }}</b>
+</a>
+        <a class="slice slice5" href="javascript:void(0)" data-label="Settings">
+  <span>Settings</span>
+</a>
+
+<a class="slice slice6" href="javascript:void(0)" data-label="Community">
+  <span>Community</span>
+</a>
+
+<a class="slice slice7" href="javascript:void(0)" data-label="License">
+  <span>License</span>
+</a>
+
+<a class="slice slice8" href="javascript:void(0)" data-label="Protection">
+  <span>Protect</span>
+</a>
+
+        <div class="center-core" id="centerCore">
+  <div class="core-title">MENU</div>
+  <div class="core-subtitle" id="coreText">
+    Toplam {{ stats.total_count }} SMS
+  </div>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/radial_step1.js') }}"></script>
+</body>
+</html>

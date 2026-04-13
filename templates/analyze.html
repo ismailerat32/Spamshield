@@ -1,0 +1,27 @@
+{% extends "base_pro.html" %}
+{% block content %}
+<section class="hero">
+    <h1>Analiz Paneli</h1>
+    <p>Spam analiz motoru, risk puanı ve mesaj inceleme ekranı.</p>
+</section>
+
+<section class="grid">
+    <div class="card span-4">
+        <h3>Analiz Durumu</h3>
+        <div class="kpi">Hazır</div>
+        <div class="muted">Motor aktif, detaylı AI aşaması sırada.</div>
+    </div>
+    <div class="card span-4">
+        <h3>Sonuç Türleri</h3>
+        <div class="list">
+            <div class="list-item">SPAM</div>
+            <div class="list-item">WATCH</div>
+            <div class="list-item">CLEAN</div>
+        </div>
+    </div>
+    <div class="card span-4">
+        <h3>Sonraki Adım</h3>
+        <div class="muted">Gerçek mesaj içeriği ve skor görünümü eklenecek.</div>
+    </div>
+</section>
+{% endblock %}

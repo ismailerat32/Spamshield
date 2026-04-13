@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpamShield PRO</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
+  <meta http-equiv="refresh" content="3;url={{ url_for('radial') }}">
+</head>
+<body>
+  <div class="splash-wrap">
+    <div class="logo-glow"></div>
+
+    <h1>SpamShield'e Hoş Geldiniz</h1>
+    <p>Güvenli mesaj deneyimi hazırlanıyor</p>
+
+    <div class="loader-box">
+      <div class="loader-bar"></div>
+    </div>
+
+    <div class="loader-text">Sistem yükleniyor...</div>
+  </div>
+
+  <script>
+    setTimeout(() => {
+      window.location.href = "{{ url_for('radial') }}";
+    }, 3000);
+  </script>
+</body>
+</html>

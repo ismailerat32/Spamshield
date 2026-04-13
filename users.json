@@ -1,0 +1,16 @@
+{
+    "admin": {
+        "password": "1234",
+        "role": "admin",
+        "license_type": "pro",
+        "license_key": "PAY-OHIEMYYHERFQ",
+        "license_expiry": "2103-03-02"
+    },
+    "nida": {
+        "password": "nida32",
+        "role": "user",
+        "license_type": "pro",
+        "license_key": "AUTO-F885EB70",
+        "license_expiry": "2026-06-06"
+    }
+}

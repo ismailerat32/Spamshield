@@ -1,40 +1,6 @@
 __pycache__/
 *.pyc
-*.pyo
-
-# secrets
-.env
-.env.*
-!.env.example
-
-# runtime data
-users.json
-licenses.json
-settings.json
-config.json
-
-# mail / secret configs
-data/
-mail_settings.json
-
-# logs
-logs/
 *.log
-
-# database
-*.db
-
-# temp / tests
-test_*.py
-*.save
-*.tmp
-
-.DS_Store
-
-.env
-users.json
-orders.json
-licenses.json
-*.log
-__pycache__/
+*.bak
 *.tar.gz
+.env

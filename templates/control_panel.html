@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kontrol Paneli</title>
+
+<style>
+body {
+  background: #07140f;
+  color: #fff;
+  font-family: Arial;
+  padding: 15px;
+}
+
+.msg {
+  background: #0f241c;
+  margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #1ee28b33;
+}
+
+.actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.spam { background: #ff3b3b; }
+.clean { background: #00c853; }
+.watch { background: #ffc107; color:#000; }
+</style>
+
+</head>
+<body>
+
+<h2>Kontrol Paneli</h2>
+
+{% for msg in messages %}
+<div class="msg">
+  {{ msg }}
+
+  <div class="actions">
+    <button class="btn spam">SPAM</button>
+    <button class="btn watch">İncele</button>
+    <button class="btn clean">Temiz</button>
+  </div>
+</div>
+{% endfor %}
+
+</body>
+</html>

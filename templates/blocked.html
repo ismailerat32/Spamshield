@@ -1,0 +1,22 @@
+{% extends "base_pro.html" %}
+{% block content %}
+<section class="hero">
+    <h1>Engellenenler</h1>
+    <p>Kara listeye düşen mesajlar ve engellenen içerikler.</p>
+</section>
+
+<section class="grid">
+    <div class="card span-12">
+        <h3>Engellenen Mesajlar</h3>
+        <div class="list">
+            {% if blocked_messages %}
+                {% for msg in blocked_messages %}
+                <div class="list-item">{{ msg }}</div>
+                {% endfor %}
+            {% else %}
+                <div class="list-item muted">Henüz engellenen kayıt yok.</div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

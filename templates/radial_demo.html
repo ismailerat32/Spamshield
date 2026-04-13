@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>SpamShield Radial</title>
+
+<style>
+body{
+    margin:0;
+    background:#05070d;
+    font-family:Arial;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    color:white;
+}
+
+.menu{
+    position:relative;
+    width:300px;
+    height:300px;
+    border-radius:50%;
+}
+
+.slice{
+    position:absolute;
+    width:50%;
+    height:50%;
+    top:50%;
+    left:50%;
+    transform-origin:0% 0%;
+    background:rgba(0,255,150,0.08);
+    border:1px solid rgba(0,255,150,0.3);
+    cursor:pointer;
+    transition:0.3s;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.slice span{
+    transform:rotate(-45deg);
+}
+
+.slice:hover{
+    background:rgba(0,255,150,0.2);
+}
+
+.active{
+    transform:scale(1.2) !important;
+    background:rgba(0,255,150,0.5);
+    z-index:10;
+}
+
+.hidden{
+    opacity:0.1;
+    pointer-events:none;
+}
+
+.center{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    background:#00ff99;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:black;
+    font-weight:bold;
+}
+
+.panel{
+    position:absolute;
+    bottom:-120px;
+    width:300px;
+    text-align:center;
+    opacity:0;
+    transition:0.3s;
+}
+
+.panel.show{
+    opacity:1;
+}
+</style>
+</head>
+
+<body>
+
+<div class="menu">
+
+<div class="center">PRO</div>
+
+<div class="slice" style="transform:rotate(0deg)" onclick="selectSlice(this,'Analiz')"><span>Analiz</span></div>
+<div class="slice" style="transform:rotate(45deg)" onclick="selectSlice(this,'Engellenenler')"><span>Engellenenler</span></div>
+<div class="slice" style="transform:rotate(90deg)" onclick="selectSlice(this,'Bildirimler')"><span>Bildirimler</span></div>
+<div class="slice" style="transform:rotate(135deg)" onclick="selectSlice(this,'Ayarlar')"><span>Ayarlar</span></div>
+<div class="slice" style="transform:rotate(180deg)" onclick="selectSlice(this,'Raporlar')"><span>Raporlar</span></div>
+<div class="slice" style="transform:rotate(225deg)" onclick="selectSlice(this,'Topluluk')"><span>Topluluk</span></div>
+<div class="slice" style="transform:rotate(270deg)" onclick="selectSlice(this,'Lisans')"><span>Lisans</span></div>
+<div class="slice" style="transform:rotate(315deg)" onclick="selectSlice(this,'Koruma')"><span>Koruma</span></div>
+
+<div id="panel" class="panel"></div>
+
+</div>
+
+<script>
+function selectSlice(el,name){
+    const all = document.querySelectorAll(".slice");
+
+    all.forEach(x=>{
+        x.classList.remove("active");
+        x.classList.add("hidden");
+    });
+
+    el.classList.remove("hidden");
+    el.classList.add("active");
+
+    const panel = document.getElementById("panel");
+    panel.innerHTML = "<h2>"+name+"</h2><p>Panel açıldı</p>";
+    panel.classList.add("show");
+}
+</script>
+
+</body>
+</html>

@@ -1,135 +1,293 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ app_name }}</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#0b1220;color:#fff}
-.topbar{position:fixed;top:0;left:0;right:0;height:64px;background:rgba(15,23,42,.92);backdrop-filter:blur(10px);border-bottom:1px solid #23324b;display:flex;align-items:center;padding:0 14px;z-index:1100}
-.topbar-left{display:flex;align-items:center;gap:12px}
-.menu-btn{width:44px;height:44px;border:none;border-radius:14px;background:#1f2937;color:#fff;font-size:22px;cursor:pointer}
-.brand{font-size:22px;font-weight:800}
-.sidebar{position:fixed;top:64px;left:0;width:88px;height:calc(100vh - 64px);background:rgba(15,23,42,.90);border-right:1px solid #23324b;padding:14px 10px;overflow-y:auto;transition:.25s ease;z-index:1000}
-.sidebar.expanded{width:230px}
-.sidebar a{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;background:#1c2739;border:1px solid #23324b;padding:13px 14px;border-radius:16px;margin-bottom:10px;white-space:nowrap;overflow:hidden}
-.sidebar a:hover,.sidebar a.active{background:#2563eb}
-.icon{font-size:24px;min-width:28px;text-align:center}
-.label{opacity:0;transition:.2s ease;font-size:16px;font-weight:600}
-.sidebar.expanded .label{opacity:1}
-.content{margin-top:64px;margin-left:88px;padding:18px;transition:.25s ease}
-.content.expanded{margin-left:230px}
-.hero{background:linear-gradient(135deg,#101a2c 0%, #0f172a 100%);border:1px solid #23324b;border-radius:24px;padding:24px;margin-bottom:18px}
-.hero h1{margin:0 0 12px 0;font-size:36px}
-.hero p{margin:0;color:#cbd5e1;line-height:1.7;font-size:17px}
-.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
-.btn{display:inline-block;text-decoration:none;color:#fff;padding:12px 16px;border-radius:12px;font-weight:bold}
-.btn-green{background:#16a34a}
-.btn-blue{background:#2563eb}
-.grid{display:grid;grid-template-columns:1fr;gap:16px}
-.card{background:#10192c;border:1px solid #23324b;border-radius:22px;padding:22px}
-.card h3{margin-top:0}
-.price{font-size:30px;font-weight:800;margin:10px 0}
-.list{padding-left:18px;color:#dbeafe}
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:900}
-.overlay.show{display:block}
-@media (min-width:900px){.grid{grid-template-columns:1fr 1fr}}
-@media (max-width:768px){
-  .brand{font-size:18px}
-  .sidebar{left:-240px;width:220px}
-  .sidebar.expanded{left:0;width:220px}
-  .label{opacity:1}
-  .content{margin-left:0;padding:14px}
-  .content.expanded{margin-left:0}
-  .hero h1{font-size:28px}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a, #111827, #1e293b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 430px;
+            background: rgba(17, 24, 39, 0.96);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 32px 24px;
+            box-shadow: 0 14px 45px rgba(0,0,0,0.35);
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .brand h1 {
+            font-size: 30px;
+            color: #60a5fa;
+            margin-bottom: 8px;
+        }
+
+        .brand p {
+            color: #cbd5e1;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.14);
+            border: 1px solid rgba(239, 68, 68, 0.28);
+            color: #fecaca;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        label {
+            font-size: 14px;
+            color: #e5e7eb;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: #0f172a;
+            color: white;
+            outline: none;
+            font-size: 15px;
+        }
+
+        input:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96,165,250,0.18);
+        }
+
+        .btn {
+            margin-top: 6px;
+            border: none;
+            border-radius: 12px;
+            padding: 13px;
+            background: #2563eb;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #1d4ed8;
+        }
+
+        .links {
+            margin-top: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .links a {
+            color: #93c5fd;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        .legal-note {
+            margin-top: 22px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        /* TERMS MODAL */
+        #termsModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.78);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+        }
+
+        .modal-card {
+            background: #111827;
+            color: white;
+            width: 100%;
+            max-width: 560px;
+            border-radius: 18px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+        }
+
+        .modal-card h2 {
+            margin-bottom: 14px;
+            color: #f9fafb;
+        }
+
+        .modal-card p {
+            margin-bottom: 12px;
+            color: #d1d5db;
+            line-height: 1.6;
+        }
+
+        .modal-card ul {
+            padding-left: 20px;
+            margin-bottom: 16px;
+            color: #d1d5db;
+        }
+
+        .modal-card li {
+            margin-bottom: 8px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        .modal-btn {
+            flex: 1;
+            min-width: 180px;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .accept-btn {
+            background: #22c55e;
+            color: white;
+        }
+
+        .accept-btn:hover {
+            background: #16a34a;
+        }
+
+        .decline-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .decline-btn:hover {
+            background: #dc2626;
+        }
+    </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-left">
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-    <div class="brand">🛡 {{ app_name }}</div>
-  </div>
-</div>
+    <div class="login-card">
+        <div class="brand">
+            <h1>SpamShield Premium</h1>
+            <p>Güvenli giriş yapın ve lisanslı sistem yönetimine erişin.</p>
+        </div>
 
-<div id="overlay" class="overlay" onclick="closeSidebarMobile()"></div>
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
 
-<div id="sidebar" class="sidebar">
-  <a href="/dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
-  <a href="/users"><span class="icon">👥</span><span class="label">Kullanıcılar</span></a>
-  <a href="/add-user"><span class="icon">➕</span><span class="label">Kullanıcı Ekle</span></a>
-  <a href="/change"><span class="icon">🔑</span><span class="label">Şifre Değiştir</span></a>
-  <a href="/setting"><span class="icon">⚙️</span><span class="label">Ayarlar</span></a>
-  <a href="/activate-license"><span class="icon">💳</span><span class="label">Lisans</span></a>
-  {% if session.get('username') == 'admin' %}
-  <a href="/admin/licenses"><span class="icon">🧾</span><span class="label">Lisans Havuzu</span></a>
-  {% endif %}
-  <a href="/pricing"><span class="icon">💰</span><span class="label">Fiyatlar</span></a>
-  <a href="/landing" class="active"><span class="icon">🌐</span><span class="label">Landing</span></a>
-  <a href="/logout"><span class="icon">🚪</span><span class="label">Çıkış</span></a>
-</div>
+        <form method="POST" action="/login">
+            <div>
+                <label for="username">Kullanıcı Adı</label>
+                <input type="text" id="username" name="username" placeholder="Kullanıcı adınızı girin" required>
+            </div>
 
-<div id="content" class="content">
-  <div class="hero">
-    <h1>{{ app_name }}</h1>
-    <p>Trial ile hemen başla. PRO plan satın alındığında sistem lisansı otomatik tanımlar ve hesabını anında yükseltir.</p>
-    <div class="actions">
-      <a class="btn btn-green" href="/pricing">Planları Gör</a>
-      <a class="btn btn-blue" href="/activate-license">Kod Aktifleştir</a>
-    </div>
-  </div>
+            <div>
+                <label for="password">Şifre</label>
+                <input type="password" id="password" name="password" placeholder="Şifrenizi girin" required>
+            </div>
 
-  <div class="grid">
-    <div class="card">
-      <h3>Trial Paket</h3>
-      <div class="price">7 Gün</div>
-      <ul class="list">
-        <li>Panel erişimi</li>
-        <li>Temel kullanım</li>
-        <li>Hızlı başlama</li>
-      </ul>
+            <button type="submit" class="btn">Giriş Yap</button>
+        </form>
+
+        <div class="links">
+            <a href="/register">Hesabın yok mu? Kayıt ol</a>
+            <a href="/pricing">Planları görüntüle</a>
+            <a href="/landing">Lisans sayfasına git</a>
+        </div>
+
+        <div class="legal-note">
+            © 2026 ismail erat - All rights reserved.<br>
+            Bu yazılım özel mülktür. İzinsiz kullanım, kopyalama ve dağıtım yasaktır.
+        </div>
     </div>
 
-    <div class="card">
-      <h3>PRO Paketler</h3>
-      <div class="price">30 / 90 / 365 Gün</div>
-      <ul class="list">
-        <li>Otomatik lisans tanımlama</li>
-        <li>Tek kullanımlık lisans sistemi</li>
-        <li>Uzun süreli kullanım</li>
-      </ul>
+    <!-- Kullanım Şartları Popup -->
+    <div id="termsModal">
+        <div class="modal-card">
+            <h2>Kullanım Şartları</h2>
+            <p>Bu yazılım <strong>ismail erat</strong>'a aittir.</p>
+            <p>Aşağıdaki işlemler kesinlikle yasaktır:</p>
+            <ul>
+                <li>İzinsiz kopyalama</li>
+                <li>Kaynak kod paylaşımı</li>
+                <li>İzinsiz satış veya dağıtım</li>
+                <li>Yetkisiz çoğaltma ve yeniden yayınlama</li>
+            </ul>
+            <p>Devam ederek bu şartları kabul etmiş olursunuz.</p>
+
+            <div class="modal-actions">
+                <button class="modal-btn accept-btn" onclick="acceptTerms()">Kabul Ediyorum</button>
+                <button class="modal-btn decline-btn" onclick="declineTerms()">Kabul Etmiyorum</button>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<script>
-const sidebar=document.getElementById("sidebar");
-const content=document.getElementById("content");
-const overlay=document.getElementById("overlay");
-function isMobile(){ return window.innerWidth <= 768; }
-function toggleSidebar(){
-  if(isMobile()){
-    sidebar.classList.toggle("expanded");
-    overlay.classList.toggle("show");
-  }else{
-    sidebar.classList.toggle("expanded");
-    content.classList.toggle("expanded");
-  }
-}
-function closeSidebarMobile(){
-  if(isMobile()){
-    sidebar.classList.remove("expanded");
-    overlay.classList.remove("show");
-  }
-}
-window.addEventListener("resize",()=>{
-  if(!isMobile()) overlay.classList.remove("show");
-  else content.classList.remove("expanded");
-});
-</script>
+    <script>
+        window.onload = function () {
+            if (localStorage.getItem("spamshield_terms_accepted") !== "yes") {
+                document.getElementById("termsModal").style.display = "flex";
+            }
+        };
 
+        function acceptTerms() {
+            localStorage.setItem("spamshield_terms_accepted", "yes");
+            document.getElementById("termsModal").style.display = "none";
+        }
+
+        function declineTerms() {
+            window.location.href = "https://www.google.com";
+        }
+    </script>
+
+    {% include 'terms_modal.html' %}
 </body>
 </html>

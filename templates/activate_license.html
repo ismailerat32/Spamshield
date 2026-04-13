@@ -98,5 +98,6 @@ function closeSidebarMobile(){
 }
 window.addEventListener("resize",()=>{if(!isMobile())overlay.classList.remove("show");else content.classList.remove("expanded");});
 </script>
+    {% include 'terms_modal.html' %}
 </body>
 </html>

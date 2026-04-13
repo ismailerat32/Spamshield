@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpamShield Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #0f172a;
+            color: #ffffff;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #111827;
+            padding: 20px;
+            border-right: 1px solid #1f2937;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #22c55e;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .menu div {
+            padding: 14px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            background: #1f2937;
+            transition: 0.2s;
+            font-size: 16px;
+        }
+
+        .menu div:hover {
+            background: #374151;
+        }
+
+        .menu div.active {
+            background: #22c55e;
+            color: #08110a;
+            font-weight: bold;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background: #111827;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        .topbar-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .topbar-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .content {
+            padding: 24px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        }
+
+        .card h3 {
+            font-size: 15px;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .card .value {
+            font-size: 30px;
+            font-weight: bold;
+            color: #22c55e;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 14px;
+        }
+
+        .list-box {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .list-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .muted {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            background: #22c55e;
+            color: #08110a;
+            font-weight: bold;
+        }
+
+        @media (max-width: 800px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #1f2937;
+            }
+
+            .menu {
+                gap: 8px;
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="logo">SpamShield</div>
+
+        <div class="menu">
+            <div onclick="loadPage('home'); setActive(this)" class="active">🏠 Dashboard</div>
+            <div onclick="loadPage('analiz'); setActive(this)">📩 Analiz</div>
+            <div onclick="loadPage('engel'); setActive(this)">🚫 Engellenenler</div>
+            <div onclick="loadPage('bildirim'); setActive(this)">🔔 Bildirimler</div>
+            <div onclick="loadPage('ayarlar'); setActive(this)">⚙️ Ayarlar</div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="topbar">
+            <div>
+                <div class="topbar-title">Hoş geldin</div>
+                <div class="topbar-subtitle">SpamShield Pro Panel</div>
+            </div>
+            <div class="badge">PRO AKTİF</div>
+        </div>
+
+        <div class="content" id="content">
+            <div class="stats">
+                <div class="card">
+                    <h3>Toplam SMS</h3>
+                    <div class="value">128</div>
+                </div>
+                <div class="card">
+                    <h3>Engellenen Spam</h3>
+                    <div class="value">42</div>
+                </div>
+                <div class="card">
+                    <h3>Temiz Mesaj</h3>
+                    <div class="value">86</div>
+                </div>
+                <div class="card">
+                    <h3>Koruma Durumu</h3>
+                    <div class="value">Açık</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">Genel Durum</div>
+                <div class="list-box">
+                    <div class="list-item">
+                        Sistem aktif ve spam filtreleme çalışıyor.
+                    </div>
+                    <div class="list-item">
+                        Son taramada şüpheli mesajlar başarıyla ayrıştırıldı.
+                    </div>
+                    <div class="list-item">
+                        Premium özellikler kullanılabilir durumda.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const menuItems = document.querySelectorAll(".menu div");
+
+function setActive(el) {
+    menuItems.forEach(item => item.classList.remove("active"));
+    el.classList.add("active");
+}
+
+function loadPage(page) {
+    const content = document.getElementById("content");
+
+    if (page === "home") {
+        content.innerHTML = `
+            <div class="stats">
+                <div class="card">
+                    <h3>Toplam SMS</h3>
+                    <div class="value">128</div>
+                </div>
+                <div class="card">
+                    <h3>Engellenen Spam</h3>
+                    <div class="value">42</div>
+                </div>
+                <div class="card">
+                    <h3>Temiz Mesaj</h3>
+                    <div class="value">86</div>
+                </div>
+                <div class="card">
+                    <h3>Koruma Durumu</h3>
+                    <div class="value">Açık</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">Genel Durum</div>
+                <div class="list-box">
+                    <div class="list-item">Sistem aktif ve spam filtreleme çalışıyor.</div>
+                    <div class="list-item">Son taramada şüpheli mesajlar başarıyla ayrıştırıldı.</div>
+                    <div class="list-item">Premium özellikler kullanılabilir durumda.</div>
+                </div>
+            </div>
+        `;
+    } else if (page === "analiz") {
+        content.innerHTML = `
+            <div class="card">
+                <div class="section-title">Analiz Merkezi</div>
+                <div class="list-box">
+                    <div class="list-item">
+                        Kumar / bahis içerikli SMS tespiti burada gösterilecek.
+                    </div>
+                    <div class="list-item">
+                        AI skorları, link analizi ve kelime eşleşmeleri bu alana bağlanabilir.
+                    </div>
+                    <div class="list-item">
+                        <span class="muted">Hazır alan - sonra gerçek veriye bağlanır.</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (page === "engel") {
+        content.innerHTML = `
+            <div class="card">
+                <div class="section-title">Engellenenler</div>
+                <div class="list-box">
+                    <div class="list-item">+90 5xx xxx xx xx — Spam nedeniyle engellendi</div>
+                    <div class="list-item">reklam-bet-info — Zararlı içerik algılandı</div>
+                    <div class="list-item">kazan-hemen — Riskli anahtar kelime tespiti</div>
+                </div>
+            </div>
+        `;
+    } else if (page === "bildirim") {
+        content.innerHTML = `
+            <div class="card">
+                <div class="section-title">Bildirimler</div>
+                <div class="list-box">
+                    <div class="list-item">Yeni spam örneği sisteme eklendi.</div>
+                    <div class="list-item">Koruma motoru son 24 saatte 12 SMS işledi.</div>
+                    <div class="list-item">Lisans durumu: Pro kullanıcı aktif.</div>
+                </div>
+            </div>
+        `;
+    } else if (page === "ayarlar") {
+        content.innerHTML = `
+            <div class="card">
+                <div class="section-title">Ayarlar</div>
+                <div class="list-box">
+                    <div class="list-item">Spam eşiği: Orta</div>
+                    <div class="list-item">Otomatik engelleme: Açık</div>
+                    <div class="list-item">Bildirim sistemi: Açık</div>
+                </div>
+            </div>
+        `;
+    }
+}
+</script>
+
+</body>
+</html>

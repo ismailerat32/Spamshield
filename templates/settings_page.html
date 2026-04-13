@@ -1,0 +1,24 @@
+{% extends "base_pro.html" %}
+{% block content %}
+<section class="hero">
+    <h1>Ayarlar</h1>
+    <p>Güvenlik, analiz ve sistem davranışı için kontrol alanı.</p>
+</section>
+
+<section class="grid">
+    <div class="card span-6">
+        <h3>Koruma Durumu</h3>
+        <div class="row"><span>Canlı koruma</span><span class="badge">Açık</span></div>
+        <div class="row"><span>Otomatik izleme</span><span class="badge">Açık</span></div>
+        <div class="row"><span>Spam motoru</span><span class="badge">Aktif</span></div>
+    </div>
+    <div class="card span-6">
+        <h3>Planlanan Ayarlar</h3>
+        <div class="list">
+            <div class="list-item">Otomatik engelleme aç/kapat</div>
+            <div class="list-item">Risk eşiği ayarı</div>
+            <div class="list-item">Bildirim modu</div>
+        </div>
+    </div>
+</section>
+{% endblock %}

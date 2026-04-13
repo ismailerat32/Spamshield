@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpamShield PRO - Raporlar</title>
+<style>
+:root{
+    --bg1:#02060d;
+    --bg2:#06111d;
+    --line:rgba(0,255,170,.18);
+    --line-strong:rgba(120,255,190,.45);
+    --card:rgba(7,20,28,.82);
+    --text:#e8fff2;
+    --muted:#9dd8b3;
+    --ok:#19e68c;
+    --warn:#ffd166;
+    --danger:#ff5c7a;
+}
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+html,body{
+    margin:0;
+    min-height:100%;
+    font-family:Arial, Helvetica, sans-serif;
+    color:var(--text);
+    background:
+        radial-gradient(circle at 50% 15%, rgba(0,255,170,.08), transparent 20%),
+        linear-gradient(180deg, var(--bg2), var(--bg1) 60%, #01040a);
+}
+.container{
+    width:min(1100px, 94vw);
+    margin:0 auto;
+    padding:20px 0 32px;
+}
+.topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:18px;
+}
+.brand{
+    font-size:28px;
+    font-weight:800;
+    color:#a8ffc9;
+    text-shadow:0 0 18px rgba(0,255,160,.12);
+}
+.actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+.btn{
+    text-decoration:none;
+    color:#d7ffe8;
+    padding:10px 16px;
+    border-radius:999px;
+    border:1px solid rgba(120,255,190,.14);
+    background:rgba(10,26,36,.75);
+    box-shadow:inset 0 0 10px rgba(0,255,160,.03);
+    font-size:14px;
+}
+.hero{
+    padding:18px;
+    border:1px solid var(--line);
+    border-radius:24px;
+    background:linear-gradient(180deg, rgba(7,20,28,.85), rgba(5,15,22,.72));
+    box-shadow:0 0 24px rgba(0,255,160,.06);
+    margin-bottom:18px;
+}
+.hero h1{
+    margin:0 0 8px;
+    font-size:32px;
+}
+.hero p{
+    margin:0;
+    color:var(--muted);
+}
+.grid{
+    display:grid;
+    grid-template-columns:repeat(12, 1fr);
+    gap:14px;
+}
+.card{
+    grid-column:span 12;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:16px;
+    box-shadow:0 0 18px rgba(0,255,160,.04);
+}
+@media (min-width:800px){
+    .span-3{grid-column:span 3;}
+    .span-4{grid-column:span 4;}
+    .span-6{grid-column:span 6;}
+    .span-8{grid-column:span 8;}
+}
+.card h3{
+    margin:0 0 12px;
+    font-size:18px;
+}
+.stat{
+    font-size:34px;
+    font-weight:800;
+    margin-bottom:6px;
+}
+.sub{
+    color:var(--muted);
+    font-size:14px;
+}
+.row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    padding:10px 0;
+    border-bottom:1px solid rgba(120,255,190,.08);
+}
+.row:last-child{
+    border-bottom:none;
+}
+.badge{
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+}
+.ok{background:rgba(25,230,140,.12); color:#8ff2bf;}
+.warn{background:rgba(255,209,102,.10); color:#ffe29a;}
+.danger{background:rgba(255,92,122,.12); color:#ff9db1;}
+.bar{
+    height:10px;
+    background:rgba(255,255,255,.05);
+    border-radius:999px;
+    overflow:hidden;
+    margin-top:8px;
+}
+.bar > span{
+    display:block;
+    height:100%;
+    border-radius:999px;
+    background:linear-gradient(90deg, rgba(25,230,140,.8), rgba(0,255,170,.95));
+}
+.table{
+    width:100%;
+    border-collapse:collapse;
+}
+.table th,
+.table td{
+    text-align:left;
+    padding:10px 8px;
+    border-bottom:1px solid rgba(120,255,190,.08);
+    font-size:14px;
+}
+.table th{
+    color:#b9ffd3;
+    font-weight:700;
+}
+.footer-note{
+    margin-top:18px;
+    color:var(--muted);
+    font-size:13px;
+    text-align:center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="topbar">
+        <div class="brand">SpamShield PRO</div>
+        <div class="actions">
+            <a class="btn" href="/radial-pro">Panele Dön</a>
+            <a class="btn" href="/dashboard">Dashboard</a>
+        </div>
+    </div>
+
+    <section class="hero">
+        <h1>Raporlar</h1>
+        <p>Spam tespiti, engellenen mesajlar, risk dağılımı ve sistem özeti burada görünür.</p>
+    </section>
+
+    <section class="grid">
+        <div class="card span-3">
+            <h3>Toplam SMS</h3>
+            <div class="stat">{{ total_sms }}</div>
+            <div class="sub">Son 30 gün</div>
+        </div>
+
+        <div class="card span-3">
+            <h3>Spam Yakalandı</h3>
+            <div class="stat">{{ spam_count }}</div>
+            <div class="sub">Filtrelenen riskli mesaj</div>
+        </div>
+
+        <div class="card span-3">
+            <h3>Temiz Mesaj</h3>
+            <div class="stat">{{ clean_count }}</div>
+            <div class="sub">İzin verilen mesaj</div>
+        </div>
+
+        <div class="card span-3">
+            <h3>Doğruluk</h3>
+            <div class="stat">%{{ accuracy }}</div>
+            <div class="sub">Tahmini filtre başarımı</div>
+        </div>
+
+        <div class="card span-6">
+            <h3>Risk Dağılımı</h3>
+
+            <div class="row">
+                <div>
+                    <div>Yüksek Risk</div>
+                    <div class="sub">Casino, bahis, dolandırıcılık, sahte link</div>
+                </div>
+                <div class="badge danger">142</div>
+            </div>
+            <div class="bar"><span style="width:72%"></span></div>
+
+            <div class="row">
+                <div>
+                    <div>Orta Risk</div>
+                    <div class="sub">Şüpheli kampanya ve agresif reklam</div>
+                </div>
+                <div class="badge warn">96</div>
+            </div>
+            <div class="bar"><span style="width:48%"></span></div>
+
+            <div class="row">
+                <div>
+                    <div>Düşük Risk</div>
+                    <div class="sub">Sınırda içerik, manuel inceleme adayı</div>
+                </div>
+                <div class="badge ok">74</div>
+            </div>
+            <div class="bar"><span style="width:34%"></span></div>
+        </div>
+
+        <div class="card span-6">
+            <h3>Sistem Özeti</h3>
+            <div class="row">
+                <span>Aktif koruma</span>
+                <span class="badge ok">Açık</span>
+            </div>
+            <div class="row">
+                <span>Kara liste</span>
+                <span>218 kayıt</span>
+            </div>
+            <div class="row">
+                <span>Watchlist</span>
+                <span>{{ watch_count }} kayıt</span>
+            </div>
+            <div class="row">
+                <span>Son analiz zamanı</span>
+                <span>Bugün {{ last_update }}</span>
+            </div>
+            <div class="row">
+                <span>Lisans durumu</span>
+                <span class="badge ok">PRO</span>
+            </div>
+        </div>
+
+        <div class="card span-12">
+            <h3>Son Olaylar</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Saat</th>
+                        <th>Gönderen</th>
+                        <th>Durum</th>
+                        <th>Açıklama</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>07:31</td>
+                        <td>+90 XXX XXX XX 10</td>
+                        <td><span class="badge danger">Engellendi</span></td>
+                        <td>Bahis bağlantısı tespit edildi</td>
+                    </tr>
+                    <tr>
+                        <td>07:18</td>
+                        <td>BANKA</td>
+                        <td><span class="badge ok">İzin verildi</span></td>
+                        <td>OTP / doğrulama mesajı temiz geçti</td>
+                    </tr>
+                    <tr>
+                        <td>06:57</td>
+                        <td>MARKET</td>
+                        <td><span class="badge warn">İncele</span></td>
+                        <td>Kampanya metni sınırda bulundu</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="footer-note">Bu ekran şu an demo verilerle çalışıyor. Sonraki adımda gerçek log ve JSON verilerine bağlanır.</div>
+</div>
+</body>
+</html>
