@@ -21,48 +21,39 @@ body {
   border: 1px solid rgba(255,255,255,0.05);
 }
 
-.top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.badge {
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 20px;
-}
-
-.spam { background:#ff4444; }
-.watch { background:#ffc107; color:#111; }
-
 .msg {
   margin: 10px 0;
   font-size: 15px;
 }
 
-.actions {
+/* DETAY MODAL */
+.detail-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-modal.show {
   display: flex;
-  gap: 8px;
 }
 
-.actions form {
-  flex: 1;
+.detail-box {
+  background: #0d2018;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
 }
 
-.btn {
+.detail-close {
+  margin-top: 15px;
   width: 100%;
-  padding: 8px;
-  font-size: 12px;
-  border-radius: 8px;
+  padding: 10px;
+  background: #2aff9a;
   border: none;
-  font-weight: bold;
 }
-
-.btn-spam { background:#ff4444; color:white; }
-.btn-watch { background:#ffc107; color:#111; }
-.btn-clean { background:#2aff9a; color:#000; }
-
 </style>
 </head>
 
@@ -71,41 +62,21 @@ body {
 <h2>Bildirimler</h2>
 
 {% for item in items %}
-<div class="card">
-
-  <div class="top">
-    <span class="badge {% if item.status=='blocked' %}spam{% else %}watch{% endif %}">
-      {{ item.status.upper() }}
-    </span>
-    <span>#{{ loop.index }}</span>
-  </div>
-
+<div class="card" data-message="{{ item.message }}" data-source="{{ item.status }}">
   <div class="msg">{{ item.message }}</div>
-
-  <div class="actions">
-
-    <form method="POST" action="/message-action">
-      <input type="hidden" name="message" value="{{ item.message }}">
-      <input type="hidden" name="action" value="spam">
-      <button class="btn btn-spam">Spam</button>
-    </form>
-
-    <form method="POST" action="/message-action">
-      <input type="hidden" name="message" value="{{ item.message }}">
-      <input type="hidden" name="action" value="watch">
-      <button class="btn btn-watch">İncele</button>
-    </form>
-
-    <form method="POST" action="/message-action">
-      <input type="hidden" name="message" value="{{ item.message }}">
-      <input type="hidden" name="action" value="clean">
-      <button class="btn btn-clean">Temiz</button>
-    </form>
-
-  </div>
-
 </div>
 {% endfor %}
+
+<div id="detailModal" class="detail-modal">
+  <div class="detail-box">
+    <h3>Detay</h3>
+    <div id="detailMessage"></div>
+    <div id="detailRisk"></div>
+    <button class="detail-close" onclick="closeDetailModal()">Kapat</button>
+  </div>
+</div>
+
+<script src="/static/js/swipe.js"></script>
 
 </body>
 </html>

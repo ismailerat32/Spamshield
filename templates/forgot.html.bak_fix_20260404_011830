@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Şifremi Unuttum</title>
+<style>
+body {
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    font-family: Arial;
+    color: white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.card {
+    background:#0b1a3a;
+    padding:25px;
+    border-radius:15px;
+    width:320px;
+}
+
+input {
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border-radius:8px;
+    border:none;
+}
+
+button {
+    width:100%;
+    margin-top:15px;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#22c55e;
+    color:white;
+    font-weight:bold;
+}
+
+.code-box {
+    margin-top:15px;
+    padding:12px;
+    background:#1e3a8a;
+    border-radius:10px;
+    text-align:center;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.timer {
+    margin-top:10px;
+    font-size:13px;
+    color:#facc15;
+    text-align:center;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>Şifremi Unuttum</h2>
+
+<form method="POST">
+<input type="text" name="username" placeholder="Kullanıcı adı" required>
+<button type="submit">Sıfırlama Kodu Oluştur</button>
+</form>
+
+{% if reset_code %}
+<div class="code-box" onclick="copyCode()">
+    {{ reset_code }}
+</div>
+
+<div class="timer" id="timer">
+    Kod süresi: 180 sn
+</div>
+{% endif %}
+
+</div>
+
+<script>
+function copyCode() {
+    navigator.clipboard.writeText("{{ reset_code }}");
+    alert("Kod kopyalandı!");
+}
+
+let seconds = 180;
+const timerEl = document.getElementById("timer");
+
+if (timerEl) {
+    const interval = setInterval(() => {
+        seconds--;
+        timerEl.innerText = "Kod süresi: " + seconds + " sn";
+
+        if (seconds <= 0) {
+            clearInterval(interval);
+            timerEl.innerText = "Kod süresi doldu";
+        }
+    }, 1000);
+}
+</script>
+
+</body>
+</html>

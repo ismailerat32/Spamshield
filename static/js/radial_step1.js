@@ -17,7 +17,13 @@ slices.forEach((slice) => {
     slices.forEach((s) => s.classList.remove("active"));
     this.classList.add("active");
 
-    const label = this.dataset.label;
+    const label = this.getAttribute("data-label");
+
+    if (!label || !routes[label]) {
+      alert("Route bulunamadı: " + label);
+      return;
+    }
+
     coreText.textContent = label + " açılıyor...";
 
     setTimeout(() => {

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bildirimler</title>
+
+<style>
+body {
+  background: #07140f;
+  color: #eafff4;
+  font-family: Arial;
+  padding: 16px;
+}
+
+.card {
+  background: #0d2018;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 20px;
+}
+
+.spam { background:#ff4444; }
+.watch { background:#ffc107; color:#111; }
+
+.msg {
+  margin: 10px 0;
+  font-size: 15px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actions form {
+  flex: 1;
+}
+
+.btn {
+  width: 100%;
+  padding: 8px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+}
+
+.btn-spam { background:#ff4444; color:white; }
+.btn-watch { background:#ffc107; color:#111; }
+.btn-clean { background:#2aff9a; color:#000; }
+
+</style>
+</head>
+
+<body>
+
+<h2>Bildirimler</h2>
+
+{% for item in items %}
+<div class="card" data-message="{{ item.message }}" data-source="{{ item.status }}">
+
+  <div class="top">
+    <span class="badge {% if item.status=='blocked' %}spam{% else %}watch{% endif %}">
+      {{ item.status.upper() }}
+    </span>
+    <span>#{{ loop.index }}</span>
+  </div>
+
+  <div class="msg">{{ item.message }}</div>
+
+  <div class="actions">
+
+    <form method="POST" action="/message-action">
+      <input type="hidden" name="message" value="{{ item.message }}">
+      <input type="hidden" name="action" value="spam">
+      <button class="btn btn-spam">Spam</button>
+    </form>
+
+    <form method="POST" action="/message-action">
+      <input type="hidden" name="message" value="{{ item.message }}">
+      <input type="hidden" name="action" value="watch">
+      <button class="btn btn-watch">İncele</button>
+    </form>
+
+    <form method="POST" action="/message-action">
+      <input type="hidden" name="message" value="{{ item.message }}">
+      <input type="hidden" name="action" value="clean">
+      <button class="btn btn-clean">Temiz</button>
+    </form>
+
+  </div>
+
+</div>
+{% endfor %}
+
+<script src="/static/js/swipe.js"></script>
+
+</body>
+</html>
+
