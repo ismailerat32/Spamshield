@@ -184,7 +184,7 @@ app = Flask(__name__)
 def admin_home():
     if not login_required():
         return redirect(url_for("login"))
-    return redirect(url_for("dashboard"))
+    return redirect("/radial")
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-this-now")
 app.config["DEBUG"] = os.environ.get("FLASK_DEBUG", "0") == "1"
 
@@ -459,7 +459,7 @@ def login():
                 if not is_license_active(user):
                     return redirect(url_for("landing"))
 
-                return redirect(url_for("dashboard"))
+                return redirect("/radial")
 
         return render_template("login.html", error="Kullanıcı adı veya şifre yanlış.")
 
@@ -509,7 +509,7 @@ def register():
 # -----------------------
 @app.route("/admin-home-alias")
 def admin_home_alias():
-    return redirect(url_for("dashboard"))
+    return redirect("/radial")
 
 
 
@@ -540,7 +540,7 @@ def admin_panel():
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     users = load_users()
     rows = []
@@ -564,7 +564,7 @@ def admin_add_user():
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "").strip()
@@ -608,7 +608,7 @@ def admin_toggle_ban(target_username):
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     users = load_users()
     if target_username in users:
@@ -624,7 +624,7 @@ def admin_generate_license(target_username):
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     users = load_users()
     if target_username not in users:
@@ -647,7 +647,7 @@ def admin_approve_upgrade(target_username):
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     users = load_users()
     if target_username not in users:
@@ -678,7 +678,7 @@ def admin_update_license(target_username):
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     users = load_users()
     if target_username not in users:
@@ -774,23 +774,23 @@ def radial_demo():
 
 @app.route("/radial/koruma")
 def radial_koruma():
-    return redirect(url_for("dashboard"))
+    return redirect("/radial")
 
 @app.route("/radial/analiz")
 def radial_analiz():
-    return redirect(url_for("dashboard"))
+    return redirect("/radial")
 
 @app.route("/radial/engel")
 def radial_engel():
-    return redirect(url_for("dashboard"))
+    return redirect("/radial")
 
 @app.route("/radial/bildirim")
 def radial_bildirim():
-    return redirect(url_for("dashboard"))
+    return redirect("/radial")
 
 @app.route("/radial/topluluk")
 def radial_topluluk():
-    return redirect(url_for("dashboard"))
+    return redirect("/radial")
 
 @app.route("/radial/ayarlar")
 def radial_ayarlar():
@@ -802,7 +802,7 @@ def radial_ayarlar():
 @app.route("/users")
 def users():
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     return render_template(
         "users.html",
@@ -816,7 +816,7 @@ def users():
 @app.route("/add-user", methods=["GET", "POST"])
 def add_user():
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     message = ""
     error = ""
@@ -855,7 +855,7 @@ def add_user():
 @app.route("/delete-user/<username>", methods=["POST"])
 def delete_user(username):
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     username = username.strip().lower()
     users = load_users()
@@ -875,7 +875,7 @@ def delete_user(username):
 @app.route("/manage-license/<username>", methods=["GET", "POST"])
 def manage_license(username):
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     username = username.strip().lower()
     users = load_users()
@@ -985,7 +985,7 @@ def change():
 @app.route("/setting", methods=["GET", "POST"])
 def setting():
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     settings = load_settings()
     message = ""
@@ -1019,7 +1019,7 @@ def admin_licenses():
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     users = load_users()
     licenses = load_licenses()
@@ -1429,7 +1429,7 @@ def admin_payment_requests():
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     requests_data = load_payment_requests()
     return render_template("admin_payment_requests.html", requests=requests_data)
@@ -1542,7 +1542,7 @@ def admin_overview():
         return redirect(url_for("login"))
 
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     users = load_users()
     runtime_settings = load_runtime_settings()
@@ -1595,7 +1595,7 @@ def admin_mark_clean():
         return redirect(url_for("login"))
 
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     sender = request.form.get("sender", "").upper().strip()
     body = request.form.get("body", "")
@@ -1627,7 +1627,7 @@ def admin_spam_logs():
         return redirect(url_for("login"))
 
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     spam_logs = load_spam_logs()
     return render_template("admin_spam_logs.html", spam_logs=spam_logs)
@@ -1677,7 +1677,7 @@ def admin_settings():
         return redirect(url_for("login"))
 
     if not admin_required():
-        return redirect(url_for("dashboard"))
+        return redirect("/radial")
 
     settings = load_runtime_settings()
 
@@ -1929,7 +1929,7 @@ def admin_whitelist_legacy():
 
     if not login_required():
         return redirect(url_for("login"))
-    return redirect(url_for("dashboard"))
+    return redirect("/radial")
 
 
 
