@@ -1,3 +1,121 @@
+TELEGRAM_BOT_TOKEN = "8547332829:AAFfNGend-7oRnQfz_ArFMZ8qwNxPvEQJJw"
+
+def send_telegram(chat_id, text):
+    import requests
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    try:
+        requests.post(url, json={
+            "chat_id": chat_id,
+            "text": text
+        }, timeout=5)
+    except Exception as e:
+        print("Telegram gönderim hatası:", e)
+
+def verify_generated_license(key):
+    import json
+    from pathlib import Path
+    from datetime import datetime
+
+    path = Path("data/generated_licenses.json")
+    if not path.exists():
+        return False, "Lisans bulunamadı"
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return False, "Lisans verisi bozuk"
+
+    key = str(key).strip().upper()
+
+    for item in data:
+        if str(item.get("key", "")).strip().upper() == key:
+            if item.get("used") is True:
+                return False, "Lisans zaten kullanılmış"
+
+            expiry = str(item.get("expiry", "")).strip()
+            if expiry:
+                try:
+                    if datetime.now() > datetime.strptime(expiry, "%Y-%m-%d %H:%M:%S"):
+                        return False, "Lisans süresi dolmuş"
+                except Exception:
+                    pass
+
+            return True, item
+
+    return False, "Lisans bulunamadı"
+
+def mark_generated_license_used(key):
+    import json
+    from pathlib import Path
+
+    path = Path("data/generated_licenses.json")
+    if not path.exists():
+        return False
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return False
+
+    key = str(key).strip().upper()
+    changed = False
+
+    for item in data:
+        if str(item.get("key", "")).strip().upper() == key:
+            item["used"] = True
+            changed = True
+            break
+
+    if changed:
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return changed
+
+def create_license(note="", license_type="pro", days=30):
+    import random
+    import string
+    from datetime import datetime, timedelta
+    import json
+    from pathlib import Path
+
+    key = "LIC-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=12))
+    created_at = datetime.now()
+    expiry = created_at + timedelta(days=days)
+
+    record = {
+        "key": key,
+        "note": note,
+        "type": license_type,
+        "days": days,
+        "created_at": created_at.strftime("%Y-%m-%d %H:%M:%S"),
+        "expiry": expiry.strftime("%Y-%m-%d %H:%M:%S"),
+        "used": False
+    }
+
+    path = Path("data/generated_licenses.json")
+    items = []
+
+    if path.exists():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(data, list):
+                items = data
+        except Exception:
+            items = []
+
+    items.append(record)
+    path.write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return key
+
+
+
+def get_current_user():
+    users = load_users()
+    username = session.get("username")
+    return users.get(username, {})
+
+
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import json
 import os
@@ -24,7 +142,7 @@ def license_required():
 
     try:
         exp_date = datetime.strptime(expiry, "%Y-%m-%d")
-        if exp_date < datetime.utcnow():
+        if exp_date < datetime.now():
             return redirect(url_for("activate_license"))
     except:
         return redirect(url_for("activate_license"))
@@ -59,6 +177,14 @@ from utils.reset_utils import (
 )
 
 app = Flask(__name__)
+
+
+@app.route("/admin/")
+@app.route("/admin")
+def admin_home():
+    if not login_required():
+        return redirect(url_for("login"))
+    return redirect(url_for("dashboard"))
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-this-now")
 app.config["DEBUG"] = os.environ.get("FLASK_DEBUG", "0") == "1"
 
@@ -82,11 +208,11 @@ def apply_runtime_env_overrides():
 apply_runtime_env_overrides()
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-this-now")
 
-USERS_FILE = "users.json"
-SETTINGS_FILE = "settings.json"
-LICENSES_FILE = "licenses.json"
-LOGS_FILE = "logs.json"
-FEEDBACK_FILE = "feedback.json"
+USERS_FILE = "data/users.json"
+SETTINGS_FILE = "data/settings.json"
+LICENSES_FILE = "data/licenses.json"
+LOGS_FILE = "data/logs.json"
+FEEDBACK_FILE = "data/feedback.json"
 
 def load_feedback():
     return read_json(FEEDBACK_FILE, [])
@@ -389,6 +515,240 @@ def register():
 # -----------------------
 # DASHBOARD
 # -----------------------
+@app.route("/admin-home-alias")
+def admin_home_alias():
+    return redirect(url_for("dashboard"))
+
+
+
+@app.route("/spam-logs")
+def spam_logs_alias():
+    return redirect(url_for("admin_spam_logs"))
+
+@app.route("/whitelist", methods=["GET", "POST"])
+@app.route("/admin/whitelist", methods=["GET", "POST"])
+def admin_whitelist():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    whitelist = load_whitelist()
+
+    if request.method == "POST":
+        number = request.form.get("number", "").strip()
+        if number and number not in whitelist:
+            whitelist.append(number)
+            save_whitelist(whitelist)
+        return redirect("/admin/whitelist")
+
+    return render_template("whitelist.html", whitelist=whitelist)
+
+
+@app.route("/admin/panel")
+def admin_panel():
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    rows = []
+    for username, data in users.items():
+        rows.append({
+            "username": username,
+            "role": data.get("role", "user"),
+            "license_type": data.get("license_type", "trial"),
+            "license_expiry": data.get("license_expiry", ""),
+            "license_key": data.get("license_key", ""),
+            "is_banned": bool(data.get("is_banned", False)),
+        })
+
+    rows = sorted(rows, key=lambda x: x["username"].lower())
+    requests = load_upgrade_requests()
+    return render_template("admin_panel.html", users=rows, upgrade_requests=requests)
+
+
+@app.route("/admin/add-user", methods=["POST"])
+def admin_add_user():
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "").strip()
+    role = request.form.get("role", "user").strip() or "user"
+    license_type = request.form.get("license_type", "trial").strip() or "trial"
+    license_expiry = request.form.get("license_expiry", "").strip()
+
+    if not username or not password:
+        return redirect("/admin/panel?ok=missing_fields&open=add")
+
+    users = load_users()
+    if username in users:
+        return redirect("/admin/panel?ok=user_exists&open=add")
+
+    try:
+        from werkzeug.security import generate_password_hash
+        password_hash = generate_password_hash(password)
+    except Exception:
+        password_hash = password
+
+    users[username] = {
+        "password_hash": password_hash,
+        "role": role,
+        "license_type": license_type,
+        "license_mode": license_type,
+        "license_expiry": license_expiry,
+        "license_key": users.get(username, {}).get("license_key", ""),
+        "is_banned": False,
+    }
+
+    # eski yapılarla uyum için
+    if "password" not in users[username]:
+        users[username]["password"] = password
+
+    save_users(users)
+    return redirect("/admin/panel?ok=user_added&open=users")
+
+
+@app.route("/admin/toggle-ban/<target_username>", methods=["POST"])
+def admin_toggle_ban(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    if target_username in users:
+        current = bool(users[target_username].get("is_banned", False))
+        users[target_username]["is_banned"] = not current
+        save_users(users)
+
+    return redirect(f"/admin/panel?ok=ban_toggled&open=users#user-{target_username}")
+
+
+@app.route("/admin/generate-license/<target_username>", methods=["POST"])
+def admin_generate_license(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    if target_username not in users:
+        return redirect("/admin/panel?ok=user_not_found")
+
+    current = str(users[target_username].get("license_key", "")).strip().upper()
+
+    invalid_keys = {"", "TRIAL", "PRO", "FREE", "NONE", "-", "NULL"}
+    if current in invalid_keys or not current.startswith("LIC-"):
+        users[target_username]["license_key"] = generate_simple_license_key(users)
+        save_users(users)
+        current = users[target_username]["license_key"]
+        print("LICENSE_GENERATED:", target_username, current, flush=True)
+        return redirect(f"/admin/panel?ok=license_generated&license_key={current}&open=users#user-{target_username}")
+    else:
+        print("LICENSE_ALREADY_EXISTS:", target_username, current, flush=True)
+        return redirect(f"/admin/panel?ok=license_exists&license_key={current}&open=users#user-{target_username}")
+@app.route("/admin/approve-upgrade/<target_username>", methods=["POST"])
+def admin_approve_upgrade(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    if target_username not in users:
+        return redirect(f"/admin/panel?ok=done&open=users#user-{target_username}")
+
+    users[target_username]["license_type"] = "pro"
+    users[target_username]["license_mode"] = "pro"
+    if not str(users[target_username].get("license_expiry", "")).strip():
+        users[target_username]["license_expiry"] = "2099-01-01"
+
+    current_key = str(users[target_username].get("license_key", "")).strip().upper()
+    if not current_key:
+        users[target_username]["license_key"] = generate_simple_license_key(users)
+
+    save_users(users)
+
+    requests = load_upgrade_requests()
+    for row in requests:
+        if row.get("username") == target_username and row.get("status") == "pending":
+            row["status"] = "approved"
+    save_upgrade_requests(requests)
+
+    print("UPGRADE_APPROVED:", target_username, flush=True)
+    return redirect(f"/admin/panel?ok=upgrade_approved&open=users#user-{target_username}")
+
+@app.route("/admin/update-license/<target_username>", methods=["POST"])
+def admin_update_license(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    if target_username not in users:
+        print("LICENSE_UPDATE_ERROR: user not found ->", target_username, flush=True)
+        return redirect(f"/admin/panel?ok=user_not_found&open=users#user-{target_username}")
+
+    license_type = request.form.get("license_type", "trial").strip() or "trial"
+    license_expiry = request.form.get("license_expiry", "").strip()
+
+    users[target_username]["license_type"] = license_type
+    users[target_username]["license_mode"] = license_type
+    users[target_username]["license_expiry"] = license_expiry
+
+    save_users(users)
+
+    print("LICENSE_UPDATE_OK:", target_username, "type=", license_type, "expiry=", license_expiry, flush=True)
+    return redirect(f"/admin/panel?ok=license_updated&open=users#user-{target_username}")
+
+
+UPGRADE_REQUESTS_FILE = "data/upgrade_requests.json"
+
+def load_upgrade_requests():
+    if not os.path.exists(UPGRADE_REQUESTS_FILE):
+        return []
+    try:
+        with open(UPGRADE_REQUESTS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+def save_upgrade_requests(data):
+    os.makedirs("data", exist_ok=True)
+    with open(UPGRADE_REQUESTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def is_real_license_key(value):
+    v = str(value or "").strip().upper()
+    if not v:
+        return False
+    if v in {"TRIAL", "PRO", "FREE", "NONE", "-", "NULL"}:
+        return False
+    return v.startswith("LIC-") and len(v) >= 8
+
+def generate_simple_license_key(users):
+    import random, string
+    while True:
+        code = "LIC-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=12))
+        exists = False
+        for _, u in users.items():
+            if str(u.get("license_key", "")).upper() == code:
+                exists = True
+                break
+        if not exists:
+            return code
+
+def _normalize_license_key(value):
+    return str(value or "").strip().upper()
+
+
+
+
 @app.route("/dashboard")
 def dashboard():
     lock = license_required()
@@ -410,11 +770,39 @@ def dashboard():
         "dashboard.html",
         username=username,
         total_users=len(users),
+        user=user,
         app_name=settings.get("app_name", "SpamShield Premium"),
         days_left="∞" if user.get("role") == "admin" else days_left(user),
         license_type=user.get("license_type", "trial"),
         license_key=user.get("license_key", "")
     )
+@app.route("/radial-demo")
+def radial_demo():
+    return render_template("radial_demo.html")
+
+@app.route("/radial/koruma")
+def radial_koruma():
+    return redirect(url_for("dashboard"))
+
+@app.route("/radial/analiz")
+def radial_analiz():
+    return redirect(url_for("dashboard"))
+
+@app.route("/radial/engel")
+def radial_engel():
+    return redirect(url_for("dashboard"))
+
+@app.route("/radial/bildirim")
+def radial_bildirim():
+    return redirect(url_for("dashboard"))
+
+@app.route("/radial/topluluk")
+def radial_topluluk():
+    return redirect(url_for("dashboard"))
+
+@app.route("/radial/ayarlar")
+def radial_ayarlar():
+    return redirect(url_for("setting"))
 
 # -----------------------
 # USERS
@@ -676,8 +1064,8 @@ def admin_licenses():
         from datetime import datetime, timedelta
 
         license_key = generate_license_key()
-        created_at = datetime.utcnow().strftime("%Y-%m-%d")
-        expires_at = (datetime.utcnow() + timedelta(days=duration_days)).strftime("%Y-%m-%d")
+        created_at = datetime.now().strftime("%Y-%m-%d")
+        expires_at = (datetime.now() + timedelta(days=duration_days)).strftime("%Y-%m-%d")
 
         licenses[license_key] = {
             "username": username,
@@ -994,7 +1382,7 @@ def days_left_from_expiry(expiry_str):
     from datetime import datetime
     try:
         exp = datetime.strptime(expiry_str, "%Y-%m-%d").date()
-        today = datetime.utcnow().date()
+        today = datetime.now().date()
         return (exp - today).days
     except Exception:
         return -1
@@ -1037,64 +1425,6 @@ def my_license():
         remaining_days=remaining_days
     )
 
-@app.route("/activate-license", methods=["GET", "POST"])
-def activate_license():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    message = ""
-    error = ""
-    username = current_username()
-
-    if request.method == "POST":
-        entered_key = request.form.get("license_key", "").strip()
-
-        if not entered_key:
-            error = "Lisans kodu boş olamaz."
-        else:
-            ok, msg = activate_pool_license(username, entered_key)
-            if ok:
-                message = msg
-            else:
-                error = msg
-
-    users = load_users()
-    user = users.get(username, {})
-
-    return render_template(
-        "activate_license.html",
-        message=message,
-        error=error,
-        current_license=user.get("license_key", ""),
-        license_type=user.get("license_type", "trial"),
-        days_left="∞" if user.get("role") == "admin" else days_left(user)
-    )
-
-# -----------------------
-# BUY LICENSE (SIMULATION)
-# -----------------------
-
-
-
-PAYMENT_REQUESTS_FILE = "data/payment_requests.json"
-
-def load_payment_requests():
-    import json
-    import os
-    if not os.path.exists(PAYMENT_REQUESTS_FILE):
-        with open(PAYMENT_REQUESTS_FILE, "w", encoding="utf-8") as f:
-            json.dump([], f, ensure_ascii=False, indent=2)
-    try:
-        with open(PAYMENT_REQUESTS_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            return data if isinstance(data, list) else []
-    except Exception:
-        return []
-
-def save_payment_requests(data):
-    import json
-    with open(PAYMENT_REQUESTS_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
 @app.route("/pricing")
 def pricing():
@@ -1190,6 +1520,8 @@ def reset_code():
 # =========================
 import json
 
+TELEGRAM_BOT_TOKEN = "BURAYA_BOT_TOKEN"
+
 SETTINGS_FILE = "spamshield_runtime_settings.json"
 
 def load_runtime_settings():
@@ -1212,8 +1544,7 @@ def save_runtime_settings(data):
 
 
 
-@app.route("/admin")
-@app.route("/admin/")
+@app.route("/admin/overview")
 def admin_overview():
     if not login_required():
         return redirect(url_for("login"))
@@ -1383,6 +1714,162 @@ def admin_settings():
     return render_template("admin_settings.html", settings=settings)
 
 
+
+
+@app.route("/request-upgrade", methods=["POST"])
+def request_upgrade():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    users = load_users()
+    username = session.get("username")
+    user = users.get(username, {})
+
+    requests = load_upgrade_requests()
+
+    already_open = False
+    for row in requests:
+        if row.get("username") == username and row.get("status") == "pending":
+            already_open = True
+            break
+
+    if not already_open:
+        requests.insert(0, {
+            "username": username,
+            "current_license": user.get("license_type", "trial"),
+            "status": "pending"
+        })
+        save_upgrade_requests(requests)
+
+    return redirect("/upgrade")
+
+@app.route("/upgrade")
+def upgrade():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    users = load_users()
+    username = session.get("username")
+    user = users.get(username, {})
+
+    return render_template(
+        "upgrade.html",
+        user=user,
+        username=username
+    )
+
+@app.route("/activate-license", methods=["GET", "POST"])
+def activate_license():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    users = load_users()
+    username = session.get("username")
+    user = users.get(username, {})
+
+    error = ""
+    success = ""
+
+    if request.method == "POST":
+        entered_key = _normalize_license_key(request.form.get("license_key", ""))
+        stored_key = _normalize_license_key(user.get("license_key", ""))
+
+        if not entered_key:
+            error = "Lisans kodu boş olamaz."
+        elif not stored_key:
+            error = "Bu kullanıcı için atanmış lisans kodu yok. Admin panelden lisans tanımlayın."
+        elif entered_key != stored_key:
+            error = "Lisans kodu geçersiz."
+        else:
+            user["license_type"] = "pro"
+            user["license_mode"] = "pro"
+            if not str(user.get("license_expiry", "")).strip():
+                user["license_expiry"] = "2099-01-01"
+            user["is_active"] = True
+
+            users[username] = user
+            save_users(users)
+
+            success = "Lisans başarıyla aktive edildi. PRO hesap aktif."
+            print("LICENSE_ACTIVATION_OK:", username, stored_key, flush=True)
+
+    return render_template(
+        "activate_license.html",
+        user=user,
+        username=username,
+        error=error,
+        success=success
+    )
+
+@app.route("/bot-orders")
+def bot_orders_page():
+    from pathlib import Path
+    import json
+
+    path = Path("data/bot_orders.json")
+    orders = []
+
+    if path.exists():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(data, list):
+                orders = data
+        except Exception:
+            orders = []
+
+    orders = list(reversed(orders))
+    return render_template("bot_orders.html", orders=orders)
+
+@app.route("/bot-orders/give-license/<order_id>", methods=["POST"])
+def give_bot_order_license(order_id):
+    from pathlib import Path
+    import json
+
+    path = Path("data/bot_orders.json")
+    orders = []
+
+    if path.exists():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(data, list):
+                orders = data
+        except Exception:
+            orders = []
+
+    for order in orders:
+        if str(order.get("order_id", "")) == str(order_id):
+            created_key = create_license(note=f"bot-order:{order_id}")
+            if isinstance(created_key, dict):
+                created_key = created_key.get("key")
+
+            order["status"] = "licensed"
+            order["license_key"] = created_key
+
+            chat_id = order.get("chat_id")
+            if chat_id:
+                send_telegram(
+                    chat_id,
+                    f"🎉 Lisansınız hazır!\n\n🔑 {created_key}\n\nSpamShield PRO aktif!"
+                )
+
+            break
+
+    path.write_text(json.dumps(orders, ensure_ascii=False, indent=2), encoding="utf-8")
+    return redirect("/bot-orders")
+
+
+
+@app.route("/radial")
+def radial():
+    try:
+        return redirect(url_for("radial_demo"))
+    except:
+        try:
+            stats = {"total_sms": 1, "protected": 1, "blocked": 0}
+            return render_template("radial_demo.html", stats=stats)
+        except:
+            return "<h2>radial_demo.html bulunamadi</h2>"
+
 if __name__ == "__main__":
     load_users()
     load_settings()
@@ -1390,7 +1877,7 @@ if __name__ == "__main__":
         save_licenses({})
     port = int(os.environ.get("PORT", 5000))
 local_debug = os.environ.get("FLASK_DEBUG", "0") == "1"
-app.run(host="0.0.0.0", port=port, debug=local_debug)
+app.run(host="0.0.0.0", port=5000, debug=False)
 
 
 # -----------------------
@@ -1426,3 +1913,64 @@ def approve_payment(username, license_key):
 # =========================
 # 📊 SPAM LOGS + ADMIN ROUTES
 # =========================
+
+@app.route("/admin/whitelist-legacy", methods=["GET","POST"])
+def admin_whitelist_legacy():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    whitelist = load_whitelist()
+
+    if request.method == "POST":
+        number = request.form.get("number","").strip()
+        if number and number not in whitelist:
+            whitelist.append(number)
+            save_whitelist(whitelist)
+
+    return render_template("whitelist.html", whitelist=whitelist)
+
+
+
+    if not login_required():
+        return redirect(url_for("login"))
+    return redirect(url_for("dashboard"))
+
+
+
+
+
+
+
+
+
+@app.route("/license")
+def license_page():
+    return "<h2>License Page (yakında)</h2>"
+
+@app.route("/protection")
+def protection_page():
+    return "<h2>Protection (yakında)</h2>"
+
+@app.route("/analyze")
+def analyze_page():
+    return "<h2>Analyze (yakında)</h2>"
+
+@app.route("/blocked")
+def blocked_page():
+    return "<h2>Blocked (yakında)</h2>"
+
+@app.route("/notifications")
+def notifications_page():
+    return "<h2>Notifications (yakında)</h2>"
+
+@app.route("/reports")
+def reports_page():
+    return "<h2>Reports (yakında)</h2>"
+
+@app.route("/settings")
+def settings_page():
+    return "<h2>Settings (yakında)</h2>"
+
+@app.route("/community")
+def community_page():
+    return "<h2>Community (yakında)</h2>"

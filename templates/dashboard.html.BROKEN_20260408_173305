@@ -1,0 +1,49 @@
+<!-- SADECE CSS + JS FIX EKLENMİŞ HAL -->
+
+<style>
+/* SIDEBAR */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    width: 260px;
+    height: 100%;
+    background: #0b1020;
+    transition: 0.3s;
+    z-index: 1000;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+/* OVERLAY (EN ÖNEMLİ FIX) */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 900;
+    display: none;
+}
+
+.overlay.active {
+    display: block;
+}
+</style>
+
+<!-- OVERLAY -->
+<div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+<script>
+function toggleMenu() {
+    const sidebar = document.querySelector(".sidebar");
+    const overlay = document.getElementById("overlay");
+
+    sidebar.classList.toggle("active");
+    overlay.classList.toggle("active");
+}
+</script>
+

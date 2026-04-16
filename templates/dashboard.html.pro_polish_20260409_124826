@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpamShield
+<div style="position:absolute; right:15px; top:10px;">
+<a href="/pricing" style="
+background: linear-gradient(90deg,#7c3aed,#9333ea);
+padding:8px 12px;
+border-radius:10px;
+font-size:12px;
+font-weight:bold;
+color:white;
+text-decoration:none;
+box-shadow:0 4px 12px rgba(0,0,0,0.3);
+">
+🚀 PRO
+</a>
+</div>
+ Premium</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #071224;
+    color: #ffffff;
+    overflow-x: hidden;
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 1002;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    background: rgba(12, 22, 42, 0.96);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(8px);
+}
+
+.menu-toggle {
+    font-size: 26px;
+    cursor: pointer;
+    user-select: none;
+    line-height: 1;
+}
+
+.brand {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+}
+
+.sidebar {
+    background: rgba(11,30,58,0.85);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255,255,255,0.05);
+    background: linear-gradient(180deg,#0b1e3a,#081428);
+    box-shadow: 5px 0 25px rgba(0,0,0,0.6);
+    position: fixed;
+    top: 0;
+    left: -220px;
+    width: 200px;
+    height: 100%;
+    background: linear-gradient(180deg, #0d1a31 0%, #0a162b 100%);
+    padding: 16px 10px;
+    transition: left 0.28s ease;
+    z-index: 1003;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 20px 0 60px rgba(0,0,0,0.65);
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+.sidebar-title {
+    text-shadow: 0 0 10px rgba(120,180,255,0.4);
+    font-size: 20px;
+    font-weight: 800;
+    margin: 8px 6px 18px 6px;
+}
+
+.menu-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    text-decoration: none;
+    color: #eef2ff;
+    background: #1a2740;
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 16px;
+    padding: 12px 12px;
+    margin-bottom: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.menu-link:hover {
+    box-shadow: 0 0 15px rgba(100,150,255,0.4);
+    transform: translateX(4px);
+    background: #263b63;
+}
+.menu-link:active {
+    transform: scale(0.985);
+}
+
+.menu-link.active {
+    background: linear-gradient(90deg,#3169ea,#4a7bff);
+    box-shadow: 0 0 25px rgba(80,120,255,0.6);
+    background: #2f67e8;
+}
+
+.menu-icon {
+    font-size: 24px;
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(2px);
+    display: none;
+    z-index: 1001;
+}
+
+.overlay.active {
+    display: block;
+}
+
+.content {
+    padding: 18px;
+    transition: filter 0.2s ease;
+}
+
+.content.dimmed {
+    filter: blur(3px) brightness(0.6);
+    filter: brightness(0.88);
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 8px 0 18px 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.card {
+    background: #14223a;
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 22px;
+    padding: 22px 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.14);
+}
+
+.card-title {
+    font-size: 16px;
+    color: #dbe7ff;
+    margin-bottom: 18px;
+    font-weight: 700;
+}
+
+.card-value {
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.sms-box {
+    margin-top: 12px;
+    background: #1d2a42;
+    border-radius: 18px;
+    padding: 16px;
+    color: #f8fbff;
+    line-height: 1.45;
+    min-height: 70px;
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 14px 16px;
+    border-radius: 16px;
+    text-decoration: none;
+    color: white;
+    margin-top: 12px;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.blue { background: #3169ea; }
+.purple { background: #9a39f3; }
+
+@media (max-width: 640px) {
+    .grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .card {
+        padding: 16px 10px;
+        border-radius: 18px;
+    }
+
+    .card-value {
+        font-size: 20px;
+    }
+
+    .page-title {
+        font-size: 24px;
+    }
+}
+
+@keyframes logoPulse {
+    0% { text-shadow: 0 0 5px rgba(120,180,255,0.3); }
+    50% { text-shadow: 0 0 20px rgba(120,180,255,0.7); }
+    100% { text-shadow: 0 0 5px rgba(120,180,255,0.3); }
+}
+
+.sidebar-title {
+    animation: logoPulse 3s infinite;
+}
+</style>
+
+</head>
+<body>
+
+<div class="header">
+    <div class="menu-toggle" onclick="toggleMenu()">☰
+
+</div>
+
+    <div class="brand">🛡 SpamShield
+<div style="position:absolute; right:15px; top:10px;">
+<a href="/pricing" style="
+background: linear-gradient(90deg,#7c3aed,#9333ea);
+padding:8px 12px;
+border-radius:10px;
+font-size:12px;
+font-weight:bold;
+color:white;
+text-decoration:none;
+box-shadow:0 4px 12px rgba(0,0,0,0.3);
+">
+🚀 PRO
+</a>
+</div>
+</div>
+</div>
+
+<div id="sidebar" class="sidebar">
+    <div class="sidebar-title">🛡 SpamShield
+<div style="position:absolute; right:15px; top:10px;">
+<a href="/pricing" style="
+background: linear-gradient(90deg,#7c3aed,#9333ea);
+padding:8px 12px;
+border-radius:10px;
+font-size:12px;
+font-weight:bold;
+color:white;
+text-decoration:none;
+box-shadow:0 4px 12px rgba(0,0,0,0.3);
+">
+🚀 PRO
+</a>
+</div>
+</div>
+
+    <a href="/dashboard" class="menu-link active">
+        <span class="menu-icon">🏠</span>
+        <span>Dashboard</span>
+    </a>
+
+    <a href="/admin/spam-logs" class="menu-link">
+        <span class="menu-icon">📜</span>
+        <span>Spam Logları</span>
+    </a>
+
+    <a href="/admin/panel" class="menu-link"><span class="menu-icon">⚙️</span><span>Admin Panel</span></a>
+
+    <a href="/admin/whitelist" class="menu-link">
+        <span class="menu-icon">🧠</span>
+        <span>Beyaz Liste</span>
+    </a>
+
+    <a href="/logout" class="menu-link">
+        <span class="menu-icon">🚪</span>
+        <span>Çıkış</span>
+    </a>
+</div>
+
+<div id="overlay" class="overlay" onclick="closeMenu()"></div>
+
+<div id="content" class="content">
+    <div class="page-title">📊 Dashboard</div>
+
+    <div class="grid">
+        <div class="card">
+            <div class="card-title">Toplam Kullanıcı</div>
+            <div class="card-value">{{ total_users }}</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Lisans</div>
+            <div class="card-value">{{ license_mode }}</div>
+            <div style="margin-top:10px; color:#dbe7ff;">Kalan Gün: {{ trial_days }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">📡 Canlı SMS</div>
+
+        <div class="sms-box">
+            {% if last_sms %}
+                {{ last_sms }}
+            {% else %}
+                Henüz SMS yok
+            {% endif %}
+        </div>
+
+        <a href="/admin/panel" class="btn blue">Admin Panel</a>
+        <a href="/admin/spam-logs" class="btn blue">Spam Logları</a>
+        <a href="/admin/whitelist" class="btn purple">Beyaz Liste</a>
+
+    </div>
+</div>
+
+<script>
+function openMenu() {
+    document.getElementById("sidebar").classList.add("active");
+    document.getElementById("overlay").classList.add("active");
+    document.getElementById("content").classList.add("dimmed");
+    document.body.style.overflow = "hidden";
+}
+
+function closeMenu() {
+    document.getElementById("sidebar").classList.remove("active");
+    document.getElementById("overlay").classList.remove("active");
+    document.getElementById("content").classList.remove("dimmed");
+    document.body.style.overflow = "auto";
+}
+
+function toggleMenu() {
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar.classList.contains("active")) {
+        closeMenu();
+    } else {
+        openMenu();
+    }
+}
+</script>
+
+</body>
+</html>

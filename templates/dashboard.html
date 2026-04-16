@@ -3,313 +3,622 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ app_name }}</title>
+<title>SpamShield Premium</title>
+
 <style>
-*{box-sizing:border-box}
-:root{
-  --bg:#0b1220;
-  --panel:#10192c;
-  --border:#23324b;
-  --text:#f8fafc;
-  --muted:#cbd5e1;
-  --blue:#2563eb;
-  --green:#16a34a;
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #071224;
+    color: #ffffff;
+    overflow-x: hidden;
 }
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:linear-gradient(180deg,#07101f 0%, #0b1220 100%);
-  color:var(--text);
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 1002;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    background: rgba(12, 22, 42, 0.96);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(8px);
 }
-.topbar{
-  position:fixed; top:0; left:0; right:0;
-  height:64px;
-  background:rgba(15,23,42,.92);
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--border);
-  display:flex; align-items:center;
-  padding:0 14px; z-index:1100;
+
+.menu-toggle {
+    font-size: 26px;
+    cursor: pointer;
+    user-select: none;
+    line-height: 1;
 }
-.topbar-left{display:flex; align-items:center; gap:12px}
-.menu-btn{
-  width:44px; height:44px; border:none; border-radius:14px;
-  background:#1f2937; color:#fff; font-size:22px; cursor:pointer;
+
+.brand {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
 }
-.brand{font-size:22px; font-weight:800}
-.sidebar{
-  position:fixed; top:64px; left:0;
-  width:88px; height:calc(100vh - 64px);
-  background:rgba(15,23,42,.90);
-  border-right:1px solid var(--border);
-  padding:14px 10px; overflow-y:auto;
-  transition:.25s ease; z-index:1000;
+
+.header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
 }
-.sidebar.expanded{width:230px}
-.sidebar a{
-  display:flex; align-items:center; gap:12px;
-  text-decoration:none; color:#fff;
-  background:#1c2739; border:1px solid var(--border);
-  padding:13px 14px; border-radius:16px; margin-bottom:10px;
-  white-space:nowrap; overflow:hidden;
+
+.pro-badge {
+    display: inline-block;
+    background: linear-gradient(90deg,#6366f1,#8b5cf6);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    color: white;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
-.sidebar a:hover,.sidebar a.active{background:var(--blue)}
-.icon{font-size:24px; min-width:28px; text-align:center}
-.label{
-  opacity:0; transition:.2s ease;
-  font-size:16px; font-weight:600;
+
+.pro-label {
+    font-size: 12px;
+    font-weight: 900;
+    color: #a78bfa;
 }
-.sidebar.expanded .label{opacity:1}
-.content{
-  margin-top:64px; margin-left:88px;
-  padding:18px; transition:.25s ease;
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -220px;
+    width: 200px;
+    height: 100%;
+    background: rgba(11,30,58,0.85);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 20px 0 60px rgba(0,0,0,0.65);
+    padding: 16px 10px;
+    transition: left 0.28s ease;
+    z-index: 1003;
 }
-.content.expanded{margin-left:230px}
-.hero{
-  background:linear-gradient(135deg,#101a2c 0%, #0f172a 100%);
-  border:1px solid var(--border);
-  border-radius:24px; padding:24px; margin-bottom:18px;
+
+.sidebar.active {
+    left: 0;
 }
-.hero h2{margin:0 0 10px 0; font-size:32px}
-.hero p{margin:0; color:var(--muted); line-height:1.6}
-.actions{
-  display:flex; gap:12px; flex-wrap:wrap; margin-top:18px;
+
+.sidebar-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin: 8px 6px 18px 6px;
+    text-shadow: 0 0 10px rgba(120,180,255,0.4);
+    animation: logoPulse 3s infinite;
 }
-.btn{
-  display:inline-block; text-decoration:none; color:#fff;
-  padding:12px 16px; border-radius:12px; font-weight:bold;
+
+@keyframes logoPulse {
+    0% { text-shadow: 0 0 5px rgba(120,180,255,0.3); }
+    50% { text-shadow: 0 0 20px rgba(120,180,255,0.7); }
+    100% { text-shadow: 0 0 5px rgba(120,180,255,0.3); }
 }
-.btn-green{background:var(--green)}
-.btn-blue{background:var(--blue)}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:14px;
+
+.menu-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    text-decoration: none;
+    color: #eef2ff;
+    background: #1a2740;
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 16px;
+    padding: 12px 12px;
+    margin-bottom: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
-.card{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:22px;
-  padding:20px;
+
+.menu-link:hover {
+    background: #263b63;
+    transform: translateX(4px);
+    box-shadow: 0 0 15px rgba(100,150,255,0.4);
 }
-.card-title{color:#dbeafe; font-size:15px; margin-bottom:10px}
-.value{font-size:28px; font-weight:800}
-.badge{
-  display:inline-block;
-  padding:7px 12px;
-  border-radius:999px;
-  font-size:13px;
-  font-weight:800;
-  text-transform:uppercase;
+
+.menu-link:active {
+    transform: scale(0.985);
 }
-.badge.pro{
-  background:rgba(22,163,74,.18);
-  color:#86efac;
-  border:1px solid rgba(22,163,74,.35);
+
+.menu-link.active {
+    background: linear-gradient(90deg,#3169ea,#4a7bff);
+    box-shadow: 0 0 25px rgba(80,120,255,0.6);
 }
-.badge.trial{
-  background:rgba(37,99,235,.18);
-  color:#93c5fd;
-  border:1px solid rgba(37,99,235,.35);
+
+.menu-icon {
+    font-size: 24px;
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
 }
-.keybox{
-  margin-top:10px;
-  padding:12px;
-  border-radius:14px;
-  background:#0b1325;
-  border:1px dashed #30415f;
-  word-break:break-all;
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(2px);
+    display: none;
+    z-index: 1001;
 }
-.overlay{
-  display:none; position:fixed; inset:0;
-  background:rgba(0,0,0,.6);
-  backdrop-filter:blur(3px);
-  z-index:900;
+
+.overlay.active {
+    display: block;
 }
-.overlay.show{display:block}
-@media (min-width:900px){
-  .grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+.content {
+    padding: 18px;
+    transition: filter 0.2s ease;
 }
-@media (max-width:768px){
-  .brand{font-size:18px}
-  .sidebar{left:-240px; width:220px}
-  .sidebar.expanded{left:0; width:220px}
-  .label{opacity:1}
-  .content{margin-left:0; padding:14px}
-  .content.expanded{margin-left:0}
-  .hero h2{font-size:26px}
+
+.content.dimmed {
+    filter: blur(3px) brightness(0.6);
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 8px 0 18px 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.card {
+    background: #14223a;
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 22px;
+    padding: 22px 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.14);
+}
+
+.card-title {
+    font-size: 16px;
+    color: #dbe7ff;
+    margin-bottom: 18px;
+    font-weight: 700;
+}
+
+.card-value {
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.sms-box {
+    margin-top: 12px;
+    background: #1d2a42;
+    border-radius: 18px;
+    padding: 16px;
+    color: #f8fbff;
+    line-height: 1.45;
+    min-height: 70px;
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 14px 16px;
+    border-radius: 16px;
+    text-decoration: none;
+    color: white;
+    margin-top: 12px;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.blue { background: #3169ea; }
+.purple { background: #9a39f3; }
+
+@media (max-width: 640px) {
+    .grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .card {
+        padding: 18px 14px;
+        border-radius: 18px;
+    }
+
+    .card-value {
+        font-size: 22px;
+    }
+
+    .page-title {
+        font-size: 24px;
+    }
 }
 </style>
+
+<style>
+.toast-container{
+  position:fixed;
+  top:18px;
+  right:18px;
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  width:min(360px, calc(100vw - 24px));
+  pointer-events:none;
+}
+
+.toast{
+  position:relative;
+  overflow:hidden;
+  border-radius:18px;
+  padding:14px 16px 16px 16px;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 18px 40px rgba(0,0,0,.28);
+  color:#fff;
+  opacity:0;
+  transform:translateY(-12px) scale(.97);
+  transition:opacity .35s ease, transform .35s ease;
+  pointer-events:auto;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateY(0) scale(1);
+}
+
+.toast.hide{
+  opacity:0;
+  transform:translateY(-12px) scale(.97);
+}
+
+.toast::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  pointer-events:none;
+}
+
+.toast-top{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  position:relative;
+  z-index:1;
+}
+
+.toast-icon{
+  width:36px;
+  height:36px;
+  min-width:36px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  font-weight:700;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+.toast-body{
+  flex:1;
+  min-width:0;
+}
+
+.toast-title{
+  font-size:14px;
+  font-weight:800;
+  margin:0 0 4px 0;
+  letter-spacing:.2px;
+}
+
+.toast-message{
+  font-size:13px;
+  line-height:1.45;
+  margin:0;
+  opacity:.95;
+  word-wrap:break-word;
+}
+
+.toast-close{
+  background:transparent;
+  border:0;
+  color:rgba(255,255,255,.75);
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+  padding:0;
+  margin:0;
+}
+
+.toast-close:hover{
+  color:#fff;
+}
+
+.toast-progress{
+  position:absolute;
+  left:0;
+  bottom:0;
+  height:3px;
+  width:100%;
+  transform-origin:left center;
+  animation:toastProgress 2.6s linear forwards;
+  opacity:.95;
+}
+
+@keyframes toastProgress{
+  from{ transform:scaleX(1); }
+  to{ transform:scaleX(0); }
+}
+
+.toast-success{
+  background:linear-gradient(135deg, rgba(16,185,129,.28), rgba(6,95,70,.22));
+}
+.toast-success .toast-icon{
+  background:rgba(16,185,129,.22);
+}
+.toast-success .toast-progress{
+  background:#34d399;
+}
+
+.toast-error{
+  background:linear-gradient(135deg, rgba(239,68,68,.28), rgba(127,29,29,.22));
+}
+.toast-error .toast-icon{
+  background:rgba(239,68,68,.22);
+}
+.toast-error .toast-progress{
+  background:#f87171;
+}
+
+.toast-warning{
+  background:linear-gradient(135deg, rgba(245,158,11,.28), rgba(120,53,15,.22));
+}
+.toast-warning .toast-icon{
+  background:rgba(245,158,11,.22);
+}
+.toast-warning .toast-progress{
+  background:#fbbf24;
+}
+
+.toast-info{
+  background:linear-gradient(135deg, rgba(59,130,246,.28), rgba(30,58,138,.22));
+}
+.toast-info .toast-icon{
+  background:rgba(59,130,246,.22);
+}
+.toast-info .toast-progress{
+  background:#60a5fa;
+}
+
+@media (max-width: 640px){
+  .toast-container{
+    top:12px;
+    right:12px;
+    left:12px;
+    width:auto;
+  }
+  .toast{
+    border-radius:16px;
+  }
+}
+</style>
+
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-left">
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-    <div class="brand">🛡 {{ app_name }}</div>
-  </div>
-</div>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="toast-container" id="toastContainer">
+      {% for category, message in messages %}
+        <div class="toast toast-{{ category if category in ['success','error','warning','info'] else 'info' }}">
+          <div class="toast-top">
+            <div class="toast-icon">
+              {% if category == 'success' %}✓
+              {% elif category == 'error' %}✕
+              {% elif category == 'warning' %}! 
+              {% else %}i{% endif %}
+            </div>
 
-<div id="overlay" class="overlay" onclick="closeSidebarMobile()"></div>
+            <div class="toast-body">
+              <div class="toast-title">
+                {% if category == 'success' %}Başarılı
+                {% elif category == 'error' %}Hata
+                {% elif category == 'warning' %}Uyarı
+                {% else %}Bilgi{% endif %}
+              </div>
+              <p class="toast-message">{{ message }}</p>
+            </div>
+
+            <button class="toast-close" type="button" aria-label="Kapat">×</button>
+          </div>
+
+          <div class="toast-progress"></div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+
+<div class="header">
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="brand">🛡 SpamShield</div>
+
+    <div class="header-right">
+        {% if user and user.get("license_type") == "pro" %}
+            <span class="pro-label">⭐ PRO</span>
+        {% else %}
+            <a href="/upgrade" class="pro-badge">🚀 PRO</a>
+        {% endif %}
+    </div>
+</div>
 
 <div id="sidebar" class="sidebar">
-  <a href="/dashboard" class="active"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
-  <a href="/users"><span class="icon">👥</span><span class="label">Kullanıcılar</span></a>
+    <div class="sidebar-title">🛡 SpamShield</div>
 
-  <a href="/add-user"><span class="icon">➕</span><span class="label">Kullanıcı Ekle
+    <a href="/dashboard" class="menu-link active">
+        <span class="menu-icon">🏠</span>
+        <span>Dashboard</span>
+    </a>
 
-</span></a>
-  <a href="/change"><span class="icon">🔑</span><span class="label">Şifre Değiştir</span></a>
+    <a href="/admin/spam-logs" class="menu-link">
+        <span class="menu-icon">📜</span>
+        <span>Spam Logları</span>
+    </a>
 
-  <a href="/setting"><span class="icon">⚙️</span><span class="label">Ayarlar</span></a>
-  <a href="/activate-license"><span class="icon">💳</span><span class="label">Lisans</span></a>
-  {% if username == 'admin' %}
-  <a href="/admin/licenses"><span class="icon">🧾</span><span class="label">Lisans Havuzu</span></a>
-  {% endif %}
-  <a href="/landing"><span class="icon">🌐</span><span class="label">Landing</span></a>
-  <a href="/logout"><span class="icon">🚪</span><span class="label">Çıkış</span></a>
+    <a href="/admin/panel" class="menu-link">
+        <span class="menu-icon">⚙️</span>
+        <span>Admin Panel</span>
+    </a>
+
+    <a href="/admin/whitelist" class="menu-link">
+        <span class="menu-icon">🧠</span>
+        <span>Beyaz Liste</span>
+    </a>
+
+    <a href="/logout" class="menu-link">
+        <span class="menu-icon">🚪</span>
+        <span>Çıkış</span>
+    </a>
 </div>
+
+<div id="overlay" class="overlay" onclick="closeMenu()"></div>
 
 <div id="content" class="content">
-  <div class="hero">
-    <h2>Hoş geldin, {{ username }}</h2>
-    <p>Panel aktif. Kullanıcı, lisans ve ayar yönetimini buradan yapabilirsin.</p>
-    <div class="actions">
-      <a class="btn btn-green" href="/buy-license">Lisans Satın Al</a>
-      <a class="btn btn-blue" href="/activate-license">Lisans Aktifleştir</a>
-      {% if username == 'admin' %}
-      <a class="btn btn-blue" href="/admin/licenses">Lisans Havuzu</a>
-      {% endif %}
-    </div>
-  </div>
+    <div class="page-title">📊 Dashboard</div>
 
-  <div class="grid">
-    <div class="card">
-      <div class="card-title">Toplam Kullanıcı</div>
-      <div class="value">{{ total_users }}</div>
+    <div class="grid">
+        <div class="card">
+            <div class="card-title">Toplam Kullanıcı</div>
+            <div class="card-value">{{ total_users }}</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Lisans</div>
+            <div class="card-value">{{ license_mode }}</div>
+            <div style="margin-top:10px; color:#dbe7ff;">Kalan Gün: {{ trial_days }}</div>
+        </div>
     </div>
 
     <div class="card">
-      <div class="card-title">Kalan Gün</div>
-      <div class="value">{{ days_left }}</div>
-    </div>
+        <div class="card-title">📡 Canlı SMS</div>
 
-    <div class="card">
-      <div class="card-title">Lisans Modu</div>
-      <div class="value">
-        <span class="badge {% if license_type == 'pro' %}pro{% else %}trial{% endif %}">
-          {{ license_type }}
-        </span>
-      </div>
-    </div>
+        <div class="sms-box">
+            {% if last_sms %}
+                {{ last_sms }}
+            {% else %}
+                Henüz SMS yok
+            {% endif %}
+        </div>
 
-    <div class="card">
-      <div class="card-title">Lisans Kodu</div>
-      <div class="keybox">{{ license_key }}</div>
+        <a href="/admin/panel" class="btn blue">Admin Panel</a>
+        <a href="/admin/spam-logs" class="btn blue">Spam Logları</a>
+        <a href="/admin/whitelist" class="btn purple">Beyaz Liste</a>
     </div>
-  </div>
 </div>
 
 <script>
-const sidebar=document.getElementById("sidebar");
-const content=document.getElementById("content");
-const overlay=document.getElementById("overlay");
-function isMobile(){ return window.innerWidth <= 768; }
-function toggleSidebar(){
-  if(isMobile()){
-    sidebar.classList.toggle("expanded");
-    overlay.classList.toggle("show");
-  }else{
-    sidebar.classList.toggle("expanded");
-    content.classList.toggle("expanded");
-  }
+function openMenu() {
+    document.getElementById("sidebar").classList.add("active");
+    document.getElementById("overlay").classList.add("active");
+    document.getElementById("content").classList.add("dimmed");
+    document.body.style.overflow = "hidden";
 }
-function closeSidebarMobile(){
-  if(isMobile()){
-    sidebar.classList.remove("expanded");
-    overlay.classList.remove("show");
-  }
+
+function closeMenu() {
+    document.getElementById("sidebar").classList.remove("active");
+    document.getElementById("overlay").classList.remove("active");
+    document.getElementById("content").classList.remove("dimmed");
+    document.body.style.overflow = "auto";
 }
-window.addEventListener("resize",()=>{
-  if(!isMobile()) overlay.classList.remove("show");
-  else content.classList.remove("expanded");
-});
-</script>
-<div style="margin-top:20px;background:#0f172a;padding:15px;border-radius:15px">
-    <h3>📡 Canlı SMS Akışı</h3>
-    <div id="liveLogs"></div>
-</div>
 
-<script>
-async function loadLogs(){
-    try {
-        let res = await fetch("/api/logs");
-        let data = await res.json();
-
-        let logs = data.logs || [];
-        let container = document.getElementById("liveLogs");
-
-        if(!container) return;
-
-        let html = "";
-
-        logs.forEach(log=>{
-            let color = log.status === "SPAM" ? "#ef4444" : "#22c55e";
-
-            html += `
-            <div style="background:#1e293b;padding:10px;border-radius:10px;margin-bottom:10px">
-                <b>${log.from}</b><br>
-                <span style="color:${color}">${log.status}</span> | Skor: ${log.score}<br>
-                ${log.message}<br>
-                <small>${log.timestamp}</small>
-            </div>
-            `;
-        });
-
-        container.innerHTML = html;
-
-    } catch(e){
-        console.log("log hata:", e);
+function toggleMenu() {
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar.classList.contains("active")) {
+        closeMenu();
+    } else {
+        openMenu();
     }
 }
-
-setInterval(loadLogs, 3000);
-loadLogs();
 </script>
 
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const messages = document.querySelectorAll(".flash-msg");
+
+    messages.forEach((msg, index) => {
+        // Küçük animasyon
+        msg.style.opacity = "0";
+        msg.style.transform = "translateY(-10px)";
+
+        setTimeout(() => {
+            msg.style.transition = "all 0.4s ease";
+            msg.style.opacity = "1";
+            msg.style.transform = "translateY(0)";
+        }, 50);
+
+        // 2.5 saniye sonra kaybol
+        setTimeout(() => {
+            msg.style.transition = "all 0.4s ease";
+            msg.style.opacity = "0";
+            msg.style.transform = "translateY(-10px)";
+        }, 2500);
+
+        // tamamen DOM'dan sil
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    });
+});
 </script>
 
-<!-- BURAYA EKLİYORSUN -->
-<div style="margin:20px; display:flex; gap:10px; flex-wrap:wrap;">
-    
-    <a href="/admin/settings" style="
-        flex:1;
-        text-align:center;
-        padding:12px;
-        background:#00c853;
-        color:white;
-        border-radius:10px;
-        text-decoration:none;
-        font-weight:bold;
-    ">
-        ⚙️ Spam Ayarları
-    </a>
 
-    <a href="/admin/spam-logs" style="
-        flex:1;
-        text-align:center;
-        padding:12px;
-        background:#2962ff;
-        color:white;
-        border-radius:10px;
-        text-decoration:none;
-        font-weight:bold;
-    ">
-        📜 Spam Logları
-    </a>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const toasts = document.querySelectorAll(".toast");
 
-</div>
+  toasts.forEach((toast, index) => {
+    const closeBtn = toast.querySelector(".toast-close");
+
+    const showDelay = 80 + (index * 120);
+    const hideDelay = 2600 + (index * 120);
+
+    setTimeout(() => {
+      toast.classList.add("show");
+    }, showDelay);
+
+    const hideToast = () => {
+      if (toast.dataset.closed === "1") return;
+      toast.dataset.closed = "1";
+      toast.classList.remove("show");
+      toast.classList.add("hide");
+      setTimeout(() => {
+        toast.remove();
+        const container = document.getElementById("toastContainer");
+        if (container && !container.querySelector(".toast")) {
+          container.remove();
+        }
+      }, 380);
+    };
+
+    setTimeout(hideToast, hideDelay);
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", hideToast);
+    }
+  });
+});
+</script>
 
 </body>
 </html>
-       
-

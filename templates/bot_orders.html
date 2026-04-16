@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Bot Orders</title>
+</head>
+<body>
+
+<h2>Bot Orders</h2>
+
+{% if orders %}
+  <ul>
+  {% for o in orders %}
+    <li>
+      <b>{{ o.order_id }}</b> - {{ o.status }}
+
+      {% if o.status != "licensed" %}
+        <form method="POST" action="/bot-orders/give-license/{{ o.order_id }}" style="display:inline;">
+          <button type="submit">Lisans Ver</button>
+        </form>
+      {% else %}
+        ✅ Verildi ({{ o.license_key }})
+      {% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>Boş</p>
+{% endif %}
+
+</body>
+</html>

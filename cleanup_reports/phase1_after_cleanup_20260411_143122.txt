@@ -1,0 +1,102 @@
+=== PHASE 1 CLEANUP REPORT ===
+Tarih: Sat Apr 11 14:31:26 +03 2026
+
+=== 1) PYTHON SYNTAX ===
+[OK] syntax temiz
+
+=== 2) DUPLICATE ROUTE KONTROL ===
+[OK] Duplicate route kalmadı
+
+=== 3) KRITIK DOSYA YOLLARI ===
+82:    users_file = globals().get("USERS_FILE", "data/users.json")
+100:USERS_FILE = "data/users.json"
+101:SETTINGS_FILE = "data/settings.json"
+102:LICENSES_FILE = "data/licenses.json"
+103:LOGS_FILE = "data/logs.json"
+104:FEEDBACK_FILE = "data/feedback.json"
+107:    return read_json(FEEDBACK_FILE, [])
+110:    write_json(FEEDBACK_FILE, items)
+113:    return read_json(LOGS_FILE, [])
+116:    write_json(LOGS_FILE, logs)
+168:    users = read_json(USERS_FILE, None)
+185:    write_json(USERS_FILE, users)
+191:    settings = read_json(SETTINGS_FILE, None)
+204:    write_json(SETTINGS_FILE, settings)
+210:    return read_json(LICENSES_FILE, {})
+213:    write_json(LICENSES_FILE, licenses)
+1202:LICENSES_FILE = "data/licenses.json"
+1208:    if not os.path.exists(LICENSES_FILE):
+1209:        with open(LICENSES_FILE, "w", encoding="utf-8") as f:
+1213:        with open(LICENSES_FILE, "r", encoding="utf-8") as f:
+1221:    with open(LICENSES_FILE, "w", encoding="utf-8") as f:
+1385:SETTINGS_FILE = "spamshield_runtime_settings.json"
+1388:    if not os.path.exists(SETTINGS_FILE):
+1397:    with open(SETTINGS_FILE, "r") as f:
+1401:    with open(SETTINGS_FILE, "w") as f:
+1436:SPAM_LOGS_FILE = "data/spam_logs.json"
+1441:    SPAM_LOGS_FILE = "data/spam_logs.json"
+1443:    with open(SPAM_LOGS_FILE, "w", encoding="utf-8") as f:
+1447:    if not os.path.exists(SPAM_LOGS_FILE):
+1450:        with open(SPAM_LOGS_FILE, "r", encoding="utf-8") as f:
+1509:RUNTIME_SETTINGS_FILE = "spamshield_runtime_settings.json"
+1521:    if not os.path.exists(RUNTIME_SETTINGS_FILE):
+1522:        with open(RUNTIME_SETTINGS_FILE, "w", encoding="utf-8") as f:
+1527:        with open(RUNTIME_SETTINGS_FILE, "r", encoding="utf-8") as f:
+1536:    with open(RUNTIME_SETTINGS_FILE, "w", encoding="utf-8") as f:
+1667:    if not os.path.exists(LICENSES_FILE):
+
+=== 4) ROOT JSON KALDI MI ===
+
+=== 5) ADMIN ROUTELARI ===
+71:@app.route("/admin/")
+72:@app.route("/admin")
+73:def admin_home():
+230:def admin_required():
+407:@app.route("/admin-home-alias")
+408:def admin_home_alias():
+418:@app.route("/admin/whitelist", methods=["GET", "POST"])
+419:def admin_whitelist():
+435:@app.route("/admin/panel")
+436:def admin_panel():
+459:@app.route("/admin/add-user", methods=["POST"])
+460:def admin_add_user():
+503:@app.route("/admin/toggle-ban/<target_username>", methods=["POST"])
+504:def admin_toggle_ban(target_username):
+519:@app.route("/admin/generate-license/<target_username>", methods=["POST"])
+520:def admin_generate_license(target_username):
+542:@app.route("/admin/approve-upgrade/<target_username>", methods=["POST"])
+543:def admin_approve_upgrade(target_username):
+573:@app.route("/admin/update-license/<target_username>", methods=["POST"])
+574:def admin_update_license(target_username):
+887:@app.route("/admin/licenses", methods=["GET", "POST"])
+888:def admin_licenses():
+1297:@app.route("/admin/payment-requests")
+1298:def admin_payment_requests():
+1407:@app.route("/admin/overview")
+1408:def admin_overview():
+1460:@app.route("/admin/mark-clean", methods=["POST"])
+1461:def admin_mark_clean():
+1492:@app.route("/admin/spam-logs")
+1493:def admin_spam_logs():
+1539:@app.route("/admin/settings", methods=["GET", "POST"])
+1543:def admin_settings():
+1682:@app.route("/admin/approve-payment/<username>/<license_key>")
+1708:@app.route("/admin/whitelist-legacy", methods=["GET","POST"])
+1709:def admin_whitelist_legacy():
+
+=== 6) ADMIN PANEL ACTIONLARI ===
+516:          <form method="POST" action="/admin/add-user" id="addUserForm">
+583:              <form method="POST" action="/admin/update-license/{{ row.username }}" class="normal-update-form">
+597:                <form method="POST" action="/admin/generate-license/{{ row.username }}" class="ajax-form ajax-generate-form">
+607:                <form method="POST" action="/admin/toggle-ban/{{ row.username }}" class="ajax-form ajax-ban-form">
+
+=== 7) SON LOG ===
+nohup: ignoring input
+ * Serving Flask app 'app'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.114.19.237:5000
+[33mPress CTRL+C to quit[0m
+

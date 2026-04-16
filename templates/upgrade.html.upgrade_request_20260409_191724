@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpamShield Pro'ya Yükselt</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#071224;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
+.wrap{
+  max-width:900px;
+  margin:0 auto;
+  padding:18px;
+}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:18px;
+}
+.title{
+  font-size:32px;
+  font-weight:900;
+}
+.back{
+  color:#9cc0ff;
+  text-decoration:none;
+  font-weight:700;
+}
+.hero, .card{
+  background:#14223a;
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:22px;
+  padding:22px;
+  margin-bottom:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+.hero h1{
+  margin:0 0 10px 0;
+  font-size:34px;
+}
+.hero p{
+  color:#d7e3ff;
+  line-height:1.5;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+.plan-name{
+  font-size:24px;
+  font-weight:900;
+}
+.price{
+  font-size:40px;
+  font-weight:900;
+  margin:12px 0;
+}
+.muted{
+  color:#c8d5f0;
+  line-height:1.5;
+}
+ul{
+  list-style:none;
+  margin:18px 0 0 0;
+  padding:0;
+}
+li{
+  background:#1d2a42;
+  border-radius:14px;
+  padding:12px 14px;
+  margin-bottom:10px;
+  font-weight:700;
+}
+.btn{
+  display:block;
+  width:100%;
+  text-align:center;
+  text-decoration:none;
+  padding:15px 16px;
+  border-radius:16px;
+  font-weight:900;
+  margin-top:18px;
+  color:#fff;
+}
+.btn-blue{background:#3169ea}
+.btn-purple{background:linear-gradient(90deg,#6366f1,#8b5cf6)}
+.note{
+  margin-top:18px;
+  background:#1a2740;
+  border-radius:16px;
+  padding:16px;
+  color:#d6e2ff;
+  line-height:1.5;
+}
+@media (max-width:700px){
+  .grid{grid-template-columns:1fr}
+  .hero h1{font-size:28px}
+  .title{font-size:28px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="title">🚀 SpamShield Pro</div>
+    <a class="back" href="/dashboard">← Dashboard'a dön</a>
+  </div>
+
+  <div class="hero">
+    <h1>Pro’ya yükselt</h1>
+    <p>SpamShield Pro ile gelişmiş filtreleme, daha güçlü koruma ve premium deneyim elde edersin.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="plan-name">Mevcut Plan</div>
+      <div class="price">Trial</div>
+      <div class="muted">Başlangıç için uygun plan.</div>
+      <ul>
+        <li>✔ Temel spam koruma</li>
+        <li>✔ Standart panel erişimi</li>
+        <li>✔ Deneme kullanımı</li>
+      </ul>
+      <a class="btn btn-blue" href="/dashboard">Mevcut plan</a>
+    </div>
+
+    <div class="card">
+      <div class="plan-name">Pro Plan</div>
+      <div class="price">₺49<span style="font-size:18px;font-weight:700"> / ay</span></div>
+      <div class="muted">Daha güçlü kontrol isteyen kullanıcılar için.</div>
+      <ul>
+        <li>✔ Gelişmiş spam filtreleme</li>
+        <li>✔ Premium yönetim deneyimi</li>
+        <li>✔ Lisans aktivasyonu</li>
+      </ul>
+      <a class="btn btn-purple" href="/activate-licensee-licensee-license">Lisans Kodum Var</a>
+    </div>
+  </div>
+
+  <div class="note">
+    Şimdilik ödeme yerine lisans kodu ile aktivasyon akışı hazırlandı.
+    Admin panelden kullanıcıya lisans kodu atanır, kullanıcı buradan aktive eder.
+  </div>
+</div>
+</body>
+</html>

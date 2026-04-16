@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
+<style>
+body { background:#0b1b2b; color:white; font-family:Arial; }
+.card { background:#162a44; padding:20px; border-radius:15px; margin-bottom:20px; }
+.btn { padding:12px; border:none; border-radius:10px; width:100%; margin-top:10px; font-weight:bold; }
+.blue { background:#3b82f6; color:white; }
+.red { background:#dc2626; color:white; }
+select, input { width:100%; padding:10px; margin-top:10px; border-radius:10px; border:none; }
+</style>
+</head>
+<body>
+
+<h2>🛡 SpamShield Admin</h2>
+
+{% for username, u in users.items() %}
+<div class="card">
+
+<h3>{{ username }}</h3>
+
+<p>Rol: {{ u.role }} | Lisans: {{ u.license_type }} | Bitiş: {{ u.license_expiry }}</p>
+
+<!-- ✅ SADE VE TEK FORM -->
+<form method="POST" action="/admin/update-license/{{ username }}">
+
+<select name="license_type">
+<option value="trial" {% if u.license_type=='trial' %}selected{% endif %}>trial</option>
+<option value="pro" {% if u.license_type=='pro' %}selected{% endif %}>pro</option>
+</select>
+
+<input type="date" name="expiry" value="{{ u.license_expiry }}">
+
+<button class="btn blue" type="submit">
+Lisans Güncelle
+</button>
+
+</form>
+
+<!-- ❌ AYRI FORM (ASLA İÇ İÇE DEĞİL) -->
+<form method="POST" action="/admin/ban/{{ username }}">
+<button class="btn red" type="submit">
+Banla
+</button>
+</form>
+
+</div>
+{% endfor %}
+
+</body>
+</html>

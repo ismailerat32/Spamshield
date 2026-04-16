@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spam Logları</title>
+    <style>
+        body {
+            margin: 0;
+            background: #0b1020;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        .wrap {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        .top {
+            margin-bottom: 20px;
+        }
+        .log-card {
+            background: #1a1f29;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 0 8px rgba(0,0,0,.35);
+        }
+        .meta {
+            color: #9ecbff;
+            margin-bottom: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .body {
+            color: #e5e7eb;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.5;
+            margin-bottom: 14px;
+        }
+        .reason {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+        .btn-clean {
+            border: none;
+            background: #16a34a;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .muted {
+            color: #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="top">
+        <h1>📜 Spam Logları</h1>
+        <a href="/admin">← Admin panele dön</a>
+    </div>
+
+    {% for log in spam_logs %}
+    <div class="log-card">
+        <div class="meta">
+            <strong>Tarih:</strong> {{ log.time }} |
+            <strong>Gönderen:</strong> {{ log.sender }} |
+            <strong>Skor:</strong> {{ log.score }} |
+            <strong>Neden:</strong> <span class="reason">{{ log.reason }}</span>
+        </div>
+
+        <div class="body">{{ log.body }}</div>
+
+        <form method="POST" action="/admin/mark-clean">
+            <input type="hidden" name="sender" value="{{ log.sender }}">
+            <input type="hidden" name="body" value="{{ log.body }}">
+            <button class="btn-clean" type="submit">✅ Spam değil</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="log-card muted">Henüz spam log kaydı yok.</div>
+    {% endfor %}
+</div>
+</body>
+</html>

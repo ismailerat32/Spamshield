@@ -1,0 +1,1730 @@
+
+def get_current_user():
+    users = load_users()
+    username = session.get("username")
+    return users.get(username, {})
+
+
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+import json
+import os
+from datetime import datetime
+
+
+
+def license_required():
+    from datetime import datetime
+
+    username = session.get("username")
+    if not username:
+        return redirect(url_for("login"))
+
+    users = load_users()
+    if username not in users:
+        return redirect(url_for("login"))
+
+    user = users[username]
+    expiry = user.get("license_expiry", "")
+
+    if not expiry:
+        return redirect(url_for("activate_license"))
+
+    try:
+        exp_date = datetime.strptime(expiry, "%Y-%m-%d")
+        if exp_date < datetime.utcnow():
+            return redirect(url_for("activate_license"))
+    except:
+        return redirect(url_for("activate_license"))
+
+    return None
+# =========================================
+# SpamShield © 2026
+# Owner: ismail erat
+# All rights reserved.
+# Unauthorized copying, resale, distribution,
+# reverse engineering, or modification of this
+# software without permission is prohibited.
+# =========================================
+
+import json
+import os
+from datetime import datetime, timedelta
+import random
+import string
+
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from utils.reset_utils import (
+    find_user_by_identity,
+    create_reset_token,
+    create_reset_code,
+    find_valid_token_record,
+    find_valid_code_record,
+    mark_token_used,
+    reset_user_password,
+    cleanup_expired_tokens
+)
+
+app = Flask(__name__)
+
+
+@app.route("/admin/")
+@app.route("/admin")
+def admin_home():
+    if not login_required():
+        return redirect(url_for("login"))
+    return redirect(url_for("dashboard"))
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-this-now")
+app.config["DEBUG"] = os.environ.get("FLASK_DEBUG", "0") == "1"
+
+def apply_runtime_env_overrides():
+    import json
+    users_file = globals().get("USERS_FILE", "data/users.json")
+    admin_password = os.environ.get("ADMIN_PASSWORD", "").strip()
+
+    if admin_password and os.path.exists(users_file):
+        try:
+            with open(users_file, "r", encoding="utf-8") as f:
+                users = json.load(f)
+
+            if "admin" in users:
+                users["admin"]["password"] = admin_password
+                with open(users_file, "w", encoding="utf-8") as f:
+                    json.dump(users, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print("ENV_OVERRIDE_ERROR:", e)
+
+apply_runtime_env_overrides()
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-this-now")
+
+USERS_FILE = "users.json"
+SETTINGS_FILE = "settings.json"
+LICENSES_FILE = "licenses.json"
+LOGS_FILE = "logs.json"
+FEEDBACK_FILE = "feedback.json"
+
+def load_feedback():
+    return read_json(FEEDBACK_FILE, [])
+
+def save_feedback(items):
+    write_json(FEEDBACK_FILE, items)
+
+def load_logs():
+    return read_json(LOGS_FILE, [])
+
+def save_logs(logs):
+    write_json(LOGS_FILE, logs)
+
+# -----------------------
+# BASIC HELPERS
+# -----------------------
+def read_json(path, default):
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return default
+
+def write_json(path, data):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+# -----------------------
+# LICENSE KEY GENERATORS
+# -----------------------
+def generate_license_key():
+    parts = []
+    for _ in range(4):
+        part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+        parts.append(part)
+    return "SPM-" + "-".join(parts)
+
+
+def generate_reset_code():
+    import random
+    import string
+    return "RST-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+
+def generate_pool_license(days=30):
+    licenses = load_licenses()
+
+    while True:
+        key = "LIC-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=12))
+        if key not in licenses:
+            break
+
+    licenses[key] = {
+        "days": int(days),
+        "used": False,
+        "used_by": "",
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    save_licenses(licenses)
+    return key
+
+# -----------------------
+# USERS
+# -----------------------
+def load_users():
+    users = read_json(USERS_FILE, None)
+    if users is not None:
+        return users
+
+    users = {
+        "admin": {
+            "password": "1234",
+            "role": "admin",
+            "license_type": "pro",
+            "license_key": "MASTER-KEY",
+            "license_expiry": "2099-01-01"
+        }
+    }
+    save_users(users)
+    return users
+
+def save_users(users):
+    write_json(USERS_FILE, users)
+
+# -----------------------
+# SETTINGS
+# -----------------------
+def load_settings():
+    settings = read_json(SETTINGS_FILE, None)
+    if settings is not None:
+        return settings
+
+    settings = {
+        "app_name": "SpamShield Premium",
+        "trial_days": 7,
+        "license_mode": "trial_pro"
+    }
+    save_settings(settings)
+    return settings
+
+def save_settings(settings):
+    write_json(SETTINGS_FILE, settings)
+
+# -----------------------
+# LICENSE POOL
+# -----------------------
+def load_licenses():
+    return read_json(LICENSES_FILE, {})
+
+def save_licenses(licenses):
+    write_json(LICENSES_FILE, licenses)
+
+# -----------------------
+# SESSION / AUTH HELPERS
+# -----------------------
+def login_required():
+    return session.get("logged_in", False)
+
+def current_username():
+    return session.get("username", "")
+
+def current_user():
+    return load_users().get(current_username(), {})
+
+def is_admin():
+    return current_user().get("role") == "admin"
+
+def admin_required():
+    return login_required() and is_admin()
+
+# -----------------------
+# LICENSE HELPERS
+# -----------------------
+def is_license_active(user):
+    try:
+        expiry = datetime.strptime(user.get("license_expiry", ""), "%Y-%m-%d")
+        return expiry >= datetime.now()
+    except:
+        return False
+
+def days_left(user):
+    try:
+        expiry = datetime.strptime(user.get("license_expiry", ""), "%Y-%m-%d")
+        delta = expiry - datetime.now()
+        return max(delta.days, 0)
+    except:
+        return 0
+
+def activate_pool_license(username, entered_key):
+    entered_key = entered_key.strip().upper()
+    users = load_users()
+    licenses = load_licenses()
+
+    if username not in users:
+        return False, "Kullanıcı bulunamadı."
+
+    if entered_key not in licenses:
+        return False, "Geçersiz lisans kodu."
+
+    if licenses[entered_key]["used"]:
+        return False, "Bu lisans zaten kullanılmış."
+
+    extra_days = int(licenses[entered_key].get("days", 30))
+    now = datetime.now()
+
+    current_expiry_raw = users[username].get("license_expiry", "")
+    try:
+        current_expiry = datetime.strptime(current_expiry_raw, "%Y-%m-%d")
+        base_date = current_expiry if current_expiry > now else now
+    except:
+        base_date = now
+
+    new_expiry = base_date + timedelta(days=extra_days)
+
+    users[username]["license_type"] = "pro"
+    users[username]["license_key"] = entered_key
+    users[username]["license_expiry"] = new_expiry.strftime("%Y-%m-%d")
+
+    licenses[entered_key]["used"] = True
+    licenses[entered_key]["used_by"] = username
+    licenses[entered_key]["used_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    save_users(users)
+    save_licenses(licenses)
+
+    return True, f"PRO aktif edildi. +{extra_days} gün eklendi."
+
+# -----------------------
+# HOME
+# -----------------------
+
+
+WHITELIST_FILE = "data/whitelist.json"
+
+def load_whitelist():
+    import json, os
+    if not os.path.exists(WHITELIST_FILE):
+        return []
+    try:
+        with open(WHITELIST_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_whitelist(data):
+    import json
+    with open(WHITELIST_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def add_to_whitelist(sender):
+    sender = str(sender).upper()
+    wl = load_whitelist()
+    if sender not in wl:
+        wl.append(sender)
+        save_whitelist(wl)
+
+@app.route("/")
+def home():
+    if login_required():
+        return redirect(url_for("dashboard"))
+    return redirect(url_for("login"))
+
+# -----------------------
+# LOGIN
+# -----------------------
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip().lower()
+        password = request.form.get("password", "").strip()
+
+        users = load_users()
+        user = users.get(username)
+
+        if user:
+            stored_hash = user.get("password_hash", "")
+            stored_plain = user.get("password", "")
+
+            valid = False
+
+            if stored_hash:
+                valid = check_password_hash(stored_hash, password)
+            elif stored_plain:
+                if stored_plain == password:
+                    valid = True
+                    users[username]["password_hash"] = generate_password_hash(password)
+                    users[username].pop("password", None)
+                    save_users(users)
+
+            if valid:
+                session["logged_in"] = True
+                session["username"] = username
+
+                if not is_license_active(user):
+                    return redirect(url_for("landing"))
+
+                return redirect(url_for("dashboard"))
+
+        return render_template("login.html", error="Kullanıcı adı veya şifre yanlış.")
+
+    return render_template("login.html", error="")
+
+
+# -----------------------
+# REGISTER
+# -----------------------
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip().lower()
+        password = request.form.get("password", "").strip()
+        password2 = request.form.get("password2", "").strip()
+
+        users = load_users()
+        settings = load_settings()
+
+        if not username or not password or not password2:
+            return render_template("register.html", error="Tüm alanları doldurun.")
+
+        if username in users:
+            return render_template("register.html", error="Bu kullanıcı zaten var.")
+
+        if password != password2:
+            return render_template("register.html", error="Şifreler eşleşmiyor.")
+
+        expiry = datetime.now() + timedelta(days=settings.get("trial_days", 7))
+
+        users[username] = {
+            "password_hash": generate_password_hash(password),
+            "role": "user",
+            "license_type": "trial",
+            "license_key": "TRIAL",
+            "license_expiry": expiry.strftime("%Y-%m-%d")
+        }
+
+        save_users(users)
+        return redirect(url_for("login"))
+
+    return render_template("register.html", error="")
+
+
+# -----------------------
+# DASHBOARD
+# -----------------------
+@app.route("/admin")
+@app.route("/admin/")
+def admin_home_alias():
+    return redirect(url_for("dashboard"))
+
+
+
+@app.route("/spam-logs")
+def spam_logs_alias():
+    return redirect(url_for("admin_spam_logs"))
+
+@app.route("/whitelist", methods=["GET", "POST"])
+@app.route("/admin/whitelist", methods=["GET", "POST"])
+def admin_whitelist():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    whitelist = load_whitelist()
+
+    if request.method == "POST":
+        number = request.form.get("number", "").strip()
+        if number and number not in whitelist:
+            whitelist.append(number)
+            save_whitelist(whitelist)
+        return redirect("/admin/whitelist")
+
+    return render_template("whitelist.html", whitelist=whitelist)
+
+
+@app.route("/admin/panel")
+def admin_panel():
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    rows = []
+    for username, data in users.items():
+        rows.append({
+            "username": username,
+            "role": data.get("role", "user"),
+            "license_type": data.get("license_type", "trial"),
+            "license_expiry": data.get("license_expiry", ""),
+            "is_banned": bool(data.get("is_banned", False)),
+        })
+
+    rows = sorted(rows, key=lambda x: x["username"].lower())
+    requests = load_upgrade_requests()
+    return render_template("admin_panel.html", users=rows, upgrade_requests=requests)
+
+
+@app.route("/admin/add-user", methods=["POST"])
+def admin_add_user():
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "").strip()
+    role = request.form.get("role", "user").strip() or "user"
+    license_type = request.form.get("license_type", "trial").strip() or "trial"
+    license_expiry = request.form.get("license_expiry", "").strip()
+
+    if not username or not password:
+        return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+    users = load_users()
+    if username in users:
+        return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+    try:
+        from werkzeug.security import generate_password_hash
+        password_hash = generate_password_hash(password)
+    except Exception:
+        password_hash = password
+
+    users[username] = {
+        "password_hash": password_hash,
+        "role": role,
+        "license_type": license_type,
+        "license_expiry": license_expiry,
+        "is_banned": False,
+    }
+
+    # eski yapılarla uyum için
+    if "password" not in users[username]:
+        users[username]["password"] = password
+
+    save_users(users)
+    return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+
+@app.route("/admin/toggle-ban/<target_username>", methods=["POST"])
+def admin_toggle_ban(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    if target_username in users:
+        current = bool(users[target_username].get("is_banned", False))
+        users[target_username]["is_banned"] = not current
+        save_users(users)
+
+    return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+
+@app.route("/admin/generate-license/<target_username>", methods=["POST"])
+def admin_generate_license(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    if target_username not in users:
+        return redirect("/admin/panel?ok=user_not_found")
+
+    current = str(users[target_username].get("license_key", "")).strip().upper()
+
+    if not is_real_license_key(current):
+        users[target_username]["license_key"] = generate_simple_license_key(users)
+        save_users(users)
+        current = users[target_username]["license_key"]
+        print("LICENSE_GENERATED:", target_username, current, flush=True)
+        return redirect(f"/admin/panel?ok=license_generated&license_key={current}#user-{target_username}")
+    else:
+        print("LICENSE_ALREADY_EXISTS:", target_username, current, flush=True)
+        return redirect(f"/admin/panel?ok=license_exists&license_key={current}#user-{target_username}")
+@app.route("/admin/approve-upgrade/<target_username>", methods=["POST"])
+def admin_approve_upgrade(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    if target_username not in users:
+        return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+    users[target_username]["license_type"] = "pro"
+    users[target_username]["license_mode"] = "pro"
+    if not str(users[target_username].get("license_expiry", "")).strip():
+        users[target_username]["license_expiry"] = "2099-01-01"
+
+    current_key = str(users[target_username].get("license_key", "")).strip().upper()
+    if not current_key:
+        users[target_username]["license_key"] = generate_simple_license_key(users)
+
+    save_users(users)
+
+    requests = load_upgrade_requests()
+    for row in requests:
+        if row.get("username") == target_username and row.get("status") == "pending":
+            row["status"] = "approved"
+    save_upgrade_requests(requests)
+
+    print("UPGRADE_APPROVED:", target_username, flush=True)
+    return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+@app.route("/admin/update-license/<target_username>", methods=["POST"])
+def admin_update_license(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    if target_username not in users:
+        print("LICENSE_UPDATE_ERROR: user not found ->", target_username, flush=True)
+        return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+    license_type = request.form.get("license_type", "trial").strip() or "trial"
+    license_expiry = request.form.get("license_expiry", "").strip()
+
+    users[target_username]["license_type"] = license_type
+    users[target_username]["license_mode"] = license_type
+    users[target_username]["license_expiry"] = license_expiry
+
+    save_users(users)
+
+    print("LICENSE_UPDATE_OK:", target_username, "type=", license_type, "expiry=", license_expiry, flush=True)
+    return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+
+UPGRADE_REQUESTS_FILE = "data/upgrade_requests.json"
+
+def load_upgrade_requests():
+    if not os.path.exists(UPGRADE_REQUESTS_FILE):
+        return []
+    try:
+        with open(UPGRADE_REQUESTS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+def save_upgrade_requests(data):
+    os.makedirs("data", exist_ok=True)
+    with open(UPGRADE_REQUESTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def is_real_license_key(value):
+    v = str(value or "").strip().upper()
+    if not v:
+        return False
+    if v in {"TRIAL", "PRO", "FREE", "NONE", "-", "NULL"}:
+        return False
+    return v.startswith("LIC-") and len(v) >= 8
+
+def generate_simple_license_key(users):
+    import random, string
+    while True:
+        code = "LIC-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=12))
+        exists = False
+        for _, u in users.items():
+            if str(u.get("license_key", "")).upper() == code:
+                exists = True
+                break
+        if not exists:
+            return code
+
+def _normalize_license_key(value):
+    return str(value or "").strip().upper()
+
+
+
+
+@app.route("/dashboard")
+def dashboard():
+    lock = license_required()
+    if lock:
+        return lock
+
+    if not login_required():
+        return redirect(url_for("login"))
+
+    users = load_users()
+    settings = load_settings()
+    username = current_username()
+    user = users.get(username, {})
+
+    if not is_license_active(user):
+        return redirect(url_for("landing"))
+
+    return render_template(
+        "dashboard.html",
+        username=username,
+        total_users=len(users),
+        user=user,
+        app_name=settings.get("app_name", "SpamShield Premium"),
+        days_left="∞" if user.get("role") == "admin" else days_left(user),
+        license_type=user.get("license_type", "trial"),
+        license_key=user.get("license_key", "")
+    )
+
+# -----------------------
+# USERS
+# -----------------------
+@app.route("/users")
+def users():
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    return render_template(
+        "users.html",
+        users=load_users(),
+        username=current_username()
+    )
+
+# -----------------------
+# ADD USER
+# -----------------------
+@app.route("/add-user", methods=["GET", "POST"])
+def add_user():
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    message = ""
+    error = ""
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip().lower()
+        password = request.form.get("password", "").strip()
+        role = request.form.get("role", "user").strip()
+
+        users = load_users()
+        settings = load_settings()
+
+        if not username or not password:
+            error = "Kullanıcı adı ve şifre zorunlu."
+        elif username in users:
+            error = "Bu kullanıcı zaten mevcut."
+        else:
+            expiry = datetime.now() + timedelta(days=settings.get("trial_days", 7))
+
+            users[username] = {
+                "password_hash": generate_password_hash(password),
+                "role": role,
+                "license_type": "trial",
+                "license_key": generate_license_key(),
+                "license_expiry": expiry.strftime("%Y-%m-%d")
+            }
+            save_users(users)
+            message = "Kullanıcı + lisans oluşturuldu."
+
+    return render_template("add_user.html", message=message, error=error)
+
+
+# -----------------------
+# DELETE USER
+# -----------------------
+@app.route("/delete-user/<username>", methods=["POST"])
+def delete_user(username):
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    username = username.strip().lower()
+    users = load_users()
+
+    if username == "admin":
+        return redirect(url_for("users"))
+
+    if username in users:
+        del users[username]
+        save_users(users)
+
+    return redirect(url_for("users"))
+
+# -----------------------
+# MANAGE LICENSE
+# -----------------------
+@app.route("/manage-license/<username>", methods=["GET", "POST"])
+def manage_license(username):
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    username = username.strip().lower()
+    users = load_users()
+
+    if username not in users:
+        return redirect(url_for("users"))
+
+    message = ""
+    error = ""
+    user = users[username]
+
+    if request.method == "POST":
+        action = request.form.get("action", "").strip()
+
+        if action == "extend":
+            try:
+                extra_days = int(request.form.get("extra_days", "0").strip())
+                if extra_days <= 0:
+                    error = "Geçerli bir gün sayısı gir."
+                else:
+                    now = datetime.now()
+                    current_expiry_raw = user.get("license_expiry", "")
+                    try:
+                        current_expiry = datetime.strptime(current_expiry_raw, "%Y-%m-%d")
+                        base_date = current_expiry if current_expiry > now else now
+                    except:
+                        base_date = now
+
+                    new_expiry = base_date + timedelta(days=extra_days)
+                    user["license_expiry"] = new_expiry.strftime("%Y-%m-%d")
+                    save_users(users)
+                    message = f"{username} için +{extra_days} gün eklendi."
+            except:
+                error = "Gün sayısı hatalı."
+
+        elif action == "make_pro":
+            user["license_type"] = "pro"
+            if user.get("license_key") in ["", "TRIAL"]:
+                user["license_key"] = generate_license_key()
+            if not user.get("license_expiry"):
+                user["license_expiry"] = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
+            save_users(users)
+            message = f"{username} PRO yapıldı."
+
+        elif action == "make_trial":
+            settings = load_settings()
+            user["license_type"] = "trial"
+            user["license_key"] = "TRIAL"
+            user["license_expiry"] = (datetime.now() + timedelta(days=settings.get("trial_days", 7))).strftime("%Y-%m-%d")
+            save_users(users)
+            message = f"{username} trial yapıldı."
+
+        elif action == "reset_license":
+            user["license_key"] = generate_license_key()
+            save_users(users)
+            message = f"{username} için lisans kodu yenilendi."
+
+    users = load_users()
+    user = users[username]
+
+    return render_template(
+        "manage_license.html",
+        target_username=username,
+        target_user=user,
+        message=message,
+        error=error,
+        days_left=days_left(user)
+    )
+
+# -----------------------
+# CHANGE PASSWORD
+# -----------------------
+@app.route("/change", methods=["GET", "POST"])
+def change():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    message = ""
+    error = ""
+
+    if request.method == "POST":
+        current_password = request.form.get("current_password", "").strip()
+        new_password = request.form.get("new_password", "").strip()
+        new_password2 = request.form.get("new_password2", "").strip()
+
+        users = load_users()
+        username = current_username()
+
+        if username not in users:
+            error = "Kullanıcı bulunamadı."
+        elif users[username]["password"] != current_password:
+            error = "Mevcut şifre yanlış."
+        elif not new_password:
+            error = "Yeni şifre boş olamaz."
+        elif new_password != new_password2:
+            error = "Yeni şifreler eşleşmiyor."
+        else:
+            users[username]["password"] = new_password
+            save_users(users)
+            message = "Şifre başarıyla değiştirildi."
+
+    return render_template("change.html", message=message, error=error)
+
+# -----------------------
+# SETTINGS
+# -----------------------
+@app.route("/setting", methods=["GET", "POST"])
+def setting():
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    settings = load_settings()
+    message = ""
+
+    if request.method == "POST":
+        app_name = request.form.get("app_name", "").strip()
+        trial_days = request.form.get("trial_days", "").strip()
+        license_mode = request.form.get("license_mode", "").strip()
+
+        if app_name:
+            settings["app_name"] = app_name
+
+        try:
+            settings["trial_days"] = int(trial_days)
+        except:
+            pass
+
+        if license_mode:
+            settings["license_mode"] = license_mode
+
+        save_settings(settings)
+        message = "Ayarlar kaydedildi."
+
+    return render_template("setting.html", config=settings, message=message)
+
+# -----------------------
+# ACTIVATE LICENSE
+# -----------------------
+@app.route("/admin/licenses", methods=["GET", "POST"])
+def admin_licenses():
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    licenses = load_licenses()
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        plan = request.form.get("plan", "pro").strip() or "pro"
+        duration_days_raw = request.form.get("duration_days", "30").strip()
+
+        if not username:
+            return render_template(
+                "admin_licenses.html",
+                users=users,
+                licenses=licenses,
+                error="Kullanıcı adı gerekli"
+            )
+
+        if username not in users:
+            return render_template(
+                "admin_licenses.html",
+                users=users,
+                licenses=licenses,
+                error="Kullanıcı bulunamadı"
+            )
+
+        try:
+            duration_days = int(duration_days_raw)
+        except Exception:
+            duration_days = 30
+
+        if duration_days < 1:
+            duration_days = 1
+
+        from datetime import datetime, timedelta
+
+        license_key = generate_license_key()
+        created_at = datetime.utcnow().strftime("%Y-%m-%d")
+        expires_at = (datetime.utcnow() + timedelta(days=duration_days)).strftime("%Y-%m-%d")
+
+        licenses[license_key] = {
+            "username": username,
+            "username": username,
+            "plan": plan,
+            "status": "active",
+            "created_at": created_at,
+            "expires_at": expires_at
+        }
+        save_licenses(licenses)
+        sync_user_license(username, license_key, plan, expires_at)
+
+        users = load_users()
+        licenses = load_licenses()
+
+        return render_template(
+            "admin_licenses.html",
+            users=users,
+            licenses=licenses,
+            success="Lisans oluşturuldu",
+            new_license_key=license_key
+        )
+
+    return render_template(
+        "admin_licenses.html",
+        users=users,
+        licenses=licenses
+    )
+
+@app.route("/landing")
+def landing():
+    settings = load_settings()
+    return render_template(
+        "landing.html",
+        app_name=settings.get("app_name", "SpamShield Premium")
+    )
+
+# -----------------------
+# LOGOUT
+# -----------------------
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
+# -----------------------
+# RUN
+# -----------------------
+# -----------------------
+# LOG API
+# -----------------------
+
+@app.route("/api/logs")
+def api_logs():
+    logs = load_logs()
+    logs = list(reversed(logs))[:100]
+    return jsonify({
+        "status": "success",
+        "total": len(logs),
+        "logs": logs
+    })
+
+
+@app.route("/api/add-log", methods=["POST"])
+def api_add_log():
+    try:
+        data = request.get_json(force=True)
+
+        new_log = {
+            "timestamp": data.get("timestamp") or datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "from": data.get("from", "BILINMEYEN"),
+            "status": data.get("status", "TEMIZ"),
+            "score": data.get("score", 0),
+            "message": data.get("message", "")
+        }
+
+        logs = load_logs()
+        logs.append(new_log)
+
+        if len(logs) > 1000:
+            logs = logs[-1000:]
+
+        save_logs(logs)
+
+        return jsonify({
+            "status": "success",
+            "log": new_log
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+# -----------------------
+# FEEDBACK API
+# -----------------------
+
+@app.route("/api/feedback", methods=["POST"])
+def api_feedback():
+    try:
+        data = request.get_json(force=True)
+
+        entry = {
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "correct": bool(data.get("correct")),
+            "log": data.get("log", {})
+        }
+
+        items = load_feedback()
+        items.append(entry)
+
+        if len(items) > 2000:
+            items = items[-2000:]
+
+        save_feedback(items)
+
+        return jsonify({
+            "status": "success",
+            "feedback": entry
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+# -----------------------
+# STATS API
+# -----------------------
+
+@app.route("/api/stats")
+def api_stats():
+    try:
+        logs = load_logs()
+
+        spam = 0
+        temiz = 0
+
+        for log in logs:
+            status = str(log.get("status", "")).upper()
+            if status == "SPAM":
+                spam += 1
+            elif status == "TEMIZ":
+                temiz += 1
+
+        return jsonify({
+            "status": "success",
+            "total": len(logs),
+            "spam": spam,
+            "temiz": temiz
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    cleanup_expired_tokens()
+
+    if request.method == "POST":
+        identity = (request.form.get("identity", "") or "").strip()
+
+        if not identity:
+            return render_template(
+                "forgot.html",
+                success=False,
+                error="Lütfen kullanıcı adı veya e-posta girin.",
+                message=None,
+                reset_link=None,
+                reset_code=None
+            )
+
+        username, user = find_user_by_identity(identity)
+        reset_link = None
+        reset_code = None
+
+        if username and user:
+            raw_token = create_reset_token(username)
+            reset_link = url_for("reset_password", token=raw_token, _external=True)
+            reset_code = create_reset_code(username)
+
+        return render_template(
+            "forgot.html",
+            success=True,
+            message="Bu bilgi sistemde varsa sıfırlama bilgisi oluşturuldu.",
+            reset_link=reset_link,
+            reset_code=reset_code,
+            error=None
+        )
+
+    return render_template(
+        "forgot.html",
+        success=False,
+        error=None,
+        message=None,
+        reset_link=None,
+        reset_code=None
+    )
+
+
+
+@app.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    import time
+
+    users = load_users()
+
+    if request.method == "POST":
+        username = request.form.get("username") or request.args.get("username", "")
+        code = request.form.get("code") or request.args.get("code", "")
+
+        username = username.strip()
+        code = code.strip()
+        new_password = request.form.get("password", "").strip()
+
+        if not username or not code or not new_password:
+            return render_template("reset.html", error="Tüm alanları doldur")
+
+        if username not in users:
+            return render_template("reset.html", error="Kullanıcı bulunamadı")
+
+        user = users[username]
+        saved_code = str(user.get("reset_code", "")).strip()
+        expires_at = int(user.get("reset_code_expires_at", 0) or 0)
+        used = bool(user.get("reset_code_used", False))
+        now_ts = int(time.time())
+
+        attempts = int(user.get("reset_attempts", 0) or 0)
+        max_attempts = 5
+
+        if attempts >= max_attempts:
+            return render_template("reset.html", error="Çok fazla hatalı deneme yapıldı. Yeni kod oluştur.")
+
+        if not saved_code or saved_code != code:
+            user["reset_attempts"] = attempts + 1
+            save_users(users)
+            kalan = max_attempts - user["reset_attempts"]
+            if kalan < 0:
+                kalan = 0
+            return render_template("reset.html", error=f"Kod yanlış veya geçersiz. Kalan deneme: {kalan}")
+
+        if used:
+            return render_template("reset.html", error="Bu kod daha önce kullanılmış")
+
+        if not expires_at or now_ts > expires_at:
+            user["reset_code"] = ""
+            user["reset_code_expires_at"] = 0
+            user["reset_code_used"] = False
+            user["reset_attempts"] = 0
+            save_users(users)
+            return render_template("reset.html", error="Kodun süresi dolmuş")
+
+        user["password"] = new_password
+        user["reset_code_used"] = True
+        user["reset_code"] = ""
+        user["reset_code_expires_at"] = 0
+        user["reset_attempts"] = 0
+        save_users(users)
+
+        return render_template("reset.html", success="Şifre başarıyla değiştirildi")
+
+    return render_template("reset.html")
+
+# === LICENSE SYSTEM PHASE 1 START ===
+LICENSES_FILE = "data/licenses.json"
+
+def load_licenses():
+    import json
+    import os
+
+    if not os.path.exists(LICENSES_FILE):
+        with open(LICENSES_FILE, "w", encoding="utf-8") as f:
+            json.dump({}, f, ensure_ascii=False, indent=2)
+
+    try:
+        with open(LICENSES_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+def save_licenses(data):
+    import json
+    with open(LICENSES_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def generate_license_key():
+    import random
+    import string
+    chars = string.ascii_uppercase + string.digits
+    while True:
+        parts = []
+        for _ in range(3):
+            parts.append("".join(random.choice(chars) for _ in range(4)))
+        key = "SSHD-" + "-".join(parts)
+        licenses = load_licenses()
+        if key not in licenses:
+            return key
+
+def get_current_username():
+    try:
+        return str(session.get("username", "")).strip()
+    except Exception:
+        return ""
+
+def days_left_from_expiry(expiry_str):
+    from datetime import datetime
+    try:
+        exp = datetime.strptime(expiry_str, "%Y-%m-%d").date()
+        today = datetime.utcnow().date()
+        return (exp - today).days
+    except Exception:
+        return -1
+
+def sync_user_license(username, license_key, plan, expires_at):
+    users = load_users()
+    if username not in users:
+        return False
+
+    users[username]["license_key"] = license_key
+    users[username]["license_type"] = plan
+    users[username]["license_expiry"] = expires_at
+    save_users(users)
+    return True
+
+@app.route("/my-license", methods=["GET"])
+def my_license():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    username = get_current_username()
+    users = load_users()
+    licenses = load_licenses()
+
+    if username not in users:
+        return redirect(url_for("login"))
+
+    user = users[username]
+    license_key = str(user.get("license_key", "")).strip()
+    license_data = licenses.get(license_key, {}) if license_key else {}
+    expiry = str(user.get("license_expiry", "")).strip()
+    remaining_days = days_left_from_expiry(expiry) if expiry else -1
+
+    return render_template(
+        "my_license.html",
+        username=username,
+        user=user,
+        license_key=license_key,
+        license_data=license_data,
+        remaining_days=remaining_days
+    )
+
+
+@app.route("/pricing")
+def pricing():
+    if not login_required():
+        return redirect(url_for("login"))
+    return render_template("pricing.html")
+
+@app.route("/admin/payment-requests")
+def admin_payment_requests():
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    requests_data = load_payment_requests()
+    return render_template("admin_payment_requests.html", requests=requests_data)
+
+@app.route("/buy-license")
+def buy_license():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    key = generate_pool_license(30)
+
+    return f"""
+    <html>
+    <head><meta charset='UTF-8'><title>Satın Alma Başarılı</title></head>
+    <body style="background:#0b1220;color:white;font-family:Arial;padding:30px;">
+        <h2>Satın alma başarılı</h2>
+        <p>Tek kullanımlık lisans kodun:</p>
+        <p style="font-size:24px;font-weight:bold;">{key}</p>
+        <p>Bu kod bir kez kullanılabilir.</p>
+        <a href="/activate-license" style="color:#60a5fa;">Lisansı aktifleştir</a><br><br>
+        <a href="/dashboard" style="color:#60a5fa;">Dashboard'a dön</a>
+    </body>
+    </html>
+    """
+
+# -----------------------
+# ADMIN LICENSE PANEL
+# -----------------------
+
+
+
+@app.route("/reset-code", methods=["GET", "POST"])
+def reset_code():
+    cleanup_expired_tokens()
+
+    if request.method == "POST":
+        code = (request.form.get("code", "") or "").strip()
+        password = (request.form.get("password", "") or "").strip()
+        confirm_password = (request.form.get("confirm_password", "") or "").strip()
+
+        record = find_valid_code_record(code)
+        if not record:
+            return render_template(
+                "reset_code.html",
+                error="Geçersiz, kullanılmış veya süresi dolmuş kod.",
+                success=None
+            )
+
+        if len(password) < 8:
+            return render_template(
+                "reset_code.html",
+                error="Şifre en az 8 karakter olmalıdır.",
+                success=None
+            )
+
+        if password != confirm_password:
+            return render_template(
+                "reset_code.html",
+                error="Şifreler eşleşmiyor.",
+                success=None
+            )
+
+        username = record["username"]
+        ok = reset_user_password(username, password)
+
+        if not ok:
+            return render_template(
+                "reset_code.html",
+                error="Kullanıcı bulunamadı veya işlem başarısız.",
+                success=None
+            )
+
+        mark_token_used(code)
+        return render_template("reset_success.html")
+
+    return render_template("reset_code.html", error=None, success=None)
+
+# =========================
+# ⚙️ ADMIN SETTINGS
+# =========================
+import json
+
+SETTINGS_FILE = "spamshield_runtime_settings.json"
+
+def load_runtime_settings():
+    if not os.path.exists(SETTINGS_FILE):
+        return {
+            "enable_notifications": True,
+            "enable_vibration": True,
+            "enable_auto_delete": False,
+            "sms_limit": 5,
+            "poll_interval": 10,
+            "spam_threshold": 40
+        }
+    with open(SETTINGS_FILE, "r") as f:
+        return json.load(f)
+
+def save_runtime_settings(data):
+    with open(SETTINGS_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+
+
+
+@app.route("/admin")
+@app.route("/admin/")
+def admin_overview():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    runtime_settings = load_runtime_settings()
+    spam_logs = load_spam_logs() if 'load_spam_logs' in globals() else []
+
+    stats = {
+        "total_users": len(users),
+        "spam_log_count": len(spam_logs),
+        "notifications": runtime_settings.get("enable_notifications", True),
+        "vibration": runtime_settings.get("enable_vibration", True),
+        "auto_delete": runtime_settings.get("enable_auto_delete", False),
+        "sms_limit": runtime_settings.get("sms_limit", 5),
+        "poll_interval": runtime_settings.get("poll_interval", 10),
+        "spam_threshold": runtime_settings.get("spam_threshold", 40)
+    }
+
+    recent_logs = spam_logs[:10] if isinstance(spam_logs, list) else []
+
+    return render_template("admin_overview.html", stats=stats, recent_logs=recent_logs)
+
+
+
+SPAM_LOGS_FILE = "data/spam_logs.json"
+
+
+
+def save_spam_logs(logs):
+    SPAM_LOGS_FILE = "data/spam_logs.json"
+    import json
+    with open(SPAM_LOGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(logs, f, indent=2, ensure_ascii=False)
+
+def load_spam_logs():
+    if not os.path.exists(SPAM_LOGS_FILE):
+        return []
+    try:
+        with open(SPAM_LOGS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+
+
+
+@app.route("/admin/mark-clean", methods=["POST"])
+def admin_mark_clean():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    sender = request.form.get("sender", "").upper().strip()
+    body = request.form.get("body", "")
+
+    # WHITELIST
+    whitelist = load_whitelist()
+    if sender and sender not in whitelist:
+        whitelist.append(sender)
+        save_whitelist(whitelist)
+
+    # AI öğrenme
+    try:
+        from ai_model import learn
+        learn(body, "clean")
+    except Exception as e:
+        print("AI ERROR:", e)
+
+    # logdan sil
+    logs = load_spam_logs()
+    logs = [x for x in logs if not (x.get("sender") == sender and x.get("body") == body)]
+    save_spam_logs(logs)
+
+    return redirect(url_for("admin_spam_logs"))
+
+
+@app.route("/admin/spam-logs")
+def admin_spam_logs():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    spam_logs = load_spam_logs()
+    return render_template("admin_spam_logs.html", spam_logs=spam_logs)
+
+
+
+
+# =========================
+# ⚙️ ADMIN SETTINGS
+# =========================
+RUNTIME_SETTINGS_FILE = "spamshield_runtime_settings.json"
+
+def load_runtime_settings():
+    defaults = {
+        "enable_notifications": True,
+        "enable_vibration": True,
+        "enable_auto_delete": False,
+        "sms_limit": 5,
+        "poll_interval": 10,
+        "spam_threshold": 40
+    }
+
+    if not os.path.exists(RUNTIME_SETTINGS_FILE):
+        with open(RUNTIME_SETTINGS_FILE, "w", encoding="utf-8") as f:
+            json.dump(defaults, f, ensure_ascii=False, indent=2)
+        return defaults
+
+    try:
+        with open(RUNTIME_SETTINGS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            defaults.update(data)
+        return defaults
+    except Exception:
+        return defaults
+
+def save_runtime_settings(data):
+    with open(RUNTIME_SETTINGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+@app.route("/admin/settings", methods=["GET", "POST"])
+
+
+
+def admin_settings():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    settings = load_runtime_settings()
+
+    if request.method == "POST":
+        settings["enable_notifications"] = "enable_notifications" in request.form
+        settings["enable_vibration"] = "enable_vibration" in request.form
+        settings["enable_auto_delete"] = "enable_auto_delete" in request.form
+
+        try:
+            settings["sms_limit"] = int(request.form.get("sms_limit", 5))
+        except:
+            settings["sms_limit"] = 5
+
+        try:
+            settings["poll_interval"] = int(request.form.get("poll_interval", 10))
+        except:
+            settings["poll_interval"] = 10
+
+        try:
+            settings["spam_threshold"] = int(request.form.get("spam_threshold", 40))
+        except:
+            settings["spam_threshold"] = 40
+
+        save_runtime_settings(settings)
+
+    return render_template("admin_settings.html", settings=settings)
+
+
+
+
+@app.route("/request-upgrade", methods=["POST"])
+def request_upgrade():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    users = load_users()
+    username = session.get("username")
+    user = users.get(username, {})
+
+    requests = load_upgrade_requests()
+
+    already_open = False
+    for row in requests:
+        if row.get("username") == username and row.get("status") == "pending":
+            already_open = True
+            break
+
+    if not already_open:
+        requests.insert(0, {
+            "username": username,
+            "current_license": user.get("license_type", "trial"),
+            "status": "pending"
+        })
+        save_upgrade_requests(requests)
+
+    return redirect("/upgrade")
+
+@app.route("/upgrade")
+def upgrade():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    users = load_users()
+    username = session.get("username")
+    user = users.get(username, {})
+
+    return render_template(
+        "upgrade.html",
+        user=user,
+        username=username
+    )
+
+@app.route("/activate-license", methods=["GET", "POST"])
+def activate_license():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    users = load_users()
+    username = session.get("username")
+    user = users.get(username, {})
+
+    error = ""
+    success = ""
+
+    if request.method == "POST":
+        entered_key = _normalize_license_key(request.form.get("license_key", ""))
+        stored_key = _normalize_license_key(user.get("license_key", ""))
+
+        if not entered_key:
+            error = "Lisans kodu boş olamaz."
+        elif not stored_key:
+            error = "Bu kullanıcı için atanmış lisans kodu yok. Admin panelden lisans tanımlayın."
+        elif entered_key != stored_key:
+            error = "Lisans kodu geçersiz."
+        else:
+            user["license_type"] = "pro"
+            user["license_mode"] = "pro"
+            if not str(user.get("license_expiry", "")).strip():
+                user["license_expiry"] = "2099-01-01"
+            user["is_active"] = True
+
+            users[username] = user
+            save_users(users)
+
+            success = "Lisans başarıyla aktive edildi. PRO hesap aktif."
+            print("LICENSE_ACTIVATION_OK:", username, stored_key, flush=True)
+
+    return render_template(
+        "activate_license.html",
+        user=user,
+        username=username,
+        error=error,
+        success=success
+    )
+
+if __name__ == "__main__":
+    load_users()
+    load_settings()
+    if not os.path.exists(LICENSES_FILE):
+        save_licenses({})
+    port = int(os.environ.get("PORT", 5000))
+local_debug = os.environ.get("FLASK_DEBUG", "0") == "1"
+app.run(host="0.0.0.0", port=port, debug=local_debug)
+
+
+# -----------------------
+# PASSWORD RESET
+# -----------------------
+
+
+# =========================
+# ✅ ADMIN ONAY
+# =========================
+@app.route("/admin/approve-payment/<username>/<license_key>")
+def approve_payment(username, license_key):
+    users = load_users()
+
+    for p in users[username].get("pending_payments", []):
+        if p["license_key"] == license_key:
+            p["status"] = "approved"
+            users[username]["license_key"] = license_key
+            users[username]["license_type"] = "pro"
+
+    save_users(users)
+    return redirect(url_for("admin_payment_requests"))
+
+
+# =========================
+# 🔑 LİSANS AKTİVASYON
+# =========================
+
+
+# =========================
+# 📊 SPAMSHIELD ADMIN OVERVIEW + LOGS
+# =========================
+# =========================
+# 📊 SPAM LOGS + ADMIN ROUTES
+# =========================
+
+@app.route("/admin/whitelist", methods=["GET","POST"])
+def admin_whitelist():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    whitelist = load_whitelist()
+
+    if request.method == "POST":
+        number = request.form.get("number","").strip()
+        if number and number not in whitelist:
+            whitelist.append(number)
+            save_whitelist(whitelist)
+
+    return render_template("whitelist.html", whitelist=whitelist)
+
+
+
+    if not login_required():
+        return redirect(url_for("login"))
+    return redirect(url_for("dashboard"))
+
+
+
+
+

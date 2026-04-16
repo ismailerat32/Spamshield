@@ -2,93 +2,120 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lisans Aktivasyonu</title>
 <style>
-body {
-    background: linear-gradient(135deg, #0f172a, #0b1f5e, #1e3a8a);
-    font-family: Arial, sans-serif;
-    color: white;
-    margin: 0;
-    min-height: 100vh;
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#071224;
+  color:#fff;
+  font-family:Arial,sans-serif;
 }
-.wrap {
-    max-width: 520px;
-    margin: 40px auto;
-    padding: 20px;
+.wrap{
+  max-width:720px;
+  margin:0 auto;
+  padding:18px;
 }
-.card {
-    background: rgba(3, 15, 45, 0.95);
-    padding: 24px;
-    border-radius: 22px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:18px;
 }
-input, button {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 14px;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,.08);
-    background: #020b2a;
-    color: white;
-    font-size: 15px;
+.title{
+  font-size:30px;
+  font-weight:900;
 }
-button {
-    background: #1db446;
-    border: 0;
-    font-weight: bold;
-    margin-top: 14px;
+.back{
+  color:#9cc0ff;
+  text-decoration:none;
+  font-weight:700;
 }
-.msg-ok {
-    background: rgba(16, 185, 129, .18);
-    border: 1px solid rgba(16, 185, 129, .35);
-    color: #d1fae5;
-    padding: 14px;
-    border-radius: 14px;
-    margin-bottom: 16px;
+.card{
+  background:#14223a;
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
-.msg-err {
-    background: rgba(239, 68, 68, .14);
-    border: 1px solid rgba(239, 68, 68, .35);
-    color: #fee2e2;
-    padding: 14px;
-    border-radius: 14px;
-    margin-bottom: 16px;
+label{
+  display:block;
+  margin-bottom:8px;
+  font-weight:800;
 }
-.link {
-    color: #bfdbfe;
-    text-decoration: none;
+input{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:#1e2b45;
+  color:#fff;
+  font-size:16px;
+  margin-bottom:14px;
+}
+button{
+  width:100%;
+  padding:15px 16px;
+  border:none;
+  border-radius:16px;
+  background:linear-gradient(90deg,#6366f1,#8b5cf6);
+  color:#fff;
+  font-weight:900;
+  font-size:16px;
+}
+.msg{
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px;
+  font-weight:700;
+}
+.err{background:#5b1f28;color:#ffd5db}
+.ok{background:#143824;color:#c8ffd7}
+.muted{
+  color:#c8d5f0;
+  line-height:1.5;
+  margin-top:16px;
+}
+.kv{
+  background:#1d2a42;
+  border-radius:14px;
+  padding:12px 14px;
+  margin-bottom:12px;
 }
 </style>
 </head>
 <body>
 <div class="wrap">
-    <div class="card">
-        <h1>Lisans Aktivasyonu</h1>
+  <div class="topbar">
+    <div class="title">🔑 Lisans Aktivasyonu</div>
+    <a class="back" href="/upgrade">← Geri dön</a>
+  </div>
 
-        {% if error %}
-        <div class="msg-err">{{ error }}</div>
-        {% endif %}
+  <div class="card">
+    {% if error %}
+      <div class="msg err">{{ error }}</div>
+    {% endif %}
 
-        {% if success %}
-        <div class="msg-ok">
-            {{ success }}
-            {% if license_key %}
-            <div style="margin-top:8px;">Anahtar: <strong>{{ license_key }}</strong></div>
-            {% endif %}
-        </div>
-        {% endif %}
+    {% if success %}
+      <div class="msg ok">{{ success }}</div>
+    {% endif %}
 
-        <form method="POST">
-            <input type="text" name="license_key" placeholder="SSHD-XXXX-XXXX-XXXX" required>
-            <button type="submit">Lisansı Aktive Et</button>
-        </form>
+    <div class="kv">Kullanıcı: <strong>{{ username }}</strong></div>
+    <div class="kv">Mevcut Lisans: <strong>{{ user.get("license_type", "trial") }}</strong></div>
 
-        <div style="margin-top:18px;">
-            <a class="link" href="/my-license">Lisansım</a>
-            &nbsp; | &nbsp;
-            <a class="link" href="/dashboard">Dashboard'a dön</a>
-        </div>
+    <form method="POST" action="/activate-license">
+      <label for="license_key">Lisans kodu</label>
+      <input id="license_key" name="license_key" placeholder="Örn: ABCD-EFGH-IJKL-MNOP" required>
+      <button type="submit">Lisansı Aktive Et</button>
+    </form>
+
+    <div class="muted">
+      Bu ekranda kullanıcıya atanmış lisans kodunu girerek PRO hesap aktif edilir.
+      Admin panelden kullanıcıya önce lisans kodu tanımlanmış olmalıdır.
     </div>
+  </div>
 </div>
 </body>
 </html>

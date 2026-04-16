@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpamShield</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/radial_stable.css') }}">
+</head>
+<body>
+<div class="container">
+
+<h1>SpamShield</h1>
+<p>Akıllı SMS Koruma Sistemi</p>
+
+<div class="circle">
+    <div class="item" data-type="koruma" data-url="/dashboard">🛡️<span>Koruma</span></div>
+    <div class="item" data-type="analiz" data-url="/dashboard">📩<span>Analiz</span></div>
+    <div class="item" data-type="engel" data-url="/dashboard">🚫<span>Engel</span></div>
+    <div class="item" data-type="bildirim" data-url="/dashboard">🔔<span>Bildirim</span></div>
+    <div class="item" data-type="topluluk" data-url="/dashboard">👥<span>Topluluk</span></div>
+    <div class="item" data-type="ayarlar" data-url="/setting">⚙️<span>Ayarlar</span></div>
+    <div class="center">SS</div>
+</div>
+
+<div id="panel" class="panel panel-show">
+    <h2>Seçim yap</h2>
+    <p>Bir dilime dokun. Aynı dilime tekrar dokunursan ilgili sayfa açılır.</p>
+</div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/radial_stable.js') }}"></script>
+</body>
+</html>

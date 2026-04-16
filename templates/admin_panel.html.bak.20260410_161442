@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpamShield Admin</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#071224;color:#fff;font-family:Arial,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:18px}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px}
+.title{font-size:32px;font-weight:900;line-height:1.05}
+.back{color:#9cc0ff;text-decoration:none;font-weight:700;font-size:15px}
+.card{background:#14223a;border:1px solid rgba(255,255,255,0.05);border-radius:22px;padding:20px;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.card h3{margin:0 0 14px 0;font-size:22px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+input,select,button{width:100%;padding:13px 14px;border-radius:14px;border:none;outline:none;font-size:15px}
+input,select{background:#1e2b45;color:#fff}
+button{background:#3169ea;color:#fff;font-weight:800;cursor:pointer}
+button.red{background:#c0392b}
+button.green{background:#159947}
+button.purple{background:#8e44ad}
+.user-card{background:#1a2740;border-radius:18px;padding:16px;margin-bottom:12px}
+.username{font-size:20px;font-weight:800;margin-bottom:8px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px 0}
+.badge{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800}
+.badge.role{background:#2f67e8}
+.badge.license{background:#8e44ad}
+.badge.banned{background:#c0392b}
+.badge.active{background:#159947}
+.muted{color:#c8d5f0;font-size:14px;margin-bottom:12px}
+.license-box{background:#1d2a42;border-radius:12px;padding:10px 12px;margin:10px 0 14px 0;font-weight:700;color:#f3f7ff;word-break:break-all}
+.license-form{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-top:10px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.single-form{margin:0}
+.alert-success{
+  background:#143824;
+  color:#c8ffd7;
+  padding:14px 16px;
+  border-radius:14px;
+  margin-bottom:14px;
+  font-weight:800;
+  box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+.alert-danger{
+  background:#4a1b1b;
+  color:#ffd4d4;
+  padding:14px 16px;
+  border-radius:14px;
+  margin-bottom:14px;
+  font-weight:800;
+}
+@media (max-width:700px){
+  .form-grid{grid-template-columns:1fr}
+  .license-form{grid-template-columns:1fr}
+  .title{font-size:26px}
+}
+</style>
+
+<style>
+.toast-container{
+  position:fixed;
+  top:18px;
+  right:18px;
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  width:min(360px, calc(100vw - 24px));
+  pointer-events:none;
+}
+
+.toast{
+  position:relative;
+  overflow:hidden;
+  border-radius:18px;
+  padding:14px 16px 16px 16px;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 18px 40px rgba(0,0,0,.28);
+  color:#fff;
+  opacity:0;
+  transform:translateY(-12px) scale(.97);
+  transition:opacity .35s ease, transform .35s ease;
+  pointer-events:auto;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateY(0) scale(1);
+}
+
+.toast.hide{
+  opacity:0;
+  transform:translateY(-12px) scale(.97);
+}
+
+.toast::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  pointer-events:none;
+}
+
+.toast-top{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  position:relative;
+  z-index:1;
+}
+
+.toast-icon{
+  width:36px;
+  height:36px;
+  min-width:36px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  font-weight:700;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+.toast-body{
+  flex:1;
+  min-width:0;
+}
+
+.toast-title{
+  font-size:14px;
+  font-weight:800;
+  margin:0 0 4px 0;
+  letter-spacing:.2px;
+}
+
+.toast-message{
+  font-size:13px;
+  line-height:1.45;
+  margin:0;
+  opacity:.95;
+  word-wrap:break-word;
+}
+
+.toast-close{
+  background:transparent;
+  border:0;
+  color:rgba(255,255,255,.75);
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+  padding:0;
+  margin:0;
+}
+
+.toast-close:hover{
+  color:#fff;
+}
+
+.toast-progress{
+  position:absolute;
+  left:0;
+  bottom:0;
+  height:3px;
+  width:100%;
+  transform-origin:left center;
+  animation:toastProgress 2.6s linear forwards;
+  opacity:.95;
+}
+
+@keyframes toastProgress{
+  from{ transform:scaleX(1); }
+  to{ transform:scaleX(0); }
+}
+
+.toast-success{
+  background:linear-gradient(135deg, rgba(16,185,129,.28), rgba(6,95,70,.22));
+}
+.toast-success .toast-icon{
+  background:rgba(16,185,129,.22);
+}
+.toast-success .toast-progress{
+  background:#34d399;
+}
+
+.toast-error{
+  background:linear-gradient(135deg, rgba(239,68,68,.28), rgba(127,29,29,.22));
+}
+.toast-error .toast-icon{
+  background:rgba(239,68,68,.22);
+}
+.toast-error .toast-progress{
+  background:#f87171;
+}
+
+.toast-warning{
+  background:linear-gradient(135deg, rgba(245,158,11,.28), rgba(120,53,15,.22));
+}
+.toast-warning .toast-icon{
+  background:rgba(245,158,11,.22);
+}
+.toast-warning .toast-progress{
+  background:#fbbf24;
+}
+
+.toast-info{
+  background:linear-gradient(135deg, rgba(59,130,246,.28), rgba(30,58,138,.22));
+}
+.toast-info .toast-icon{
+  background:rgba(59,130,246,.22);
+}
+.toast-info .toast-progress{
+  background:#60a5fa;
+}
+
+@media (max-width: 640px){
+  .toast-container{
+    top:12px;
+    right:12px;
+    left:12px;
+    width:auto;
+  }
+  .toast{
+    border-radius:16px;
+  }
+}
+</style>
+
+</head>
+<body>
+
+<style>
+.main-menu{
+  margin-bottom:30px;
+}
+
+.main-menu-title{
+  font-size:22px;
+  font-weight:900;
+  margin-bottom:12px;
+}
+
+.sub-section{
+  border-radius:20px;
+  overflow:hidden;
+  margin-bottom:12px;
+  background:linear-gradient(180deg, rgba(20,35,60,.95), rgba(15,28,50,.95));
+  border:1px solid rgba(255,255,255,.05);
+}
+
+.sub-header{
+  padding:16px;
+  font-weight:700;
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.sub-content{
+  max-height:0;
+  overflow:hidden;
+  transition:all .3s ease;
+  padding:0 16px;
+}
+
+.sub-section.active .sub-content{
+  max-height:800px;
+  padding:16px;
+}
+
+.chev{
+  transition:.3s;
+}
+.sub-section.active .chev{
+  transform:rotate(180deg);
+}
+</style>
+
+<div class="main-menu">
+  <div class="main-menu-title">⚙️ Kullanıcı ve Lisans İşlemleri</div>
+
+  <div class="sub-section">
+    <div class="sub-header">👤 Kullanıcı Ekle <span class="chev">⌄</span></div>
+    <div class="sub-content"><h3>Kullanıcı Ekle</h3>
+    <form method="POST" action="/admin/add-user">
+      <div class="form-grid">
+        <input type="text" name="username" placeholder="Kullanıcı adı" required>
+        <input type="text" name="password" placeholder="Şifre" required>
+
+        <select name="role">
+          <option value="user">user</option>
+          <option value="admin">admin</option>
+        </select>
+
+        <select name="license_type">
+          <option value="trial">trial</option>
+          <option value="pro">pro</option>
+          <option value="free">free</option>
+        </select>
+
+        <input type="text" name="license_expiry" placeholder="Lisans bitişi (örn: 2099-01-01)">
+        <button type="submit">Kullanıcı Ekle</button>
+      </div>
+    </form></div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-header">📋 Kullanıcılar <span class="chev">⌄</span></div>
+    <div class="sub-content"><h3>Kullanıcılar</h3>
+
+    {% for user in users %}
+    <div class="user-card" id="user-{{ user.username }}">
+      <div class="username">{{ user.username }}</div>
+
+      <div class="badges">
+        <span class="badge role">Rol: {{ user.role }}</span>
+        <span class="badge license">Lisans: {{ user.license_type }}</span>
+        {% if user.is_banned %}
+        <span class="badge banned">BANLI</span>
+        {% else %}
+        <span class="badge active">AKTİF</span>
+        {% endif %}
+      </div>
+
+      <div class="muted">Bitiş: {{ user.license_expiry if user.license_expiry else "-" }}</div>
+
+      <div class="license-box">
+        Lisans Kodu: {{ user.get("license_key") or "Henüz yok" }}
+      </div>
+
+      <form class="license-form" method="POST" action="/admin/update-license/{{ user.username }}">
+        <select name="license_type">
+          <option value="trial" {% if user.license_type == "trial" %}selected{% endif %}>trial</option>
+          <option value="pro" {% if user.license_type == "pro" %}selected{% endif %}>pro</option>
+          <option value="free" {% if user.license_type == "free" %}selected{% endif %}>free</option>
+        </select>
+
+        <input type="text" name="license_expiry" value="{{ user.license_expiry }}" placeholder="YYYY-MM-DD">
+
+        <button type="submit">Lisans Güncelle</button>
+      </form></div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-header">⭐ Yükseltme Talepleri <span class="chev">⌄</span></div>
+    <div class="sub-content"><h3>Yükseltme Talepleri</h3>
+    {% if upgrade_requests %}
+      {% for row in upgrade_requests %}
+        {% if row.status == "pending" %}
+        <div class="user-card">
+          <div class="username">{{ row.username }}</div>
+          <div class="muted">Mevcut Lisans: {{ row.current_license }}</div>
+          <div class="actions">
+            <form class="single-form" method="POST" action="/admin/approve-upgrade/{{ row.username }}">
+              <button class="green" type="submit">PRO Olarak Onayla</button>
+            </form></div>
+  </div>
+
+</div>
+
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="toast-container" id="toastContainer">
+      {% for category, message in messages %}
+        <div class="toast toast-{{ category if category in ['success','error','warning','info'] else 'info' }}">
+          <div class="toast-top">
+            <div class="toast-icon">
+              {% if category == 'success' %}✓
+              {% elif category == 'error' %}✕
+              {% elif category == 'warning' %}! 
+              {% else %}i{% endif %}
+            </div>
+
+            <div class="toast-body">
+              <div class="toast-title">
+                {% if category == 'success' %}Başarılı
+                {% elif category == 'error' %}Hata
+                {% elif category == 'warning' %}Uyarı
+                {% else %}Bilgi{% endif %}
+              </div>
+              <p class="toast-message">{{ message }}</p>
+            </div>
+
+            <button class="toast-close" type="button" aria-label="Kapat">×</button>
+          </div>
+
+          <div class="toast-progress"></div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="wrap">
+
+  {% set lk = request.args.get("license_key", "") %}
+  {% set ok = request.args.get("ok", "") %}
+
+  {% if ok == "license_generated" %}
+    <div class="alert-success">✅ Lisans başarıyla üretildi — Kod: {{ lk }}</div>
+  {% elif ok == "license_exists" %}
+    <div class="alert-success">ℹ️ Bu kullanıcıda zaten lisans var — Kod: {{ lk }}</div>
+  {% elif ok == "updated" %}
+    <div class="alert-success">✅ Lisans güncellendi</div>
+  {% elif ok == "user_not_found" %}
+    <div class="alert-danger">⚠️ Kullanıcı bulunamadı</div>
+  {% endif %}
+
+  <div class="topbar">
+    <div class="title">🛡 SpamShield Admin</div>
+    <a class="back" href="/dashboard">← Dashboard’a dön</a>
+  </div>
+
+  <div class="card">
+    
+  </div>
+
+  <div class="card">
+    
+          </div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <div class="muted">Henüz talep yok.</div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    
+
+      <div class="actions">
+        <form class="single-form" method="POST" action="/admin/generate-license/{{ user.username }}">
+          <button class="purple" type="submit">Lisans Üret</button>
+        </form>
+
+        <form class="single-form" method="POST" action="/admin/toggle-ban/{{ user.username }}">
+          {% if user.is_banned %}
+          <button class="green" type="submit">Ban Kaldır</button>
+          {% else %}
+          <button class="red" type="submit">Banla</button>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="muted">Henüz kullanıcı yok.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+setTimeout(() => {
+  const alerts = document.querySelectorAll('[class*="alert"]');
+  alerts.forEach(alert => {
+    alert.style.transition = "opacity 0.5s ease";
+    alert.style.opacity = "0";
+    setTimeout(() => alert.remove(), 500);
+  });
+  if (window.location.search.includes("ok=")) {
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+  }
+}, 2200);
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const messages = document.querySelectorAll(".flash-msg");
+
+    messages.forEach((msg, index) => {
+        // Küçük animasyon
+        msg.style.opacity = "0";
+        msg.style.transform = "translateY(-10px)";
+
+        setTimeout(() => {
+            msg.style.transition = "all 0.4s ease";
+            msg.style.opacity = "1";
+            msg.style.transform = "translateY(0)";
+        }, 50);
+
+        // 2.5 saniye sonra kaybol
+        setTimeout(() => {
+            msg.style.transition = "all 0.4s ease";
+            msg.style.opacity = "0";
+            msg.style.transform = "translateY(-10px)";
+        }, 2500);
+
+        // tamamen DOM'dan sil
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    });
+});
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const toasts = document.querySelectorAll(".toast");
+
+  toasts.forEach((toast, index) => {
+    const closeBtn = toast.querySelector(".toast-close");
+
+    const showDelay = 80 + (index * 120);
+    const hideDelay = 2600 + (index * 120);
+
+    setTimeout(() => {
+      toast.classList.add("show");
+    }, showDelay);
+
+    const hideToast = () => {
+      if (toast.dataset.closed === "1") return;
+      toast.dataset.closed = "1";
+      toast.classList.remove("show");
+      toast.classList.add("hide");
+      setTimeout(() => {
+        toast.remove();
+        const container = document.getElementById("toastContainer");
+        if (container && !container.querySelector(".toast")) {
+          container.remove();
+        }
+      }, 380);
+    };
+
+    setTimeout(hideToast, hideDelay);
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", hideToast);
+    }
+  });
+});
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", ()=>{
+  document.querySelectorAll(".sub-header").forEach(h=>{
+    h.onclick = ()=>{
+      const parent = h.parentElement;
+      parent.classList.toggle("active");
+    }
+  });
+});
+</script>
+
+</body>
+</html>

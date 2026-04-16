@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyaz Liste</title>
+
+<style>
+body {
+    background:#0b1220;
+    color:white;
+    font-family:Arial;
+    padding:20px;
+}
+
+.card {
+    background:#162033;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:15px;
+}
+
+input {
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    width:100%;
+    margin-bottom:10px;
+}
+
+button {
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#2563eb;
+    color:white;
+    width:100%;
+}
+
+.item {
+    background:#1f2937;
+    padding:10px;
+    border-radius:8px;
+    margin-bottom:5px;
+}
+</style>
+
+</head>
+<body>
+
+<h2>🧠 Beyaz Liste</h2>
+
+<div class="card">
+<form method="POST">
+<input name="number" placeholder="Numara / Gönderici">
+<button type="submit">Ekle</button>
+</form>
+</div>
+
+<div class="card">
+<h3>Kayıtlar</h3>
+
+{% for item in whitelist %}
+<div class="item">{{ item }}</div>
+{% endfor %}
+
+</div>
+
+<a href="/dashboard">← Dashboard'a dön</a>
+
+</body>
+</html>

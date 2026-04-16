@@ -1,0 +1,8 @@
+{
+  "admin": {
+    "role": "admin",
+    "license_type": "pro",
+    "license_expiry": "2099-01-01",
+    "password_hash": "scrypt:32768:8:1$N44ydaGJ7XBkqi5g$bb73b1da1d252c0be25a544b6c885cd05ed5136d02ec59eb15d9c5c1bdea4b438bfd391e2d26241841e9cc39ce578774401149594fa06337e5b69c67ef0811c5"
+  }
+}
