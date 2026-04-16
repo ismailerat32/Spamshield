@@ -427,15 +427,7 @@ def add_to_whitelist(sender):
         wl.append(sender)
         save_whitelist(wl)
 
-@app.route("/")
-def home():
-    if login_required():
-        return redirect(url_for("dashboard"))
-    return redirect(url_for("login"))
 
-# -----------------------
-# LOGIN
-# -----------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -1869,6 +1861,10 @@ def radial():
             return render_template("radial_demo.html", stats=stats)
         except:
             return "<h2>radial_demo.html bulunamadi</h2>"
+
+@app.route("/")
+def home():
+    return redirect("/login")
 
 if __name__ == "__main__":
     load_users()
