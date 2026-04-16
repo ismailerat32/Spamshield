@@ -1866,6 +1866,91 @@ def radial():
 def home():
     return redirect("/login")
 
+@app.route("/protection")
+def protection_page():
+    return """
+    <html><head><meta charset="UTF-8"><title>Koruma</title></head>
+    <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
+        <h2>🛡 Koruma</h2>
+        <p>Koruma modülü hazırlık aşamasında.</p>
+        <p><a href="/radial" style="color:#7dd3fc;">← Radial'e dön</a></p>
+    </body></html>
+    """
+
+@app.route("/analysis")
+def analysis_page():
+    return """
+    <html><head><meta charset="UTF-8"><title>Analiz</title></head>
+    <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
+        <h2>📊 Analiz</h2>
+        <p>Analiz modülü hazırlık aşamasında.</p>
+        <p><a href="/radial" style="color:#7dd3fc;">← Radial'e dön</a></p>
+    </body></html>
+    """
+
+@app.route("/blocked")
+def blocked_page():
+    return """
+    <html><head><meta charset="UTF-8"><title>Engellenenler</title></head>
+    <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
+        <h2>🚫 Engellenenler</h2>
+        <p>Engellenenler modülü hazırlık aşamasında.</p>
+        <p><a href="/radial" style="color:#7dd3fc;">← Radial'e dön</a></p>
+    </body></html>
+    """
+
+@app.route("/notifications")
+def notifications_page():
+    return """
+    <html><head><meta charset="UTF-8"><title>Bildirimler</title></head>
+    <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
+        <h2>🔔 Bildirimler</h2>
+        <p>Bildirimler modülü hazırlık aşamasında.</p>
+        <p><a href="/radial" style="color:#7dd3fc;">← Radial'e dön</a></p>
+    </body></html>
+    """
+
+@app.route("/settings")
+def settings_page():
+    return """
+    <html><head><meta charset="UTF-8"><title>Ayarlar</title></head>
+    <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
+        <h2>⚙️ Ayarlar</h2>
+        <p>Ayarlar modülü hazırlık aşamasında.</p>
+        <p><a href="/radial" style="color:#7dd3fc;">← Radial'e dön</a></p>
+    </body></html>
+    """
+
+@app.route("/license")
+def license_page():
+    return redirect("/activate")
+
+@app.route("/reports")
+def reports_page():
+    return """
+    <html><head><meta charset="UTF-8"><title>Raporlar</title></head>
+    <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
+        <h2>📈 Raporlar</h2>
+        <p>Raporlar modülü hazırlık aşamasında.</p>
+        <p><a href="/radial" style="color:#7dd3fc;">← Radial'e dön</a></p>
+    </body></html>
+    """
+
+@app.route("/community")
+def community_page():
+    return """
+    <html><head><meta charset="UTF-8"><title>Topluluk</title></head>
+    <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
+        <h2>👥 Topluluk</h2>
+        <p>Topluluk modülü hazırlık aşamasında.</p>
+        <p><a href="/radial" style="color:#7dd3fc;">← Radial'e dön</a></p>
+    </body></html>
+    """
+
+@app.route("/activate")
+def activate_alias():
+    return redirect("/activate-license")
+
 if __name__ == "__main__":
     load_users()
     load_settings()
