@@ -1,5 +1,21 @@
 from functools import wraps
 
+def is_user_pro_and_secure(username):
+    users = _read_json_file("data/users.json", {})
+    if not isinstance(users, dict):
+        return False, "Kullanıcı verisi bozuk."
+
+    user = users.get(username, {})
+    plan = str(user.get("license_type") or user.get("plan") or "trial").strip().lower()
+
+    if plan != "pro":
+        return False, "PRO lisans gerekli."
+
+    if "verify_user_license_security" in globals():
+        return verify_user_license_security(username)
+
+    return True, "OK"
+
 def pro_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
