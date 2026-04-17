@@ -1,15 +1,6 @@
-TELEGRAM_BOT_TOKEN = "8547332829:AAFfNGend-7oRnQfz_ArFMZ8qwNxPvEQJJw"
 
-def send_telegram(chat_id, text):
-    import requests
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    try:
-        requests.post(url, json={
-            "chat_id": chat_id,
-            "text": text
-        }, timeout=5)
-    except Exception as e:
-        print("Telegram gönderim hatası:", e)
+# Telegram sistemi kapatildi
+
 
 def verify_generated_license(key):
     import json
@@ -1511,9 +1502,6 @@ def reset_code():
 # ⚙️ ADMIN SETTINGS
 # =========================
 import json
-
-TELEGRAM_BOT_TOKEN = "BURAYA_BOT_TOKEN"
-
 SETTINGS_FILE = "spamshield_runtime_settings.json"
 
 def load_runtime_settings():
@@ -1836,15 +1824,8 @@ def give_bot_order_license(order_id):
 
             order["status"] = "licensed"
             order["license_key"] = created_key
-
-            chat_id = order.get("chat_id")
-            if chat_id:
-                send_telegram(
-                    chat_id,
-                    f"🎉 Lisansınız hazır!\n\n🔑 {created_key}\n\nSpamShield PRO aktif!"
-                )
-
-            break
+            # Telegram bildirimi kapatildi
+break
 
     path.write_text(json.dumps(orders, ensure_ascii=False, indent=2), encoding="utf-8")
     return redirect("/bot-orders")
