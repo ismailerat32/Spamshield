@@ -1850,44 +1850,39 @@ def strict_activate_generated_license(username, key):
 @app.route("/activate-license", methods=["GET", "POST"])
 def activate_license():
     from flask import session
-    import json
-    from pathlib import Path
 
     username = str(session.get("username") or session.get("user") or "").strip()
+    error = ""
+    success = ""
 
     users = _read_json_file("data/users.json", {})
     if not isinstance(users, dict):
         users = {}
 
     user = users.get(username, {}) if username else {}
-    current_plan = str(user.get("license_type") or user.get("plan") or "trial")
-
-    error = ""
-    success = ""
 
     if request.method == "POST":
-        entered_key = _normalize_license_key(request.form.get("license_key", ""))
+        key = request.form.get("license_key", "").strip()
 
         if not username:
             error = "Oturum bulunamadı. Lütfen tekrar giriş yap."
         else:
-            ok, msg = strict_activate_generated_license(username, entered_key)
+            ok, msg = strict_activate_generated_license(username, key)
             if ok:
                 success = msg
                 users = _read_json_file("data/users.json", {})
                 if not isinstance(users, dict):
                     users = {}
                 user = users.get(username, {})
-                current_plan = str(user.get("license_type") or user.get("plan") or "pro")
             else:
                 error = msg
 
     return render_template(
         "activate_license.html",
-        username=username or "-",
-        current_plan=current_plan,
         error=error,
-        success=success
+        success=success,
+        user=user,
+        username=username
     )
 
 
