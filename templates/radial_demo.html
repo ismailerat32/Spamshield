@@ -13,11 +13,11 @@
 <p>Akıllı SMS Koruma Sistemi</p>
 
 <div class="circle">
-    <div class="item" data-type="koruma" data-url="/protection">🛡️<span>Koruma</span></div>
-    <div class="item" data-type="analiz" data-url="/analysis">📩<span>Analiz</span></div>
-    <div class="item" data-type="engel" data-url="/blocked">🚫<span>Engel</span></div>
-    <div class="item" data-type="bildirim" data-url="/notifications">🔔<span>Bildirim</span></div>
-    <div class="item" data-type="topluluk" data-url="/community">👥<span>Topluluk</span></div>
+    <div class="item" data-type="koruma" data-url="/protection" data-pro="1">🛡️<span>Koruma</span></div>
+    <div class="item" data-type="analiz" data-url="/analysis" data-pro="1">📩<span>Analiz</span></div>
+    <div class="item" data-type="engel" data-url="/blocked" data-pro="1">🚫<span>Engel</span></div>
+    <div class="item" data-type="bildirim" data-url="/notifications" data-pro="1">🔔<span>Bildirim</span></div>
+    <div class="item" data-type="topluluk" data-url="/community" data-pro="1">👥<span>Topluluk</span></div>
     <div class="item" data-type="ayarlar" data-url="/settings">⚙️<span>Ayarlar</span></div>
     <div class="center">SS</div>
 </div>
@@ -30,5 +30,39 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/radial_stable.js') }}"></script>
+
+<script>window.__CURRENT_PLAN__="{{ current_plan|default('trial') }}";</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const plan = (window.__CURRENT_PLAN__ || "trial").toLowerCase();
+  const items = document.querySelectorAll(".item[data-url]");
+  let active = null;
+
+  items.forEach(item => {
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      const url = item.dataset.url || "/";
+      const needPro = item.dataset.pro === "1";
+
+      if (needPro && plan !== "pro") {
+        window.location.href = "/activate-license";
+        return;
+      }
+
+      if (active === item) {
+        window.location.href = url;
+        return;
+      }
+
+      items.forEach(i => i.classList.remove("active"));
+      item.classList.add("active");
+      active = item;
+    });
+  });
+});
+</script>
+
 </body>
 </html>
