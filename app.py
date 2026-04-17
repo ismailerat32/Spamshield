@@ -1951,6 +1951,7 @@ def activate_license():
 
 
 @app.route("/radial")
+@pro_required
 def radial():
     try:
         return redirect(url_for("radial_demo"))
@@ -1966,6 +1967,7 @@ def home():
     return redirect("/login")
 
 @app.route("/protection")
+@pro_required
 def protection_page():
     return """
     <html><head><meta charset="UTF-8"><title>Koruma</title></head>
@@ -1977,6 +1979,7 @@ def protection_page():
     """
 
 @app.route("/analysis")
+@pro_required
 def analysis_page():
     return """
     <html><head><meta charset="UTF-8"><title>Analiz</title></head>
@@ -1988,6 +1991,7 @@ def analysis_page():
     """
 
 @app.route("/blocked")
+@pro_required
 def blocked_page():
     return """
     <html><head><meta charset="UTF-8"><title>Engellenenler</title></head>
@@ -1999,6 +2003,7 @@ def blocked_page():
     """
 
 @app.route("/notifications")
+@pro_required
 def notifications_page():
     return """
     <html><head><meta charset="UTF-8"><title>Bildirimler</title></head>
@@ -2025,6 +2030,7 @@ def license_page():
     return redirect("/activate")
 
 @app.route("/reports")
+@pro_required
 def reports_page():
     return """
     <html><head><meta charset="UTF-8"><title>Raporlar</title></head>
@@ -2036,6 +2042,7 @@ def reports_page():
     """
 
 @app.route("/community")
+@pro_required
 def community_page():
     return """
     <html><head><meta charset="UTF-8"><title>Topluluk</title></head>
@@ -2117,6 +2124,23 @@ def orders_page():
 def give_order_license(order_id):
     issue_order_license(order_id)
     return redirect("/orders")
+
+from functools import wraps
+
+def pro_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        from flask import session, redirect
+        username = str(session.get("username") or session.get("user") or "").strip()
+        if not username:
+            return redirect("/login")
+
+        ok, msg = is_user_pro_and_secure(username)
+        if not ok:
+            return redirect("/activate-license")
+
+        return f(*args, **kwargs)
+    return wrapper
 
 if __name__ == "__main__":
     load_users()
