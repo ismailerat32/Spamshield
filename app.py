@@ -6,6 +6,11 @@ def is_user_pro_and_secure(username):
         return False, "Kullanıcı verisi bozuk."
 
     user = users.get(username, {})
+    role = str(user.get("role", "")).strip().lower()
+
+    if role == "admin":
+        return True, "ADMIN_OK"
+
     plan = str(user.get("license_type") or user.get("plan") or "trial").strip().lower()
 
     if plan != "pro":
@@ -15,6 +20,7 @@ def is_user_pro_and_secure(username):
         return verify_user_license_security(username)
 
     return True, "OK"
+
 
 def pro_required(f):
     @wraps(f)
@@ -767,31 +773,9 @@ def _normalize_license_key(value):
 
 @app.route("/dashboard")
 def dashboard():
-    lock = license_required()
-    if lock:
-        return lock
+    return redirect("/radial")
 
-    if not login_required():
-        return redirect(url_for("login"))
 
-    users = load_users()
-    settings = load_settings()
-    username = current_username()
-    user = users.get(username, {})
-
-    if not is_license_active(user):
-        return redirect(url_for("landing"))
-
-    return render_template(
-        "dashboard.html",
-        username=username,
-        total_users=len(users),
-        user=user,
-        app_name=settings.get("app_name", "SpamShield Premium"),
-        days_left="∞" if user.get("role") == "admin" else days_left(user),
-        license_type=user.get("license_type", "trial"),
-        license_key=user.get("license_key", "")
-    )
 @app.route("/radial-demo")
 def radial_demo():
     return render_template("radial_demo.html")
