@@ -1,3 +1,20 @@
+from functools import wraps
+
+def pro_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        from flask import session, redirect
+        username = str(session.get("username") or session.get("user") or "").strip()
+        if not username:
+            return redirect("/login")
+
+        ok, msg = is_user_pro_and_secure(username)
+        if not ok:
+            return redirect("/activate-license")
+
+        return f(*args, **kwargs)
+    return wrapper
+
 
 # Telegram sistemi kapatildi
 
@@ -2125,22 +2142,7 @@ def give_order_license(order_id):
     issue_order_license(order_id)
     return redirect("/orders")
 
-from functools import wraps
 
-def pro_required(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        from flask import session, redirect
-        username = str(session.get("username") or session.get("user") or "").strip()
-        if not username:
-            return redirect("/login")
-
-        ok, msg = is_user_pro_and_secure(username)
-        if not ok:
-            return redirect("/activate-license")
-
-        return f(*args, **kwargs)
-    return wrapper
 
 if __name__ == "__main__":
     load_users()
