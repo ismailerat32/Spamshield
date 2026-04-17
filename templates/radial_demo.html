@@ -7,17 +7,19 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/radial_stable.css') }}">
 </head>
 <body>
+<div class="pro-badge">SpamShield PRO Özellik Kilidi Aktif</div>
+<div id="ssToast" class="ss-toast"></div>
 <div class="container">
 
 <h1>SpamShield</h1>
 <p>Akıllı SMS Koruma Sistemi</p>
 
 <div class="circle">
-    <div class="item" data-type="koruma" data-url="/protection" data-pro="1">🛡️<span>Koruma</span></div>
-    <div class="item" data-type="analiz" data-url="/analysis" data-pro="1">📩<span>Analiz</span></div>
-    <div class="item" data-type="engel" data-url="/blocked" data-pro="1">🚫<span>Engel</span></div>
-    <div class="item" data-type="bildirim" data-url="/notifications" data-pro="1">🔔<span>Bildirim</span></div>
-    <div class="item" data-type="topluluk" data-url="/community" data-pro="1">👥<span>Topluluk</span></div>
+    <div class="item" data-type="koruma" data-url="/protection" data-pro="1" data-pro="1">🛡️<span>Koruma</span></div>
+    <div class="item" data-type="analiz" data-url="/analysis" data-pro="1" data-pro="1">📩<span>Analiz</span></div>
+    <div class="item" data-type="engel" data-url="/blocked" data-pro="1" data-pro="1">🚫<span>Engel</span></div>
+    <div class="item" data-type="bildirim" data-url="/notifications" data-pro="1" data-pro="1">🔔<span>Bildirim</span></div>
+    <div class="item" data-type="topluluk" data-url="/community" data-pro="1" data-pro="1">👥<span>Topluluk</span></div>
     <div class="item" data-type="ayarlar" data-url="/settings">⚙️<span>Ayarlar</span></div>
     <div class="center">SS</div>
 </div>
@@ -31,23 +33,46 @@
 
 <script src="{{ url_for('static', filename='js/radial_stable.js') }}"></script>
 
-<script>window.__CURRENT_PLAN__="{{ current_plan|default('trial') }}";</script>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const plan = (window.__CURRENT_PLAN__ || "trial").toLowerCase();
   const items = document.querySelectorAll(".item[data-url]");
+  const toast = document.getElementById("ssToast");
   let active = null;
+  let lastLocked = null;
+
+  function showToast(msg){
+    if(!toast) return;
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(window.__ssToastTimer);
+    window.__ssToastTimer = setTimeout(() => {
+      toast.classList.remove("show");
+    }, 1800);
+  }
 
   items.forEach(item => {
+    const needPro = item.dataset.pro === "1";
+    if (needPro && plan !== "pro") {
+      item.classList.add("locked");
+    }
+
     item.addEventListener("click", (e) => {
       e.preventDefault();
 
       const url = item.dataset.url || "/";
-      const needPro = item.dataset.pro === "1";
+      const locked = item.dataset.pro === "1" && plan !== "pro";
 
-      if (needPro && plan !== "pro") {
-        window.location.href = "/activate-license";
+      if (locked) {
+        if (lastLocked === item) {
+          window.location.href = "/activate-license";
+          return;
+        }
+        lastLocked = item;
+        items.forEach(i => i.classList.remove("active"));
+        item.classList.add("active");
+        showToast("Bu özellik PRO. Tekrar dokunursan lisans ekranı açılır.");
         return;
       }
 
@@ -56,9 +81,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      active = item;
+      lastLocked = null;
       items.forEach(i => i.classList.remove("active"));
       item.classList.add("active");
-      active = item;
     });
   });
 });
