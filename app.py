@@ -2125,9 +2125,8 @@ if __name__ == "__main__":
         save_licenses({})
     port = int(os.environ.get("PORT", 5000))
 local_debug = os.environ.get("FLASK_DEBUG", "0") == "1"
-app.run(host="0.0.0.0", port=5000, debug=False)
-
-
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=False)
 # -----------------------
 # PASSWORD RESET
 # -----------------------
@@ -2192,11 +2191,11 @@ def admin_whitelist_legacy():
 
 
 @app.route("/license")
-def license_page():
+def license_page_2():
     return "<h2>License Page (yakında)</h2>"
 
 @app.route("/protection")
-def protection_page():
+def protection_page_2():
     return "<h2>Protection (yakında)</h2>"
 
 @app.route("/analyze")
@@ -2204,21 +2203,21 @@ def analyze_page():
     return "<h2>Analyze (yakında)</h2>"
 
 @app.route("/blocked")
-def blocked_page():
+def blocked_page_2():
     return "<h2>Blocked (yakında)</h2>"
 
 @app.route("/notifications")
-def notifications_page():
+def notifications_page_2():
     return "<h2>Notifications (yakında)</h2>"
 
 @app.route("/reports")
-def reports_page():
+def reports_page_2():
     return "<h2>Reports (yakında)</h2>"
 
 @app.route("/settings")
-def settings_page():
+def settings_page_2():
     return "<h2>Settings (yakında)</h2>"
 
 @app.route("/community")
-def community_page():
+def community_page_2():
     return "<h2>Community (yakında)</h2>"
