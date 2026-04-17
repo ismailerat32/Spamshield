@@ -1824,12 +1824,10 @@ def give_bot_order_license(order_id):
 
             order["status"] = "licensed"
             order["license_key"] = created_key
-            # Telegram bildirimi kapatildi
-break
+            break
 
     path.write_text(json.dumps(orders, ensure_ascii=False, indent=2), encoding="utf-8")
     return redirect("/bot-orders")
-
 
 
 @app.route("/radial")
