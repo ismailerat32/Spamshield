@@ -1738,49 +1738,157 @@ def upgrade():
         username=username
     )
 
+def _normalize_license_key(value):
+    return str(value or "").strip().upper()
+
+def _read_json_file(path, default):
+    import json
+    from pathlib import Path
+    p = Path(path)
+    if not p.exists():
+        return default
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return default
+
+def _write_json_file(path, data):
+    import json
+    from pathlib import Path
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+def strict_find_generated_license(key):
+    key = _normalize_license_key(key)
+    items = _read_json_file("data/generated_licenses.json", [])
+    if not isinstance(items, list):
+        return None
+    for item in items:
+        if _normalize_license_key(item.get("key", "")) == key:
+            return item
+    return None
+
+def strict_verify_generated_license(key):
+    from datetime import datetime
+
+    key = _normalize_license_key(key)
+    if not key:
+        return False, "Lisans kodu boş."
+
+    item = strict_find_generated_license(key)
+    if not item:
+        return False, "Lisans kodu geçersiz."
+
+    if bool(item.get("used", False)):
+        return False, "Bu lisans daha önce kullanılmış."
+
+    expiry = str(item.get("expiry", "")).strip()
+    if expiry:
+        parsed = None
+        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
+            try:
+                parsed = datetime.strptime(expiry, fmt)
+                break
+            except Exception:
+                pass
+        if parsed and parsed < datetime.now():
+            return False, "Bu lisansın süresi dolmuş."
+
+    return True, "OK"
+
+def strict_mark_generated_license_used(key, username=""):
+    from datetime import datetime
+
+    key = _normalize_license_key(key)
+    items = _read_json_file("data/generated_licenses.json", [])
+    if not isinstance(items, list):
+        items = []
+
+    changed = False
+    for item in items:
+        if _normalize_license_key(item.get("key", "")) == key:
+            item["used"] = True
+            item["activated_by"] = username
+            item["activated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            changed = True
+            break
+
+    if changed:
+        _write_json_file("data/generated_licenses.json", items)
+
+    return changed
+
+def strict_activate_generated_license(username, key):
+    key = _normalize_license_key(key)
+
+    ok, msg = strict_verify_generated_license(key)
+    if not ok:
+        return False, msg
+
+    users = _read_json_file("data/users.json", {})
+    if not isinstance(users, dict):
+        users = {}
+
+    if username not in users:
+        return False, "Kullanıcı bulunamadı."
+
+    item = strict_find_generated_license(key)
+    if not item:
+        return False, "Lisans kaydı bulunamadı."
+
+    users[username]["license_key"] = key
+    users[username]["license_type"] = str(item.get("type", "pro") or "pro")
+    users[username]["plan"] = str(item.get("type", "pro") or "pro")
+    users[username]["license_expiry"] = str(item.get("expiry", "")).strip()
+
+    _write_json_file("data/users.json", users)
+    strict_mark_generated_license_used(key, username=username)
+
+    return True, "Lisans başarıyla aktifleştirildi."
+
 @app.route("/activate-license", methods=["GET", "POST"])
 def activate_license():
-    if not login_required():
-        return redirect(url_for("login"))
+    from flask import session
+    import json
+    from pathlib import Path
 
-    users = load_users()
-    username = session.get("username")
-    user = users.get(username, {})
+    username = str(session.get("username") or session.get("user") or "").strip()
+
+    users = _read_json_file("data/users.json", {})
+    if not isinstance(users, dict):
+        users = {}
+
+    user = users.get(username, {}) if username else {}
+    current_plan = str(user.get("license_type") or user.get("plan") or "trial")
 
     error = ""
     success = ""
 
     if request.method == "POST":
         entered_key = _normalize_license_key(request.form.get("license_key", ""))
-        stored_key = _normalize_license_key(user.get("license_key", ""))
 
-        if not entered_key:
-            error = "Lisans kodu boş olamaz."
-        elif not stored_key:
-            error = "Bu kullanıcı için atanmış lisans kodu yok. Admin panelden lisans tanımlayın."
-        elif entered_key != stored_key:
-            error = "Lisans kodu geçersiz."
+        if not username:
+            error = "Oturum bulunamadı. Lütfen tekrar giriş yap."
         else:
-            user["license_type"] = "pro"
-            user["license_mode"] = "pro"
-            if not str(user.get("license_expiry", "")).strip():
-                user["license_expiry"] = "2099-01-01"
-            user["is_active"] = True
-
-            users[username] = user
-            save_users(users)
-
-            success = "Lisans başarıyla aktive edildi. PRO hesap aktif."
-            print("LICENSE_ACTIVATION_OK:", username, stored_key, flush=True)
+            ok, msg = strict_activate_generated_license(username, entered_key)
+            if ok:
+                success = msg
+                users = _read_json_file("data/users.json", {})
+                if not isinstance(users, dict):
+                    users = {}
+                user = users.get(username, {})
+                current_plan = str(user.get("license_type") or user.get("plan") or "pro")
+            else:
+                error = msg
 
     return render_template(
         "activate_license.html",
-        user=user,
-        username=username,
+        username=username or "-",
+        current_plan=current_plan,
         error=error,
         success=success
     )
-
 
 
 @app.route("/radial")
