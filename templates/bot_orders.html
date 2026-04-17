@@ -1,32 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <title>Siparişler</title>
+<meta charset="UTF-8">
+<title>Siparişler</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial;
+    background: linear-gradient(135deg,#0f172a,#020617);
+    color:white;
+}
+
+.container{
+    padding:20px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.card{
+    background:#1e293b;
+    padding:15px;
+    border-radius:12px;
+    margin-bottom:15px;
+    box-shadow:0 0 10px rgba(0,0,0,0.4);
+}
+
+.status{
+    font-size:13px;
+    margin-top:5px;
+}
+
+.licensed{
+    color:#22c55e;
+}
+
+.pending{
+    color:#facc15;
+}
+
+.btn{
+    margin-top:10px;
+    padding:8px 12px;
+    border:none;
+    border-radius:8px;
+    background:#3b82f6;
+    color:white;
+    cursor:pointer;
+}
+
+.btn:hover{
+    background:#2563eb;
+}
+
+.key{
+    font-size:12px;
+    opacity:0.7;
+    margin-top:5px;
+}
+</style>
 </head>
+
 <body>
 
-<h2>Siparişler</h2>
+<div class="container">
+    <h1>📦 Siparişler</h1>
 
-{% if orders %}
-  <ul>
-  {% for o in orders %}
-    <li>
-      <b>{{ o.order_id }}</b> - {{ o.status }}
+    {% for order in orders %}
+    <div class="card">
 
-      {% if o.status != "licensed" %}
-        <form method="POST" action="/bot-orders/give-license/{{ o.order_id }}" style="display:inline;">
-          <button type="submit">Lisans Ver</button>
+        <b>{{ order.order_id }}</b>
+
+        <div class="status">
+            {% if order.status == "licensed" %}
+                <span class="licensed">✔ Lisans verildi</span>
+            {% else %}
+                <span class="pending">⏳ Bekliyor</span>
+            {% endif %}
+        </div>
+
+        {% if order.license_key %}
+        <div class="key">
+            🔑 {{ order.license_key }}
+        </div>
+        {% endif %}
+
+        {% if order.status != "licensed" %}
+        <form method="POST" action="/orders/give-license/{{ order.order_id }}">
+            <button class="btn">Lisans Ver</button>
         </form>
-      {% else %}
-        ✅ Verildi ({{ o.license_key }})
-      {% endif %}
-    </li>
-  {% endfor %}
-  </ul>
-{% else %}
-  <p>Boş</p>
-{% endif %}
+        {% endif %}
+
+    </div>
+    {% endfor %}
+
+</div>
 
 </body>
 </html>
