@@ -1844,8 +1844,72 @@ def strict_activate_generated_license(username, key):
 
     _write_json_file("data/users.json", users)
     strict_mark_generated_license_used(key, username=username)
+    bind_user_license_security(username)
 
     return True, "Lisans başarıyla aktifleştirildi."
+
+def get_device_fingerprint():
+    import hashlib
+    from flask import request
+
+    raw = "||".join([
+        str(request.headers.get("User-Agent", "")),
+        str(request.headers.get("Accept-Language", "")),
+        str(request.headers.get("Host", "")),
+    ])
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+def sign_license_payload(username, license_key, expiry, device_id):
+    import hashlib
+    secret = "SPAMSHIELD_PRO_CORE_V1"
+    raw = f"{username}|{license_key}|{expiry}|{device_id}|{secret}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+def bind_user_license_security(username):
+    users = _read_json_file("data/users.json", {})
+    if not isinstance(users, dict) or username not in users:
+        return False
+
+    user = users.get(username, {})
+    license_key = str(user.get("license_key", "")).strip()
+    expiry = str(user.get("license_expiry", "")).strip()
+    if not license_key:
+        return False
+
+    device_id = get_device_fingerprint()
+    signature = sign_license_payload(username, license_key, expiry, device_id)
+
+    user["device_id"] = device_id
+    user["license_signature"] = signature
+    users[username] = user
+    _write_json_file("data/users.json", users)
+    return True
+
+def verify_user_license_security(username):
+    users = _read_json_file("data/users.json", {})
+    if not isinstance(users, dict) or username not in users:
+        return False, "Kullanıcı bulunamadı."
+
+    user = users.get(username, {})
+    license_key = str(user.get("license_key", "")).strip()
+    expiry = str(user.get("license_expiry", "")).strip()
+    stored_device = str(user.get("device_id", "")).strip()
+    stored_signature = str(user.get("license_signature", "")).strip()
+
+    if not license_key:
+        return False, "Lisans bulunamadı."
+
+    current_device = get_device_fingerprint()
+
+    if stored_device and stored_device != current_device:
+        return False, "Bu lisans farklı cihazda kayıtlı."
+
+    expected_signature = sign_license_payload(username, license_key, expiry, current_device)
+
+    if stored_signature and stored_signature != expected_signature:
+        return False, "Lisans bütünlüğü bozulmuş."
+
+    return True, "OK"
 
 @app.route("/activate-license", methods=["GET", "POST"])
 def activate_license():
