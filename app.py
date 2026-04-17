@@ -1968,23 +1968,23 @@ def activate_license():
 
 
 @app.route("/radial")
-@pro_required
 def radial():
-    try:
-        return redirect(url_for("radial_demo"))
-    except:
-        try:
-            stats = {"total_sms": 1, "protected": 1, "blocked": 0}
-            return render_template("radial_demo.html", stats=stats)
-        except:
-            return "<h2>radial_demo.html bulunamadi</h2>"
+    from flask import session
+    username = str(session.get("username") or session.get("user") or "").strip()
+    users = _read_json_file("data/users.json", {})
+    if not isinstance(users, dict):
+        users = {}
+    user = users.get(username, {}) if username else {}
+    current_plan = str(user.get("license_type") or user.get("plan") or "trial").strip().lower()
+    return render_template("radial_demo.html", current_plan=current_plan)
+
 
 @app.route("/")
 def home():
     return redirect("/login")
 
 @app.route("/protection")
-@pro_required
+# @pro_required
 def protection_page():
     return """
     <html><head><meta charset="UTF-8"><title>Koruma</title></head>
@@ -1996,7 +1996,7 @@ def protection_page():
     """
 
 @app.route("/analysis")
-@pro_required
+# @pro_required
 def analysis_page():
     return """
     <html><head><meta charset="UTF-8"><title>Analiz</title></head>
@@ -2008,7 +2008,7 @@ def analysis_page():
     """
 
 @app.route("/blocked")
-@pro_required
+# @pro_required
 def blocked_page():
     return """
     <html><head><meta charset="UTF-8"><title>Engellenenler</title></head>
@@ -2020,7 +2020,7 @@ def blocked_page():
     """
 
 @app.route("/notifications")
-@pro_required
+# @pro_required
 def notifications_page():
     return """
     <html><head><meta charset="UTF-8"><title>Bildirimler</title></head>
@@ -2047,7 +2047,7 @@ def license_page():
     return redirect("/activate")
 
 @app.route("/reports")
-@pro_required
+# @pro_required
 def reports_page():
     return """
     <html><head><meta charset="UTF-8"><title>Raporlar</title></head>
@@ -2059,7 +2059,7 @@ def reports_page():
     """
 
 @app.route("/community")
-@pro_required
+# @pro_required
 def community_page():
     return """
     <html><head><meta charset="UTF-8"><title>Topluluk</title></head>
@@ -2143,6 +2143,72 @@ def give_order_license(order_id):
     return redirect("/orders")
 
 
+
+SS_PROTECTED_PATHS = {
+    "/protection",
+    "/analysis",
+    "/blocked",
+    "/notifications",
+    "/reports",
+    "/community",
+}
+SS_LOGIN_REQUIRED_PATHS = SS_PROTECTED_PATHS | {"/radial"}
+
+def _ss_current_username():
+    from flask import session
+    return str(session.get("username") or session.get("user") or "").strip()
+
+def _ss_user_record(username):
+    users = _read_json_file("data/users.json", {})
+    if not isinstance(users, dict):
+        users = {}
+    return users.get(username, {}) if username else {}
+
+def _ss_is_allowed(username, path):
+    user = _ss_user_record(username)
+    role = str(user.get("role", "")).strip().lower()
+    if role == "admin":
+        return True, "ADMIN_OK"
+
+    if path in SS_PROTECTED_PATHS:
+        plan = str(user.get("license_type") or user.get("plan") or "trial").strip().lower()
+        if plan != "pro":
+            return False, "PRO_REQUIRED"
+
+        if "verify_user_license_security" in globals():
+            return verify_user_license_security(username)
+
+    return True, "OK"
+
+@app.before_request
+def _ss_before_request_guard():
+    from flask import request, redirect
+
+    path = str(request.path or "/").strip()
+
+    if (
+        path.startswith("/static/")
+        or path in {"/login", "/logout", "/activate-license", "/activate", "/favicon.ico"}
+        or path.startswith("/admin")
+        or path.startswith("/orders")
+        or path.startswith("/bot-orders")
+    ):
+        return None
+
+    if path == "/dashboard":
+        return redirect("/radial")
+
+    username = _ss_current_username()
+
+    if path in SS_LOGIN_REQUIRED_PATHS and not username:
+        return redirect("/login")
+
+    if path in SS_PROTECTED_PATHS:
+        ok, msg = _ss_is_allowed(username, path)
+        if not ok:
+            return redirect("/activate-license")
+
+    return None
 
 if __name__ == "__main__":
     load_users()
