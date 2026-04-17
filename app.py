@@ -1781,53 +1781,6 @@ def activate_license():
         success=success
     )
 
-@app.route("/bot-orders")
-def bot_orders_page():
-    from pathlib import Path
-    import json
-
-    path = Path("data/bot_orders.json")
-    orders = []
-
-    if path.exists():
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            if isinstance(data, list):
-                orders = data
-        except Exception:
-            orders = []
-
-    orders = list(reversed(orders))
-    return render_template("bot_orders.html", orders=orders)
-
-@app.route("/bot-orders/give-license/<order_id>", methods=["POST"])
-def give_bot_order_license(order_id):
-    from pathlib import Path
-    import json
-
-    path = Path("data/bot_orders.json")
-    orders = []
-
-    if path.exists():
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            if isinstance(data, list):
-                orders = data
-        except Exception:
-            orders = []
-
-    for order in orders:
-        if str(order.get("order_id", "")) == str(order_id):
-            created_key = create_license(note=f"bot-order:{order_id}")
-            if isinstance(created_key, dict):
-                created_key = created_key.get("key")
-
-            order["status"] = "licensed"
-            order["license_key"] = created_key
-            break
-
-    path.write_text(json.dumps(orders, ensure_ascii=False, indent=2), encoding="utf-8")
-    return redirect("/bot-orders")
 
 
 @app.route("/radial")
@@ -1929,6 +1882,74 @@ def community_page():
 @app.route("/activate")
 def activate_alias():
     return redirect("/activate-license")
+
+def load_order_requests():
+    from pathlib import Path
+    import json
+
+    primary = Path("data/orders.json")
+    legacy = Path("data/bot_orders.json")
+
+    for path in [primary, legacy]:
+        if path.exists():
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                if isinstance(data, list):
+                    return data
+            except Exception:
+                pass
+
+    return []
+
+
+def save_order_requests(orders):
+    from pathlib import Path
+    import json
+
+    Path("data").mkdir(exist_ok=True)
+
+    primary = Path("data/orders.json")
+    legacy = Path("data/bot_orders.json")
+
+    payload = json.dumps(orders, ensure_ascii=False, indent=2)
+
+    primary.write_text(payload, encoding="utf-8")
+    legacy.write_text(payload, encoding="utf-8")
+
+
+def issue_order_license(order_id):
+    orders = load_order_requests()
+
+    for order in orders:
+        if str(order.get("order_id", "")) == str(order_id):
+            if str(order.get("status", "")).strip().lower() == "licensed" and order.get("license_key"):
+                save_order_requests(orders)
+                return order.get("license_key")
+
+            created_key = create_license(note=f"order:{order_id}")
+            if isinstance(created_key, dict):
+                created_key = created_key.get("key")
+
+            order["status"] = "licensed"
+            order["license_key"] = created_key
+            save_order_requests(orders)
+            return created_key
+
+    return None
+
+@app.route("/orders")
+@app.route("/bot-orders")
+def orders_page():
+    orders = load_order_requests()
+    orders = list(reversed(orders))
+    return render_template("bot_orders.html", orders=orders)
+
+
+@app.route("/orders/give-license/<order_id>", methods=["POST"])
+@app.route("/bot-orders/give-license/<order_id>", methods=["POST"])
+def give_order_license(order_id):
+    issue_order_license(order_id)
+    return redirect("/orders")
 
 if __name__ == "__main__":
     load_users()
