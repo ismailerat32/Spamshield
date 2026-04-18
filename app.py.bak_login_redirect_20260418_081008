@@ -7,15 +7,19 @@ def is_user_pro_and_secure(username):
 
     user = users.get(username, {})
     role = str(user.get("role", "")).strip().lower()
+
     if role == "admin":
-        return True, "admin"
+        return True, "ADMIN_OK"
 
     plan = str(user.get("license_type") or user.get("plan") or "trial").strip().lower()
-    if plan == "pro":
-        return True, "pro"
 
-    return False, "PRO lisans gerekli."
+    if plan != "pro":
+        return False, "PRO lisans gerekli."
 
+    if "verify_user_license_security" in globals():
+        return verify_user_license_security(username)
+
+    return True, "OK"
 
 
 def pro_required(f):
@@ -203,55 +207,6 @@ from utils.reset_utils import (
 )
 
 app = Flask(__name__)
-
-
-
-
-def enforce_pro_gate():
-    from flask import request, session, redirect
-
-    path = request.path or "/"
-
-    # Serbest yollar
-    if (
-        path.startswith("/static/")
-        or path in {"/", "/login", "/logout", "/activate-license", "/activate", "/favicon.ico", "/landing", "/radial"}
-        or path.startswith("/admin")
-    ):
-        return None
-
-    protected_paths = {
-        "/protection",
-        "/analysis",
-        "/blocked",
-        "/notifications",
-        "/reports",
-        "/community",
-    }
-
-    # Ayarlar herkese açık kalsın
-    if path == "/settings":
-        return None
-
-    if path not in protected_paths:
-        return None
-
-    username = str(session.get("username") or session.get("user") or "").strip()
-    if not username:
-        return redirect("/login")
-
-    users = _read_json_file("data/users.json", {})
-    if not isinstance(users, dict):
-        return redirect("/activate-license")
-
-    user = users.get(username, {})
-    role = str(user.get("role", "")).strip().lower()
-    plan = str(user.get("license_type") or user.get("plan") or "trial").strip().lower()
-
-    if role == "admin" or plan == "pro":
-        return None
-
-    return redirect("/activate-license")
 
 
 @app.route("/admin/")
@@ -532,7 +487,7 @@ def login():
                 session["username"] = username
 
                 if not is_license_active(user):
-                    return redirect("/radial")
+                    return redirect(url_for("landing"))
 
                 return redirect("/radial")
 
@@ -1142,11 +1097,15 @@ def admin_licenses():
 
 @app.route("/landing")
 def landing():
-    from flask import session, redirect, render_template
-    if session.get("username") or session.get("user"):
-        return redirect("/radial")
-    return render_template("landing.html")
+    settings = load_settings()
+    return render_template(
+        "landing.html",
+        app_name=settings.get("app_name", "SpamShield Premium")
+    )
 
+# -----------------------
+# LOGOUT
+# -----------------------
 @app.route("/logout")
 def logout():
     session.clear()
@@ -2039,9 +1998,6 @@ def radial():
 
 @app.route("/")
 def home():
-    from flask import session, redirect
-    if session.get("username") or session.get("user"):
-        return redirect("/radial")
     return redirect("/login")
 
 @app.route("/protection")
@@ -2244,7 +2200,7 @@ def _ss_is_allowed(username, path):
 
     return True, "OK"
 
-
+@app.before_request
 def _ss_before_request_guard():
     from flask import request, redirect
 
@@ -2350,24 +2306,30 @@ def admin_whitelist_legacy():
 def license_page_2():
     return "<h2>License Page (yakında)</h2>"
 
-def protection_page_2_disabled():
+@app.route("/protection")
+def protection_page_2():
     return "<h2>Protection (yakında)</h2>"
 
 @app.route("/analyze")
 def analyze_page():
     return "<h2>Analyze (yakında)</h2>"
 
-def blocked_page_2_disabled():
+@app.route("/blocked")
+def blocked_page_2():
     return "<h2>Blocked (yakında)</h2>"
 
-def notifications_page_2_disabled():
+@app.route("/notifications")
+def notifications_page_2():
     return "<h2>Notifications (yakında)</h2>"
 
-def reports_page_2_disabled():
+@app.route("/reports")
+def reports_page_2():
     return "<h2>Reports (yakında)</h2>"
 
-def settings_page_2_disabled():
+@app.route("/settings")
+def settings_page_2():
     return "<h2>Settings (yakında)</h2>"
 
-def community_page_2_disabled():
+@app.route("/community")
+def community_page_2():
     return "<h2>Community (yakında)</h2>"

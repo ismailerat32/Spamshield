@@ -532,7 +532,7 @@ def login():
                 session["username"] = username
 
                 if not is_license_active(user):
-                    return redirect("/radial")
+                    return redirect(url_for("landing"))
 
                 return redirect("/radial")
 
@@ -1142,11 +1142,15 @@ def admin_licenses():
 
 @app.route("/landing")
 def landing():
-    from flask import session, redirect, render_template
-    if session.get("username") or session.get("user"):
-        return redirect("/radial")
-    return render_template("landing.html")
+    settings = load_settings()
+    return render_template(
+        "landing.html",
+        app_name=settings.get("app_name", "SpamShield Premium")
+    )
 
+# -----------------------
+# LOGOUT
+# -----------------------
 @app.route("/logout")
 def logout():
     session.clear()

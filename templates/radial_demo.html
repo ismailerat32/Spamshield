@@ -4,87 +4,95 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SpamShield</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/radial_stable.css') }}">
+
+<style>
+body{
+  margin:0;
+  background:#061133;
+  color:white;
+  text-align:center;
+  font-family:sans-serif;
+}
+
+.circle{
+  position: relative;
+  width: 260px;
+  height: 260px;
+  margin: 80px auto;
+}
+
+.slice{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform-origin:center;
+  width:90px;
+  height:90px;
+  border-radius:16px;
+  background:rgba(40,50,90,.8);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  font-size:13px;
+}
+
+.center{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  background:linear-gradient(45deg,#3aa6ff,#3a6bff);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+}
+</style>
 </head>
+
 <body>
-<div class="pro-badge">SpamShield PRO Özellik Kilidi Aktif</div>
-<div id="ssToast" class="ss-toast"></div>
-<div class="container">
 
 <h1>SpamShield</h1>
 <p>Akıllı SMS Koruma Sistemi</p>
 
 <div class="circle">
-    <div class="item" data-type="koruma" data-url="/protection" data-pro="1" data-pro="1">🛡️<span>Koruma</span></div>
-    <div class="item" data-type="analiz" data-url="/analysis" data-pro="1" data-pro="1">📩<span>Analiz</span></div>
-    <div class="item" data-type="engel" data-url="/blocked" data-pro="1" data-pro="1">🚫<span>Engel</span></div>
-    <div class="item" data-type="bildirim" data-url="/notifications" data-pro="1" data-pro="1">🔔<span>Bildirim</span></div>
-    <div class="item" data-type="topluluk" data-url="/community" data-pro="1" data-pro="1">👥<span>Topluluk</span></div>
-    <div class="item" data-type="ayarlar" data-url="/settings">⚙️<span>Ayarlar</span></div>
-    <div class="center">SS</div>
+
+<a class="slice" data-url="/dashboard">🏠<span>Panel</span></a>
+<a class="slice" data-url="/analysis">📩<span>Analiz</span></a>
+<a class="slice" data-url="/blocked">🚫<span>Engel</span></a>
+<a class="slice" data-url="/notifications">🔔<span>Bildirim</span></a>
+<a class="slice" data-url="/settings">⚙️<span>Ayarlar</span></a>
+<a class="slice" data-url="{{ license_target }}">🔑<span>Lisans</span></a>
+<a class="slice" data-url="/reports">📊<span>Raporlar</span></a>
+<a class="slice" data-url="/community">👥<span>Topluluk</span></a>
+<a class="slice" data-url="/protection">🛡️<span>Koruma</span></a>
+
+<div class="center">SS</div>
 </div>
-
-<div id="panel" class="panel panel-show">
-    <h2>Seçim yap</h2>
-    <p>Bir dilime dokun. Aynı dilime tekrar dokunursan ilgili sayfa açılır.</p>
-</div>
-
-</div>
-
-<script src="{{ url_for('static', filename='js/radial_stable.js') }}"></script>
-
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const plan = (window.__CURRENT_PLAN__ || "trial").toLowerCase();
-  const items = document.querySelectorAll(".item[data-url]");
-  const toast = document.getElementById("ssToast");
-  let active = null;
-  let lastLocked = null;
+  const slices = document.querySelectorAll(".slice");
+  const total = slices.length;
+  const radius = 120;
 
-  function showToast(msg){
-    if(!toast) return;
-    toast.textContent = msg;
-    toast.classList.add("show");
-    clearTimeout(window.__ssToastTimer);
-    window.__ssToastTimer = setTimeout(() => {
-      toast.classList.remove("show");
-    }, 1800);
-  }
+  slices.forEach((el, i) => {
+    const angle = (360 / total) * i - 90;
 
-  items.forEach(item => {
-    const needPro = item.dataset.pro === "1";
-    if (needPro && plan !== "pro") {
-      item.classList.add("locked");
+    el.style.transform =
+      `translate(-50%, -50%) rotate(${angle}deg) translateY(-${radius}px)`;
+
+    const inner = el.querySelector("span");
+    if (inner) {
+      inner.style.transform = `rotate(${-angle}deg)`;
     }
 
-    item.addEventListener("click", (e) => {
-      e.preventDefault();
-
-      const url = item.dataset.url || "/";
-      const locked = item.dataset.pro === "1" && plan !== "pro";
-
-      if (locked) {
-        if (lastLocked === item) {
-          window.location.href = "/activate-license";
-          return;
-        }
-        lastLocked = item;
-        items.forEach(i => i.classList.remove("active"));
-        item.classList.add("active");
-        showToast("Bu özellik PRO. Tekrar dokunursan lisans ekranı açılır.");
-        return;
-      }
-
-      if (active === item) {
-        window.location.href = url;
-        return;
-      }
-
-      active = item;
-      lastLocked = null;
-      items.forEach(i => i.classList.remove("active"));
-      item.classList.add("active");
+    el.addEventListener("click", () => {
+      window.location.href = el.dataset.url;
     });
   });
 });
