@@ -1,0 +1,560 @@
+==============================
+ SPAMSHIELD FULL SYSTEM TEST
+==============================
+Tarih: Sat Apr 11 13:58:36 +03 2026
+Klasör: /data/data/com.termux/files/home/spamshield_test_final/spamshield_release
+
+=== 1) PYTHON / APP SYNTAX ===
+[OK] app.py syntax temiz
+
+=== 2) TEMEL DOSYALAR ===
+[OK] app.py
+[OK] templates/admin_panel.html
+[OK] templates/dashboard.html
+[OK] templates/login.html
+
+=== 3) JSON DOSYA KONTROLÜ ===
+[OK] JSON temiz: config.json
+[OK] JSON temiz: feedback.json
+[OK] JSON temiz: licenses.json
+[OK] JSON temiz: logs.json
+[OK] JSON temiz: settings.json
+[OK] JSON temiz: spamshield_runtime_settings.json
+[OK] JSON temiz: users.json
+[OK] JSON temiz: data/ai_memory.json
+[OK] JSON temiz: data/licenses.json
+[OK] JSON temiz: data/payment_requests.json
+[OK] JSON temiz: data/reset_tokens.json
+[OK] JSON temiz: data/seen_ids.json
+[OK] JSON temiz: data/settings.json
+[OK] JSON temiz: data/spam_logs.json
+[OK] JSON temiz: data/upgrade_requests.json
+[OK] JSON temiz: data/users.json
+[OK] JSON temiz: data/whitelist.json
+
+=== 4) ROUTE ANALIZI ===
+Toplam route: 47
+Toplam function: 89
+
+[UYARI] Tekrarlanan route'lar:
+ - /admin/ ( 3 kez )
+ - /admin ( 3 kez )
+ - /admin/whitelist ( 2 kez )
+
+=== 5) KRITIK DOSYA YOLLARI ===
+82:    users_file = globals().get("USERS_FILE", "data/users.json")
+100:USERS_FILE = "data/users.json"
+101:SETTINGS_FILE = "data/settings.json"
+102:LICENSES_FILE = "data/licenses.json"
+103:LOGS_FILE = "data/logs.json"
+104:FEEDBACK_FILE = "data/feedback.json"
+107:    return read_json(FEEDBACK_FILE, [])
+110:    write_json(FEEDBACK_FILE, items)
+113:    return read_json(LOGS_FILE, [])
+116:    write_json(LOGS_FILE, logs)
+168:    users = read_json(USERS_FILE, None)
+185:    write_json(USERS_FILE, users)
+191:    settings = read_json(SETTINGS_FILE, None)
+204:    write_json(SETTINGS_FILE, settings)
+210:    return read_json(LICENSES_FILE, {})
+213:    write_json(LICENSES_FILE, licenses)
+1201:LICENSES_FILE = "data/licenses.json"
+1207:    if not os.path.exists(LICENSES_FILE):
+1208:        with open(LICENSES_FILE, "w", encoding="utf-8") as f:
+1212:        with open(LICENSES_FILE, "r", encoding="utf-8") as f:
+1220:    with open(LICENSES_FILE, "w", encoding="utf-8") as f:
+1384:SETTINGS_FILE = "spamshield_runtime_settings.json"
+1387:    if not os.path.exists(SETTINGS_FILE):
+1396:    with open(SETTINGS_FILE, "r") as f:
+1400:    with open(SETTINGS_FILE, "w") as f:
+1436:SPAM_LOGS_FILE = "data/spam_logs.json"
+1441:    SPAM_LOGS_FILE = "data/spam_logs.json"
+1443:    with open(SPAM_LOGS_FILE, "w", encoding="utf-8") as f:
+1447:    if not os.path.exists(SPAM_LOGS_FILE):
+1450:        with open(SPAM_LOGS_FILE, "r", encoding="utf-8") as f:
+1509:RUNTIME_SETTINGS_FILE = "spamshield_runtime_settings.json"
+1521:    if not os.path.exists(RUNTIME_SETTINGS_FILE):
+1522:        with open(RUNTIME_SETTINGS_FILE, "w", encoding="utf-8") as f:
+1527:        with open(RUNTIME_SETTINGS_FILE, "r", encoding="utf-8") as f:
+1536:    with open(RUNTIME_SETTINGS_FILE, "w", encoding="utf-8") as f:
+1667:    if not os.path.exists(LICENSES_FILE):
+
+=== 6) USERS DOSYASI CIFT MI ===
+./data/licenses.json
+./data/settings.json
+./data/users.json
+./feedback.json
+./licenses.json
+./logs.json
+./settings.json
+./users.json
+
+=== 7) TEMPLATE ACTION KONTROLÜ ===
+516:          <form method="POST" action="/admin/add-user" id="addUserForm">
+583:              <form method="POST" action="/admin/update-license/{{ row.username }}" class="normal-update-form">
+597:                <form method="POST" action="/admin/generate-license/{{ row.username }}" class="ajax-form ajax-generate-form">
+607:                <form method="POST" action="/admin/toggle-ban/{{ row.username }}" class="ajax-form ajax-ban-form">
+
+=== 8) ADMIN ROUTELARI ===
+71:@app.route("/admin/")
+72:@app.route("/admin")
+73:def admin_home():
+230:def admin_required():
+407:@app.route("/admin")
+408:@app.route("/admin/")
+409:def admin_home_alias():
+419:@app.route("/admin/whitelist", methods=["GET", "POST"])
+420:def admin_whitelist():
+436:@app.route("/admin/panel")
+437:def admin_panel():
+460:@app.route("/admin/add-user", methods=["POST"])
+461:def admin_add_user():
+502:@app.route("/admin/toggle-ban/<target_username>", methods=["POST"])
+503:def admin_toggle_ban(target_username):
+518:@app.route("/admin/generate-license/<target_username>", methods=["POST"])
+519:def admin_generate_license(target_username):
+541:@app.route("/admin/approve-upgrade/<target_username>", methods=["POST"])
+542:def admin_approve_upgrade(target_username):
+572:@app.route("/admin/update-license/<target_username>", methods=["POST"])
+573:def admin_update_license(target_username):
+886:@app.route("/admin/licenses", methods=["GET", "POST"])
+887:def admin_licenses():
+1296:@app.route("/admin/payment-requests")
+1297:def admin_payment_requests():
+1406:@app.route("/admin")
+1407:@app.route("/admin/")
+1408:def admin_overview():
+1460:@app.route("/admin/mark-clean", methods=["POST"])
+1461:def admin_mark_clean():
+1492:@app.route("/admin/spam-logs")
+1493:def admin_spam_logs():
+1539:@app.route("/admin/settings", methods=["GET", "POST"])
+1543:def admin_settings():
+1682:@app.route("/admin/approve-payment/<username>/<license_key>")
+1708:@app.route("/admin/whitelist", methods=["GET","POST"])
+1709:def admin_whitelist():
+
+=== 9) render_template CAGRILARI ===
+361:        return render_template("login.html", error="Kullanıcı adı veya şifre yanlış.")
+363:    return render_template("login.html", error="")
+380:            return render_template("register.html", error="Tüm alanları doldurun.")
+383:            return render_template("register.html", error="Bu kullanıcı zaten var.")
+386:            return render_template("register.html", error="Şifreler eşleşmiyor.")
+401:    return render_template("register.html", error="")
+433:    return render_template("whitelist.html", whitelist=whitelist)
+457:    return render_template("admin_panel.html", users=rows, upgrade_requests=requests)
+657:    return render_template(
+676:    return render_template(
+718:    return render_template("add_user.html", message=message, error=error)
+808:    return render_template(
+849:    return render_template("change.html", message=message, error=error)
+881:    return render_template("setting.html", config=settings, message=message)
+902:            return render_template(
+910:            return render_template(
+945:        return render_template(
+953:    return render_template(
+962:    return render_template(
+1100:            return render_template(
+1118:        return render_template(
+1127:    return render_template(
+1153:            return render_template("reset.html", error="Tüm alanları doldur")
+1156:            return render_template("reset.html", error="Kullanıcı bulunamadı")
+1168:            return render_template("reset.html", error="Çok fazla hatalı deneme yapıldı. Yeni kod oluştur.")
+1176:            return render_template("reset.html", error=f"Kod yanlış veya geçersiz. Kalan deneme: {kalan}")
+1179:            return render_template("reset.html", error="Bu kod daha önce kullanılmış")
+1187:            return render_template("reset.html", error="Kodun süresi dolmuş")
+1196:        return render_template("reset.html", success="Şifre başarıyla değiştirildi")
+1198:    return render_template("reset.html")
+1280:    return render_template(
+1294:    return render_template("pricing.html")
+1304:    return render_template("admin_payment_requests.html", requests=requests_data)
+1344:            return render_template(
+1351:            return render_template(
+1358:            return render_template(
+1368:            return render_template(
+1375:        return render_template("reset_success.html")
+1377:    return render_template("reset_code.html", error=None, success=None)
+1432:    return render_template("admin_overview.html", stats=stats, recent_logs=recent_logs)
+1501:    return render_template("admin_spam_logs.html", spam_logs=spam_logs)
+1574:    return render_template("admin_settings.html", settings=settings)
+1615:    return render_template(
+1656:    return render_template(
+1721:    return render_template("whitelist.html", whitelist=whitelist)
+
+=== 10) TEMPLATE DOSYALARI ===
+templates/activate.html
+templates/activate_license.html
+templates/add_user.html
+templates/admin_licenses.html
+templates/admin_overview.html
+templates/admin_panel.html
+templates/admin_panel.html.ADMIN_FINAL_FIX_20260410_124739
+templates/admin_panel.html.FINAL_BIND_20260410_120915
+templates/admin_panel.html.FIX_FINAL_20260410_121207
+templates/admin_panel.html.FULLFIX_20260410_115504
+templates/admin_panel.html.admin_hardfix_20260408_200539
+templates/admin_panel.html.anchor_fix_20260409_075936
+templates/admin_panel.html.bak.20260410_161442
+templates/admin_panel.html.before_fix_20260408_200050
+templates/admin_panel.html.copy_button_fix_20260410_174026
+templates/admin_panel.html.copy_clean_reset_20260410_210438
+templates/admin_panel.html.copy_hardfix_20260410_174406
+templates/admin_panel.html.copy_hardfix_20260410_205727
+templates/admin_panel.html.copyfix_20260410_173607
+templates/admin_panel.html.final_fix_20260410_123411
+templates/admin_panel.html.fix_key_20260410_115254
+templates/admin_panel.html.fix_list_20260410_161811
+templates/admin_panel.html.flash_20260410_113929
+templates/admin_panel.html.form_fix_20260408_194747
+templates/admin_panel.html.full_upgrade_20260411_101614
+templates/admin_panel.html.full_working_20260411_004211
+templates/admin_panel.html.license_gen_20260410_071215
+templates/admin_panel.html.license_hardfix_20260410_120659
+templates/admin_panel.html.list_fix_20260409_075359
+templates/admin_panel.html.openfix_20260411_005552
+templates/admin_panel.html.premium_20260410_162550
+templates/admin_panel.html.premium_20260410_172544
+templates/admin_panel.html.req_fix_20260409_192934
+templates/admin_panel.html.route_fix_20260411_004849
+templates/admin_panel.html.toast_and_key_fix_20260410_114922
+templates/admin_panel.html.toast_final_20260410_120149
+templates/admin_panel.html.toast_final_fix_20260411_100535
+templates/admin_panel.html.toast_pos_fix_20260411_100442
+templates/admin_panel.html.toast_pro_20260411_100643
+templates/admin_panel.html.toastfix_20260411_095708
+templates/admin_panel.html.ultra_fix_20260411_003518
+templates/admin_panel.html.update_submit_fix_20260411_102242
+templates/admin_panel.html.upgrade_request_20260409_191724
+templates/admin_panel.html.user_key_fix_20260410_115903
+templates/admin_panel_BACKUP_20260409_074902.html
+templates/admin_panel_backup.html
+templates/admin_payment_requests.html
+templates/admin_payments.html
+templates/admin_settings.html
+templates/admin_spam_logs.html
+templates/admin_spam_logs.html.category_confidence_20260408_172715
+templates/admin_spam_logs.html.encoding_fix_20260408_173856
+templates/admin_whitelist.html
+templates/admin_whitelist.html.ui_fix_20260407_211035
+templates/buy_license.html
+templates/change.html
+templates/dashboard.html
+templates/dashboard.html.BROKEN_20260408_173305
+templates/dashboard.html.admin_panel_link_20260408_184043
+templates/dashboard.html.bak
+templates/dashboard.html.bak.20260402_233145
+templates/dashboard.html.bak_20260407_181511
+templates/dashboard.html.category_confidence_20260408_172715
+templates/dashboard.html.encoding_fix_20260408_173855
+templates/dashboard.html.feedback_bak
+templates/dashboard.html.final_menu_fix_20260408_164807
+templates/dashboard.html.final_ui_20260408_183434
+templates/dashboard.html.fix_menu_20260408_164507
+templates/dashboard.html.header_pro_20260409_124707
+templates/dashboard.html.menu_final2_20260408_182903
+templates/dashboard.html.menu_final_20260408_182513
+templates/dashboard.html.menu_fix_20260407_210537
+templates/dashboard.html.menu_order_fix_20260408_142517
+templates/dashboard.html.menu_pro_20260408_183028
+templates/dashboard.html.menu_v2_20260408_182727
+templates/dashboard.html.pricing_final_20260409_152303
+templates/dashboard.html.pricing_final_20260409_152511
+templates/dashboard.html.pro_button_fix_20260409_122335
+templates/dashboard.html.pro_polish_20260409_124826
+templates/dashboard.html.quick_buttons_20260406_155918
+templates/dashboard.html.remove_white_button_20260408_164111
+templates/dashboard.html.role_fix_20260409_125029
+templates/dashboard.html.route_alias_fix_20260408_175519
+templates/dashboard.html.ui_fix_20260408_172339
+templates/dashboard.html.ultra_20260408_183244
+templates/dashboard.html.upgrade_flow_20260409_153836
+templates/dashboard_DO_NOT_TOUCH.html
+templates/dashboard_LOCKED_FINAL.html
+templates/dashboard_menu_test.html
+templates/forgot.html
+templates/forgot.html.bak_20260403_154920
+templates/forgot.html.bak_clean_20260404_104801
+templates/forgot.html.bak_fix_20260404_011830
+templates/landing.html
+templates/login.html
+templates/login.html.bak
+templates/login.html.bak_forgot_20260403_143509
+templates/manage_license.html
+templates/my_license.html
+templates/pricing.html
+templates/pricing.html.pricing_final_20260409_152304
+templates/pricing.html.pricing_final_20260409_152511
+templates/register.html
+templates/reset.html
+templates/reset.html.bak_20260403_163026
+templates/reset.html.bak_fixed_20260404_101653
+templates/reset.html.bak_strength_20260403_163700
+templates/reset_code.html
+templates/reset_password.html
+templates/reset_success.html
+templates/setting.html
+templates/upgrade.html
+templates/upgrade.html.upgrade_request_20260409_191724
+templates/users.html
+templates/whitelist.html
+
+=== 11) FLASH / TOAST / JS KONTROL ===
+358:    .license-box{
+372:    .license-box:active{
+449:    .section.section-add .left{ color:#8d63ff; }
+450:    .section.section-users .left{ color:#ffd34f; }
+451:    .section.section-upgrades .left{ color:#ffffff; }
+506:    <div class="section section-add">
+537:    <div class="section section-users active">
+576:              <div class="license-box" data-copy="{{ row.license_key if row.license_key else '' }}">
+597:                <form method="POST" action="/admin/generate-license/{{ row.username }}" class="ajax-form ajax-generate-form">
+607:                <form method="POST" action="/admin/toggle-ban/{{ row.username }}" class="ajax-form ajax-ban-form">
+624:    <div class="section section-upgrades">
+669:      function showTopToast(message){
+691:      async function copyText(text){
+693:          showTopToast("Kopyalanacak lisans yok");
+707:          showTopToast("Lisans kopyalandı");
+710:          showTopToast("Kopyalama başarısız");
+714:      document.querySelectorAll(".license-box[data-copy]").forEach(function(el){
+719:          copyText(text);
+778:          const response = await fetch(form.action, {
+794:          showTopToast("İşlem başarısız");
+800:            document.querySelectorAll(".ajax-generate-form").forEach(function(form){
+819:              const licenseBox = card.querySelector(".license-box");
+833:              copyText(key);
+835:              if (data.ok === "license_exists") showTopToast("Lisans zaten var");
+836:              else showTopToast("Lisans üretildi");
+838:              showTopToast("Lisans bilgisi alınamadı");
+844:      document.querySelectorAll(".ajax-ban-form").forEach(function(form){
+877:              showTopToast("Kullanıcı banlandı");
+894:              showTopToast("Ban kaldırıldı");
+906:      if (ok === "license_generated") showTopToast("Lisans üretildi");
+907:      else if (ok === "license_exists") showTopToast("Lisans zaten var");
+908:      else if (ok === "done") showTopToast("İşlem tamamlandı");
+909:      else if (ok === "user_added") showTopToast("Kullanıcı eklendi");
+910:      else if (ok === "user_exists") showTopToast("Bu kullanıcı zaten var");
+
+=== 12) SAVE / LOAD FONKSIYONLARI ===
+106:def load_feedback():
+107:    return read_json(FEEDBACK_FILE, [])
+109:def save_feedback(items):
+110:    write_json(FEEDBACK_FILE, items)
+112:def load_logs():
+113:    return read_json(LOGS_FILE, [])
+115:def save_logs(logs):
+116:    write_json(LOGS_FILE, logs)
+121:def read_json(path, default):
+127:def write_json(path, data):
+167:def load_users():
+168:    users = read_json(USERS_FILE, None)
+184:def save_users(users):
+185:    write_json(USERS_FILE, users)
+190:def load_settings():
+191:    settings = read_json(SETTINGS_FILE, None)
+203:def save_settings(settings):
+204:    write_json(SETTINGS_FILE, settings)
+209:def load_licenses():
+210:    return read_json(LICENSES_FILE, {})
+212:def save_licenses(licenses):
+213:    write_json(LICENSES_FILE, licenses)
+297:def load_whitelist():
+307:def save_whitelist(data):
+599:def load_upgrade_requests():
+609:def save_upgrade_requests(data):
+1203:def load_licenses():
+1218:def save_licenses(data):
+1386:def load_runtime_settings():
+1399:def save_runtime_settings(data):
+1440:def save_spam_logs(logs):
+1446:def load_spam_logs():
+1511:def load_runtime_settings():
+1535:def save_runtime_settings(data):
+
+=== 13) SON LOG HATALARI ===
+
+=== 14) ADMIN PANEL ROUTE BLOKLARI ===
+@app.route("/admin/panel")
+def admin_panel():
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    rows = []
+    for username, data in users.items():
+        rows.append({
+            "username": username,
+            "role": data.get("role", "user"),
+            "license_type": data.get("license_type", "trial"),
+            "license_expiry": data.get("license_expiry", ""),
+            "license_key": data.get("license_key", ""),
+            "is_banned": bool(data.get("is_banned", False)),
+        })
+
+    rows = sorted(rows, key=lambda x: x["username"].lower())
+    requests = load_upgrade_requests()
+    return render_template("admin_panel.html", users=rows, upgrade_requests=requests)
+
+
+@app.route("/admin/add-user", methods=["POST"])
+def admin_add_user():
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "").strip()
+    role = request.form.get("role", "user").strip() or "user"
+    license_type = request.form.get("license_type", "trial").strip() or "trial"
+    license_expiry = request.form.get("license_expiry", "").strip()
+
+    if not username or not password:
+        return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+    users = load_users()
+    if username in users:
+        return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+    try:
+        from werkzeug.security import generate_password_hash
+        password_hash = generate_password_hash(password)
+    except Exception:
+        password_hash = password
+
+    users[username] = {
+        "password_hash": password_hash,
+        "role": role,
+        "license_type": license_type,
+        "license_expiry": license_expiry,
+        "is_banned": False,
+    }
+
+    # eski yapılarla uyum için
+    if "password" not in users[username]:
+        users[username]["password"] = password
+
+    save_users(users)
+    return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+
+@app.route("/admin/toggle-ban/<target_username>", methods=["POST"])
+def admin_toggle_ban(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    if target_username in users:
+        current = bool(users[target_username].get("is_banned", False))
+        users[target_username]["is_banned"] = not current
+        save_users(users)
+
+    return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+
+@app.route("/admin/generate-license/<target_username>", methods=["POST"])
+def admin_generate_license(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    if target_username not in users:
+        return redirect("/admin/panel?ok=user_not_found")
+
+    current = str(users[target_username].get("license_key", "")).strip().upper()
+
+    invalid_keys = {"", "TRIAL", "PRO", "FREE", "NONE", "-", "NULL"}
+    if current in invalid_keys or not current.startswith("LIC-"):
+        users[target_username]["license_key"] = generate_simple_license_key(users)
+        save_users(users)
+        current = users[target_username]["license_key"]
+        print("LICENSE_GENERATED:", target_username, current, flush=True)
+        return redirect(f"/admin/panel?ok=license_generated&license_key={current}#user-{target_username}")
+    else:
+        print("LICENSE_ALREADY_EXISTS:", target_username, current, flush=True)
+        return redirect(f"/admin/panel?ok=license_exists&license_key={current}#user-{target_username}")
+@app.route("/admin/approve-upgrade/<target_username>", methods=["POST"])
+def admin_approve_upgrade(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    if target_username not in users:
+        return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+    users[target_username]["license_type"] = "pro"
+    users[target_username]["license_mode"] = "pro"
+    if not str(users[target_username].get("license_expiry", "")).strip():
+        users[target_username]["license_expiry"] = "2099-01-01"
+
+    current_key = str(users[target_username].get("license_key", "")).strip().upper()
+    if not current_key:
+        users[target_username]["license_key"] = generate_simple_license_key(users)
+
+    save_users(users)
+
+    requests = load_upgrade_requests()
+    for row in requests:
+        if row.get("username") == target_username and row.get("status") == "pending":
+            row["status"] = "approved"
+    save_upgrade_requests(requests)
+
+    print("UPGRADE_APPROVED:", target_username, flush=True)
+    return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+@app.route("/admin/update-license/<target_username>", methods=["POST"])
+def admin_update_license(target_username):
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect(url_for("dashboard"))
+
+    users = load_users()
+    if target_username not in users:
+        print("LICENSE_UPDATE_ERROR: user not found ->", target_username, flush=True)
+        return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+    license_type = request.form.get("license_type", "trial").strip() or "trial"
+    license_expiry = request.form.get("license_expiry", "").strip()
+
+    users[target_username]["license_type"] = license_type
+    users[target_username]["license_mode"] = license_type
+    users[target_username]["license_expiry"] = license_expiry
+
+    save_users(users)
+
+    print("LICENSE_UPDATE_OK:", target_username, "type=", license_type, "expiry=", license_expiry, flush=True)
+    return redirect(f"/admin/panel?ok=license_generated#user-{target_username}")
+
+
+UPGRADE_REQUESTS_FILE = "data/upgrade_requests.json"
+
+def load_upgrade_requests():
+    if not os.path.exists(UPGRADE_REQUESTS_FILE):
+        return []
+    try:
+        with open(UPGRADE_REQUESTS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+def save_upgrade_requests(data):
+    os.makedirs("data", exist_ok=True)
+
+=== 15) OZEL HATA AVCISI ===
+target_username tanımsız redirect riski: 43
+datetime.utcnow kullanımı: 4
+birden fazla /admin route: 3
+birden fazla /admin/ route: 3
+
+=== 16) HIZLI OZET ===
+Bu raporda [HATA] ve [UYARI] satırlarını kontrol et.
+

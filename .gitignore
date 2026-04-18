@@ -1,21 +1,17 @@
-# backups
-*.bak
-*.backup
-*.old
-*.fix*
-*.whitelist_*
-*.dashboard_*
-
-# python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
-# logs
-logs/
-
-# runtime data
-data/*.json
-!data/.keep
-
-# misc
+*.tar.gz
 *.log
+*.bak
+*.tmp
+
+app.py.bak_*
+_stage1_archive/
+spamshield_snapshots/
+telegram_cleanup_backup/
+
+.env
+*.env
