@@ -3648,6 +3648,11 @@ except Exception as e:
 # ============================================================
 
 
+
+@app.route("/u/legal")
+def ss_legal_notice():
+    return render_template("legal_notice.html")
+
 if __name__ == "__main__":
     load_users()
     load_settings()

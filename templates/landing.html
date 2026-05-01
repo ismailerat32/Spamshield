@@ -199,7 +199,34 @@
       .logo{width:84px;height:84px;font-size:34px}
       .trust{grid-template-columns:1fr}
     }
-  </style>
+  
+/* SPAMSHIELD_COPYRIGHT_STYLE_START */
+.ss-copyright{
+  margin:18px auto 8px;
+  text-align:center;
+  color:rgba(255,255,255,.48);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.2px;
+  line-height:1.35;
+}
+.ss-copyright a{
+  color:rgba(32,240,138,.78);
+  text-decoration:none;
+  font-weight:900;
+}
+.ss-copyright a:hover{
+  text-decoration:underline;
+}
+@media(max-width:480px){
+  .ss-copyright{
+    margin-top:14px;
+    font-size:11px;
+  }
+}
+/* SPAMSHIELD_COPYRIGHT_STYLE_END */
+
+</style>
 </head>
 <body>
   <div class="glow"></div>
@@ -255,5 +282,12 @@
       </div>
     </section>
   </div>
+
+<!-- SPAMSHIELD_COPYRIGHT_BLOCK_START -->
+<div class="ss-copyright">
+  © 2026 SpamShield PRO · Tüm hakları saklıdır. · <a href="/u/legal">Telif ve Yasal Bildirim</a>
+</div>
+<!-- SPAMSHIELD_COPYRIGHT_BLOCK_END -->
+
 </body>
 </html>
