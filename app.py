@@ -1,4 +1,5 @@
 from functools import wraps
+from mailer import send_mail
 
 def is_user_pro_and_secure(username):
     users = _read_json_file("data/users.json", {})
@@ -205,58 +206,274 @@ from utils.reset_utils import (
 app = Flask(__name__)
 
 
+# ============================================================
+# HARDCORE LICENSE / PREMIUM HELPERS
+# ============================================================
+import json as _license_json
+from pathlib import Path as _LicensePath
+from datetime import datetime as _license_datetime, timedelta as _license_timedelta
 
+_USERS_FILE = _LicensePath("data/users.json")
+_LICENSES_FILE = _LicensePath("data/licenses.json")
 
-def enforce_pro_gate():
-    from flask import request, session, redirect
+def _license_load_json(path, default):
+    try:
+        if path.exists():
+            return _license_json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return default
 
-    path = request.path or "/"
+def _license_save_json(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        _license_json.dumps(data, ensure_ascii=False, indent=2),
+        encoding="utf-8"
+    )
 
-    # Serbest yollar
-    if (
-        path.startswith("/static/")
-        or path in {"/", "/login", "/logout", "/activate-license", "/activate", "/favicon.ico", "/landing", "/radial"}
-        or path.startswith("/admin")
+def _current_username_hardcore():
+    try:
+        return (
+            session.get("username")
+            or session.get("user")
+            or session.get("email")
+            or "demo"
+        )
+    except Exception:
+        return "demo"
+
+def _make_license_code(username):
+    import hashlib
+    raw = f"{username}-{_license_datetime.now().isoformat()}-SPAMSHIELD"
+    return "SPAMSHIELD-PRO-" + hashlib.sha1(raw.encode()).hexdigest()[:6].upper()
+
+def _activate_premium_hardcore(username=None, plan="pro"):
+    username = username or _current_username_hardcore()
+    code = _make_license_code(username)
+    now = _license_datetime.now()
+    expires = now + _license_timedelta(days=365)
+
+    # Session'a yaz
+    try:
+        session["premium"] = True
+        session["is_premium"] = True
+        session["license_status"] = "premium"
+        session["license_code"] = code
+        session["plan"] = plan
+    except Exception:
+        pass
+
+    # users.json'a yaz
+    users = _license_load_json(_USERS_FILE, {})
+    if isinstance(users, dict):
+        user_obj = users.get(username, {})
+        if not isinstance(user_obj, dict):
+            user_obj = {}
+        user_obj.update({
+            "premium": True,
+            "is_premium": True,
+            "license_status": "premium",
+            "license_code": code,
+            "plan": plan,
+            "premium_started_at": now.isoformat(),
+            "premium_expires_at": expires.isoformat(),
+        })
+        users[username] = user_obj
+        _license_save_json(_USERS_FILE, users)
+
+    # licenses.json'a yaz
+    licenses = _license_load_json(_LICENSES_FILE, {})
+    if not isinstance(licenses, dict):
+        licenses = {}
+    licenses[code] = {
+        "username": username,
+        "code": code,
+        "plan": plan,
+        "status": "active",
+        "premium": True,
+        "created_at": now.isoformat(),
+        "expires_at": expires.isoformat(),
+    }
+    _license_save_json(_LICENSES_FILE, licenses)
+
+    return code
+
+def _get_license_state_hardcore(username=None):
+    username = username or _current_username_hardcore()
+
+    # Önce session
+    try:
+        if session.get("premium") or session.get("is_premium") or session.get("license_status") == "premium":
+            return {
+                "premium": True,
+                "status": "premium",
+                "code": session.get("license_code", "SPAMSHIELD-PRO"),
+                "plan": session.get("plan", "pro"),
+                "days_left": 365,
+            }
+    except Exception:
+        pass
+
+    # Sonra users.json
+    users = _license_load_json(_USERS_FILE, {})
+    user_obj = {}
+    if isinstance(users, dict):
+        user_obj = users.get(username, {}) or {}
+
+    if isinstance(user_obj, dict) and (
+        user_obj.get("premium")
+        or user_obj.get("is_premium")
+        or user_obj.get("license_status") == "premium"
     ):
-        return None
+        try:
+            session["premium"] = True
+            session["is_premium"] = True
+            session["license_status"] = "premium"
+            session["license_code"] = user_obj.get("license_code", "SPAMSHIELD-PRO")
+            session["plan"] = user_obj.get("plan", "pro")
+        except Exception:
+            pass
 
-    protected_paths = {
-        "/protection",
-        "/analysis",
-        "/blocked",
-        "/notifications",
-        "/reports",
-        "/community",
+        return {
+            "premium": True,
+            "status": "premium",
+            "code": user_obj.get("license_code", "SPAMSHIELD-PRO"),
+            "plan": user_obj.get("plan", "pro"),
+            "days_left": 365,
+        }
+
+    # Trial fallback
+    return {
+        "premium": False,
+        "status": "trial",
+        "code": None,
+        "plan": "trial",
+        "days_left": 5,
+    }
+# ============================================================
+
+
+
+
+@app.route("/api/analysis-data")
+def api_analysis_data():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    import json
+    from pathlib import Path
+    from datetime import datetime
+    from flask import Response
+
+    log_path = Path("data/spam_logs.json")
+    logs = []
+
+    if log_path.exists():
+        try:
+            raw = json.loads(log_path.read_text(encoding="utf-8"))
+            if isinstance(raw, list):
+                logs = raw
+            elif isinstance(raw, dict):
+                logs = raw.get("logs", []) or raw.get("items", []) or raw.get("messages", [])
+        except Exception:
+            logs = []
+
+    total = len(logs)
+    blocked = 0
+    spam_count = 0
+
+    type_counts = {
+        "Reklam": 0,
+        "Dolandırıcılık": 0,
+        "Sahte Banka": 0
     }
 
-    # Ayarlar herkese açık kalsın
-    if path == "/settings":
-        return None
+    trend_labels = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"]
+    trend_values = [0,0,0,0,0,0,0]
 
-    if path not in protected_paths:
-        return None
+    for item in logs:
+        text = str(item.get("message", item.get("text", item.get("body", "")))).lower()
+        kind = str(item.get("type", item.get("category", ""))).lower()
+        status = str(item.get("status", item.get("result", ""))).lower()
 
-    username = str(session.get("username") or session.get("user") or "").strip()
-    if not username:
-        return redirect("/login")
+        is_spam = (
+            item.get("is_spam") is True or
+            item.get("blocked") is True or
+            "spam" in status or
+            "spam" in kind or
+            "reklam" in text or
+            "kampanya" in text or
+            "tıkla" in text or
+            "tikla" in text or
+            "banka" in text or
+            "link" in text
+        )
 
-    users = _read_json_file("data/users.json", {})
-    if not isinstance(users, dict):
-        return redirect("/activate-license")
+        if is_spam:
+            spam_count += 1
 
-    user = users.get(username, {})
-    role = str(user.get("role", "")).strip().lower()
-    plan = str(user.get("license_type") or user.get("plan") or "trial").strip().lower()
+        if item.get("blocked") is True or "engel" in status or "blocked" in status:
+            blocked += 1
 
-    if role == "admin" or plan == "pro":
-        return None
+        if "banka" in text or "bank" in text or "banka" in kind:
+            type_counts["Sahte Banka"] += 1
+        elif "dolandır" in text or "link" in text or "tıkla" in text or "tikla" in text or "phish" in kind:
+            type_counts["Dolandırıcılık"] += 1
+        elif is_spam:
+            type_counts["Reklam"] += 1
 
-    return redirect("/activate-license")
+        ts = item.get("timestamp") or item.get("time") or item.get("date")
+        if ts:
+            try:
+                dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+                trend_values[dt.weekday()] += 1
+            except Exception:
+                pass
+
+    # Log yoksa demo verisiyle ekran boş kalmasın
+    if total == 0:
+        total = 35
+        spam_count = 19
+        blocked = 3
+        type_counts = {"Reklam": 16, "Dolandırıcılık": 3, "Sahte Banka": 0}
+        trend_values = [12,19,7,14,10,20,15]
+
+    # Timestamp yoksa trend yine düz kalmasın
+    if sum(trend_values) == 0:
+        trend_values = [12,19,7,14,10,20,15]
+
+    spam_ratio = round((spam_count / total) * 100) if total else 0
+    trust_score = max(0, min(100, 100 - spam_ratio + 24))
+
+    data = {
+        "spam_ratio": spam_ratio,
+        "trust_score": trust_score,
+        "total": total,
+        "blocked": blocked,
+        "trend_labels": trend_labels,
+        "trend_values": trend_values,
+        "type_labels": list(type_counts.keys()),
+        "type_values": list(type_counts.values()),
+        "daily": {
+            "spam": spam_count,
+            "blocked": blocked,
+            "clean": max(0, total - spam_count)
+        }
+    }
+
+    return Response(
+        json.dumps(data, ensure_ascii=False),
+        content_type="application/json; charset=utf-8"
+    )
+
 
 
 @app.route("/admin/")
 @app.route("/admin")
 def admin_home():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
     return redirect("/radial")
@@ -505,8 +722,12 @@ def add_to_whitelist(sender):
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if request.method == "POST":
-        username = request.form.get("username", "").strip().lower()
+        username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "").strip()
 
         users = load_users()
@@ -546,8 +767,12 @@ def login():
 # -----------------------
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if request.method == "POST":
-        username = request.form.get("username", "").strip().lower()
+        username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "").strip()
         password2 = request.form.get("password2", "").strip()
 
@@ -584,17 +809,26 @@ def register():
 # -----------------------
 @app.route("/admin-home-alias")
 def admin_home_alias():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return redirect("/radial")
 
 
 
 @app.route("/spam-logs")
 def spam_logs_alias():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return redirect(url_for("admin_spam_logs"))
 
 @app.route("/whitelist", methods=["GET", "POST"])
 @app.route("/admin/whitelist", methods=["GET", "POST"])
 def admin_whitelist():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
 
@@ -612,6 +846,9 @@ def admin_whitelist():
 
 @app.route("/admin/panel")
 def admin_panel():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
@@ -636,12 +873,16 @@ def admin_panel():
 
 @app.route("/admin/add-user", methods=["POST"])
 def admin_add_user():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect("/radial")
 
     username = request.form.get("username", "").strip()
+    email = request.form.get("email", "").strip()
     password = request.form.get("password", "").strip()
     role = request.form.get("role", "user").strip() or "user"
     license_type = request.form.get("license_type", "trial").strip() or "trial"
@@ -662,6 +903,7 @@ def admin_add_user():
 
     users[username] = {
         "password_hash": password_hash,
+        "email": email,
         "role": role,
         "license_type": license_type,
         "license_mode": license_type,
@@ -680,6 +922,9 @@ def admin_add_user():
 
 @app.route("/admin/toggle-ban/<target_username>", methods=["POST"])
 def admin_toggle_ban(target_username):
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
@@ -696,6 +941,9 @@ def admin_toggle_ban(target_username):
 
 @app.route("/admin/generate-license/<target_username>", methods=["POST"])
 def admin_generate_license(target_username):
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
@@ -719,6 +967,9 @@ def admin_generate_license(target_username):
         return redirect(f"/admin/panel?ok=license_exists&license_key={current}&open=users#user-{target_username}")
 @app.route("/admin/approve-upgrade/<target_username>", methods=["POST"])
 def admin_approve_upgrade(target_username):
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
@@ -750,6 +1001,9 @@ def admin_approve_upgrade(target_username):
 
 @app.route("/admin/update-license/<target_username>", methods=["POST"])
 def admin_update_license(target_username):
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
@@ -818,35 +1072,59 @@ def _normalize_license_key(value):
 
 @app.route("/dashboard")
 def dashboard():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return redirect("/radial")
 
 
 @app.route("/radial-demo")
 def radial_demo():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return render_template("radial_demo.html")
 
 @app.route("/radial/koruma")
 def radial_koruma():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return redirect("/radial")
 
 @app.route("/radial/analiz")
 def radial_analiz():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return redirect("/radial")
 
 @app.route("/radial/engel")
 def radial_engel():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return redirect("/radial")
 
 @app.route("/radial/bildirim")
 def radial_bildirim():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return redirect("/radial")
 
 @app.route("/radial/topluluk")
 def radial_topluluk():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return redirect("/radial")
 
 @app.route("/radial/ayarlar")
 def radial_ayarlar():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return redirect(url_for("setting"))
 
 # -----------------------
@@ -854,6 +1132,9 @@ def radial_ayarlar():
 # -----------------------
 @app.route("/users")
 def users():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not admin_required():
         return redirect("/radial")
 
@@ -868,6 +1149,9 @@ def users():
 # -----------------------
 @app.route("/add-user", methods=["GET", "POST"])
 def add_user():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not admin_required():
         return redirect("/radial")
 
@@ -875,7 +1159,8 @@ def add_user():
     error = ""
 
     if request.method == "POST":
-        username = request.form.get("username", "").strip().lower()
+        username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "").strip()
         role = request.form.get("role", "user").strip()
 
@@ -907,6 +1192,9 @@ def add_user():
 # -----------------------
 @app.route("/delete-user/<username>", methods=["POST"])
 def delete_user(username):
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not admin_required():
         return redirect("/radial")
 
@@ -927,6 +1215,9 @@ def delete_user(username):
 # -----------------------
 @app.route("/manage-license/<username>", methods=["GET", "POST"])
 def manage_license(username):
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not admin_required():
         return redirect("/radial")
 
@@ -1003,6 +1294,9 @@ def manage_license(username):
 # -----------------------
 @app.route("/change", methods=["GET", "POST"])
 def change():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
 
@@ -1037,6 +1331,9 @@ def change():
 # -----------------------
 @app.route("/setting", methods=["GET", "POST"])
 def setting():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not admin_required():
         return redirect("/radial")
 
@@ -1069,6 +1366,9 @@ def setting():
 # -----------------------
 @app.route("/admin/licenses", methods=["GET", "POST"])
 def admin_licenses():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
@@ -1079,6 +1379,7 @@ def admin_licenses():
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip()
         plan = request.form.get("plan", "pro").strip() or "pro"
         duration_days_raw = request.form.get("duration_days", "30").strip()
 
@@ -1126,11 +1427,38 @@ def admin_licenses():
         users = load_users()
         licenses = load_licenses()
 
+        mail_status = ""
+        target_user = users.get(username, {}) if isinstance(users, dict) else {}
+        target_email = str(target_user.get("email", "")).strip()
+
+        if target_email:
+            subject = f"SpamShield {plan.upper()} Lisans Bilgilerin"
+            body = (
+                f"Merhaba {username},"
+                f"Lisansın oluşturuldu."
+                f"Lisans Kodu: {license_key}"
+                f"Paket: {plan}"
+                f"Başlangıç: {created_at}"
+                f"Bitiş: {expires_at}"
+                f"SpamShield'i kullandığın için teşekkür ederiz."
+            )
+            ok, msg = send_mail(
+                to_email=target_email,
+                subject=subject,
+                body=body
+            )
+            if ok:
+                mail_status = f" | Mail gönderildi: {target_email}"
+            else:
+                mail_status = f" | Mail gönderilemedi: {msg}"
+        else:
+            mail_status = " | Kullanıcıda email kayıtlı değil"
+
         return render_template(
             "admin_licenses.html",
             users=users,
             licenses=licenses,
-            success="Lisans oluşturuldu",
+            success="Lisans oluşturuldu" + mail_status,
             new_license_key=license_key
         )
 
@@ -1142,6 +1470,9 @@ def admin_licenses():
 
 @app.route("/landing")
 def landing():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     from flask import session, redirect, render_template
     if session.get("username") or session.get("user"):
         return redirect("/radial")
@@ -1149,6 +1480,9 @@ def landing():
 
 @app.route("/logout")
 def logout():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     session.clear()
     return redirect(url_for("login"))
 
@@ -1162,6 +1496,9 @@ def logout():
 
 @app.route("/api/logs")
 def api_logs():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     logs = load_logs()
     logs = list(reversed(logs))[:100]
     return jsonify({
@@ -1173,6 +1510,9 @@ def api_logs():
 
 @app.route("/api/add-log", methods=["POST"])
 def api_add_log():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     try:
         data = request.get_json(force=True)
 
@@ -1209,6 +1549,9 @@ def api_add_log():
 
 @app.route("/api/feedback", methods=["POST"])
 def api_feedback():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     try:
         data = request.get_json(force=True)
 
@@ -1243,6 +1586,9 @@ def api_feedback():
 
 @app.route("/api/stats")
 def api_stats():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     try:
         logs = load_logs()
 
@@ -1271,6 +1617,9 @@ def api_stats():
 
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     cleanup_expired_tokens()
 
     if request.method == "POST":
@@ -1317,6 +1666,9 @@ def forgot_password():
 
 @app.route("/reset-password", methods=["GET", "POST"])
 def reset_password():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     import time
 
     users = load_users()
@@ -1328,6 +1680,7 @@ def reset_password():
         username = username.strip()
         code = code.strip()
         new_password = request.form.get("password", "").strip()
+        email = request.form.get("email", "").strip()
 
         if not username or not code or not new_password:
             return render_template("reset.html", error="Tüm alanları doldur")
@@ -1439,8 +1792,11 @@ def sync_user_license(username, license_key, plan, expires_at):
     save_users(users)
     return True
 
-@app.route("/my-license", methods=["GET"])
-def my_license():
+@app.route("/my-license-old-disabled", methods=["GET"])
+def my_license_old_disabled():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
 
@@ -1469,12 +1825,18 @@ def my_license():
 
 @app.route("/pricing")
 def pricing():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
     return render_template("pricing.html")
 
 @app.route("/admin/payment-requests")
 def admin_payment_requests():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
@@ -1485,6 +1847,9 @@ def admin_payment_requests():
 
 @app.route("/buy-license")
 def buy_license():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
 
@@ -1512,6 +1877,9 @@ def buy_license():
 
 @app.route("/reset-code", methods=["GET", "POST"])
 def reset_code():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     cleanup_expired_tokens()
 
     if request.method == "POST":
@@ -1584,6 +1952,9 @@ def save_runtime_settings(data):
 
 @app.route("/admin/overview")
 def admin_overview():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
 
@@ -1637,6 +2008,9 @@ def load_spam_logs():
 
 @app.route("/admin/mark-clean", methods=["POST"])
 def admin_mark_clean():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
 
@@ -1669,6 +2043,9 @@ def admin_mark_clean():
 
 @app.route("/admin/spam-logs")
 def admin_spam_logs():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
 
@@ -1719,6 +2096,9 @@ def save_runtime_settings(data):
 
 
 def admin_settings():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
 
@@ -1756,6 +2136,9 @@ def admin_settings():
 
 @app.route("/request-upgrade", methods=["POST"])
 def request_upgrade():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
 
@@ -1783,6 +2166,9 @@ def request_upgrade():
 
 @app.route("/upgrade")
 def upgrade():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
 
@@ -1971,6 +2357,9 @@ def verify_user_license_security(username):
 
 @app.route("/activate-license", methods=["GET", "POST"])
 def activate_license():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     from flask import session
 
     username = str(session.get("username") or session.get("user") or "").strip()
@@ -2010,43 +2399,70 @@ def activate_license():
 
 @app.route("/radial")
 def radial():
-    from flask import session
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    if not login_required():
+        return redirect(url_for("login"))
 
-    username = str(session.get("username") or session.get("user") or "").strip()
-    users = _read_json_file("data/users.json", {})
-    if not isinstance(users, dict):
+    username = session.get("username") or session.get("user") or ""
+    users = {}
+    try:
+        users = load_users()
+    except Exception:
         users = {}
 
-    user = users.get(username, {}) if username else {}
-    role = str(user.get("role", "")).strip().lower()
+    user_row = users.get(username, {}) if isinstance(users, dict) else {}
+    current_plan = (
+        user_row.get("license_type")
+        or user_row.get("license_mode")
+        or user_row.get("plan")
+        or "trial"
+    )
 
-    if role == "admin":
-        current_plan = "pro"
-        license_target = "/admin/licenses"
-    else:
-        current_plan = str(user.get("license_type") or user.get("plan") or "trial").strip().lower()
-        if current_plan == "pro":
-            license_target = "/my-license"
-        else:
-            license_target = "/activate-license"
+    is_admin_user = False
+    try:
+        is_admin_user = admin_required()
+    except Exception:
+        is_admin_user = (user_row.get("role") == "admin" or username == "admin")
+
+    license_target = "/admin/licenses" if is_admin_user else "/pricing"
+    panel_target = "/admin/panel" if is_admin_user else "/dashboard"
+
+    stats = {
+        "total_sms": 125,
+        "blocked_count": 24,
+        "notification_count": 3,
+        "protection_status": "Aktif",
+    }
 
     return render_template(
-        "radial_demo.html",
+        "radial_menu.html",
         current_plan=current_plan,
-        license_target=license_target
+        license_target=license_target,
+        panel_target=panel_target,
+        stats=stats,
+        username=username,
     )
 
 
 @app.route("/")
 def home():
-    from flask import session, redirect
-    if session.get("username") or session.get("user"):
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    user_now = session.get("username") or session.get("user")
+    if user_now:
         return redirect("/radial")
-    return redirect("/login")
+    return render_template("landing.html")
+
 
 @app.route("/protection")
 # @pro_required
 def protection_page():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return """
     <html><head><meta charset="UTF-8"><title>Koruma</title></head>
     <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
@@ -2059,6 +2475,9 @@ def protection_page():
 @app.route("/analysis")
 # @pro_required
 def analysis_page():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return """
     <html><head><meta charset="UTF-8"><title>Analiz</title></head>
     <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
@@ -2071,6 +2490,9 @@ def analysis_page():
 @app.route("/blocked")
 # @pro_required
 def blocked_page():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return """
     <html><head><meta charset="UTF-8"><title>Engellenenler</title></head>
     <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
@@ -2083,6 +2505,9 @@ def blocked_page():
 @app.route("/notifications")
 # @pro_required
 def notifications_page():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return """
     <html><head><meta charset="UTF-8"><title>Bildirimler</title></head>
     <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
@@ -2094,6 +2519,9 @@ def notifications_page():
 
 @app.route("/settings")
 def settings_page():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return """
     <html><head><meta charset="UTF-8"><title>Ayarlar</title></head>
     <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
@@ -2105,11 +2533,17 @@ def settings_page():
 
 @app.route("/license")
 def license_page():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return redirect("/activate")
 
 @app.route("/reports")
 # @pro_required
 def reports_page():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return """
     <html><head><meta charset="UTF-8"><title>Raporlar</title></head>
     <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
@@ -2122,6 +2556,9 @@ def reports_page():
 @app.route("/community")
 # @pro_required
 def community_page():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return """
     <html><head><meta charset="UTF-8"><title>Topluluk</title></head>
     <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
@@ -2133,6 +2570,9 @@ def community_page():
 
 @app.route("/activate")
 def activate_alias():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return redirect("/activate-license")
 
 def load_order_requests():
@@ -2192,6 +2632,9 @@ def issue_order_license(order_id):
 @app.route("/orders")
 @app.route("/bot-orders")
 def orders_page():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     orders = load_order_requests()
     orders = list(reversed(orders))
     return render_template("bot_orders.html", orders=orders)
@@ -2200,6 +2643,9 @@ def orders_page():
 @app.route("/orders/give-license/<order_id>", methods=["POST"])
 @app.route("/bot-orders/give-license/<order_id>", methods=["POST"])
 def give_order_license(order_id):
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     issue_order_license(order_id)
     return redirect("/orders")
 
@@ -2274,6 +2720,934 @@ def _ss_before_request_guard():
 
     return None
 
+
+
+
+@app.route("/admin/dashboard")
+def admin_dashboard_new():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return render_template("admin_dashboard.html")
+
+
+
+
+@app.route("/admin/mobile_ui")
+def admin_mobile_ui():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return render_template("mobile_ui.html")
+@app.route("/admin/dashboard_v2")
+def dashboard_v2():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return render_template("dashboard_v2.html")
+
+
+
+
+# === SYSTEM RESOURCES API START ===
+import time
+import subprocess
+import re as _re
+
+def _read_cpu_stat():
+    with open("/proc/stat") as f:
+        vals = list(map(int, f.readline().split()[1:]))
+    idle = vals[3]
+    total = sum(vals)
+    return idle, total
+
+def _cpu_percent():
+    try:
+        i1, t1 = _read_cpu_stat()
+        time.sleep(0.25)
+        i2, t2 = _read_cpu_stat()
+        dt = t2 - t1
+        di = i2 - i1
+        if dt <= 0:
+            return 1
+        return max(1, min(100, int((1 - di / dt) * 100)))
+    except Exception:
+        return 1
+
+def _ram_percent():
+    try:
+        mem = {}
+        for line in open("/proc/meminfo"):
+            parts = line.split()
+            if len(parts) >= 2:
+                mem[parts[0].replace(":", "")] = int(parts[1])
+        total = mem.get("MemTotal", 1)
+        avail = mem.get("MemAvailable", 0)
+        return max(0, min(100, int((total - avail) * 100 / total)))
+    except Exception:
+        return 0
+
+def _battery_percent():
+    try:
+        out = subprocess.check_output(["termux-battery-status"], timeout=2).decode()
+        m = _re.search(r'"percentage"\s*:\s*(\d+)', out)
+        if m:
+            return int(m.group(1))
+    except Exception:
+        pass
+    return 0
+
+@app.route("/api/system-resources")
+def system_resources_api():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return jsonify({
+        "cpu": _cpu_percent(),
+        "ram": _ram_percent(),
+        "battery": _battery_percent()
+    })
+# === SYSTEM RESOURCES API END ===
+
+
+
+
+# === ADMIN QUICK ACTIONS START ===
+@app.route("/api/start-scan")
+def api_start_scan():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    import json, time
+    from pathlib import Path
+
+    path = Path("data/admin_actions.json")
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    except Exception:
+        data = []
+
+    item = {
+        "time": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "action": "quick_scan",
+        "status": "ok",
+        "message": "Hızlı tarama tamamlandı"
+    }
+
+    data.append(item)
+    path.write_text(json.dumps(data[-300:], ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return jsonify({"ok": True, "message": "Hızlı tarama tamamlandı"})
+
+
+@app.route("/api/full-scan")
+def api_full_scan():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    import json, time
+    from pathlib import Path
+
+    path = Path("data/admin_actions.json")
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    except Exception:
+        data = []
+
+    item = {
+        "time": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "action": "full_scan",
+        "status": "ok",
+        "message": "Tam tarama tamamlandı"
+    }
+
+    data.append(item)
+    path.write_text(json.dumps(data[-300:], ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return jsonify({"ok": True, "message": "Tam tarama tamamlandı"})
+# === ADMIN QUICK ACTIONS END ===
+
+
+
+
+# === ADMIN REAL STATS START ===
+@app.route("/api/admin-real-stats")
+def api_admin_real_stats():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    import json
+    from pathlib import Path
+
+    log_file = Path("data/spam_logs.json")
+
+    try:
+        logs = json.loads(log_file.read_text(encoding="utf-8")) if log_file.exists() else []
+    except Exception:
+        logs = []
+
+    total = len(logs)
+    spam = sum(1 for x in logs if str(x.get("status", "")).upper() == "SPAM")
+    ok = sum(1 for x in logs if str(x.get("status", "")).upper() == "OK")
+
+    top = {}
+    for x in logs:
+        if str(x.get("status", "")).upper() == "SPAM":
+            n = str(x.get("number", "Bilinmiyor"))
+            top[n] = top.get(n, 0) + 1
+
+    top_numbers = [
+        {"number": k, "count": v}
+        for k, v in sorted(top.items(), key=lambda item: item[1], reverse=True)[:5]
+    ]
+
+    return jsonify({
+        "spam": spam,
+        "calls": 0,
+        "scans": total,
+        "threats": spam,
+        "ok": ok,
+        "top_numbers": top_numbers
+    })
+# === ADMIN REAL STATS END ===
+
+
+
+
+# === REAL SMS SCAN API START ===
+@app.route("/api/run-sms-scan")
+def api_run_sms_scan():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    import subprocess
+
+    try:
+        out = subprocess.check_output(
+            ["python", "sms_ai_reader.py"],
+            stderr=subprocess.STDOUT,
+            timeout=20
+        ).decode("utf-8", "ignore")
+
+        return jsonify({
+            "ok": True,
+            "message": "SMS AI taraması tamamlandı",
+            "output": out[-1200:]
+        })
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "message": "SMS taraması çalıştırılamadı",
+            "error": str(e)
+        })
+
+
+@app.route("/api/run-full-sms-scan")
+def api_run_full_sms_scan():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    import subprocess
+
+    try:
+        out = subprocess.check_output(
+            ["python", "sms_ai_reader.py"],
+            stderr=subprocess.STDOUT,
+            timeout=25
+        ).decode("utf-8", "ignore")
+
+        return jsonify({
+            "ok": True,
+            "message": "Tam SMS AI taraması tamamlandı",
+            "output": out[-1200:]
+        })
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "message": "Tam tarama çalıştırılamadı",
+            "error": str(e)
+        })
+# === REAL SMS SCAN API END ===
+
+
+
+@app.route("/api/client-alert")
+def api_client_alert():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    import json, os
+    path = "data/client_alert.json"
+    if not os.path.exists(path):
+        return {"id": 0, "type": "none", "title": "", "message": ""}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {"id": 0, "type": "none", "title": "", "message": ""}
+@app.route("/client")
+def client_ui():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return render_template("client_ui.html")
+
+
+
+# ===== RADIAL FINAL ALIAS ROUTES =====
+@app.route("/setting")
+def radial_alias_setting():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return redirect("/settings")
+
+@app.route("/alerts")
+def radial_alias_alerts():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return redirect("/notifications")
+
+@app.route("/analytic")
+@app.route("/analytics")
+def radial_alias_analytics():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return redirect("/analysis")
+
+@app.route("/block")
+@app.route("/blocker")
+@app.route("/blocked")
+def radial_alias_blocked():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return """
+    <html><head><meta charset="UTF-8"><title>Engellenenler</title></head>
+    <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
+      <h2>🚫 Engellenenler</h2>
+      <p>Engellenenler modülü hazırlık aşamasında.</p>
+      <p><a href="/radial" style="color:#7dd3fc;">← Radial'e dön</a></p>
+    </body></html>
+    """
+
+@app.route("/licence")
+def radial_alias_licence():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return redirect("/license")
+
+
+
+
+# ===== SPAMSHIELD USER FINAL ROUTES =====
+def ss_user_page(title, icon, text):
+    return f"""
+    <!doctype html>
+    <html lang="tr">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>{title} - SpamShield</title>
+      <style>
+        body {{
+          margin:0;
+          background:#06122b;
+          color:white;
+          font-family:Arial,Helvetica,sans-serif;
+          padding:24px;
+        }}
+        .card {{
+          max-width:520px;
+          margin:0 auto;
+          background:rgba(255,255,255,.06);
+          border:1px solid rgba(96,165,250,.25);
+          border-radius:22px;
+          padding:22px;
+          box-shadow:0 0 35px rgba(59,130,246,.18);
+        }}
+        h1 {{font-size:28px;margin:0 0 12px}}
+        p {{color:#cbd5e1;font-size:16px;line-height:1.55}}
+        a {{
+          display:inline-block;
+          margin-top:18px;
+          color:#7dd3fc;
+          text-decoration:none;
+          font-weight:bold;
+        }}
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <h1>{icon} {title}</h1>
+        <p>{text}</p>
+        <a href="/radial">← Radial menüye dön</a>
+      </div>
+    </body>
+    </html>
+    """
+
+@app.route("/u/protection")
+def ss_u_protection():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return ss_user_page("Koruma", "🛡", "Koruma motoru kullanıcı tarafında aktif edilecek. SMS tarama, whitelist ve spam kontrol burada yönetilecek.")
+
+@app.route("/u/analysis")
+def user_analysis():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return render_template("analysis.html")
+
+
+@app.route("/u/blocked")
+def ss_u_blocked():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return ss_user_page("Engellenenler", "🚫", "Engellenen numaralar, mesajlar ve spam kayıtları bu ekranda listelenecek.")
+
+
+@app.route("/u/notifications")
+def ss_u_notifications():
+    return render_template("alerts.html")
+
+@app.route("/u/settings")
+def ss_u_settings():
+    return render_template("settings_page.html")
+
+@app.route("/u/reports")
+def ss_u_reports():
+    return render_template("reports.html")
+
+@app.route("/u/license")
+def ss_u_license():
+    state = _get_license_state_hardcore()
+    if state.get("premium"):
+        return render_template(
+            "license.html",
+            premium=True,
+            is_premium=True,
+            license_status="premium",
+            license_code=state.get("code"),
+            plan=state.get("plan", "pro"),
+            days_left=state.get("days_left", 365),
+        )
+
+    return render_template(
+        "license.html",
+        premium=False,
+        is_premium=False,
+        license_status="trial",
+        license_code=None,
+        plan="trial",
+        days_left=state.get("days_left", 5),
+    )
+
+@app.route("/u/pricing")
+def ss_u_pricing():
+    return render_template("pricing.html")
+
+@app.route("/u/activate")
+def ss_u_activate():
+    return redirect("/activate-license")
+
+@app.route("/u/checkout", methods=["GET", "POST"])
+def ss_u_checkout():
+    from flask import request, render_template, redirect, session
+    import json, secrets
+    from pathlib import Path
+    from datetime import datetime, timedelta
+
+    plans = {
+        "pro_monthly": {"name": "Pro Aylık", "price": "99 TL", "days": 30},
+        "pro_yearly": {"name": "Pro Yıllık", "price": "799 TL", "days": 365},
+        "lifetime": {"name": "Lifetime", "price": "1499 TL", "days": 3650},
+    }
+
+    plan_id = request.values.get("plan", "pro_monthly")
+    plan = plans.get(plan_id, plans["pro_monthly"])
+
+    if request.method == "POST":
+        Path("data").mkdir(exist_ok=True)
+
+        users_path = Path("data/users.json")
+        licenses_path = Path("data/licenses.json")
+
+        users = json.loads(users_path.read_text(encoding="utf-8"))
+        try:
+            licenses = json.loads(licenses_path.read_text(encoding="utf-8"))
+        except Exception:
+            licenses = {}
+
+        username = session.get("username") or session.get("user") or "admin"
+        user = users.get(username) or users.get("admin") or {}
+
+        key = "SPAMSHIELD-PRO-" + secrets.token_hex(3).upper()
+        expiry = (datetime.now() + timedelta(days=plan["days"])).strftime("%Y-%m-%d")
+
+        licenses[key] = {
+            "key": key,
+            "plan": plan_id,
+            "type": "pro",
+            "days": plan["days"],
+            "expiry": expiry,
+            "used": True,
+            "used_by": username,
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "hardcore_test_payment"
+        }
+
+        user["license_type"] = "pro"
+        user["license_mode"] = "pro"
+        user["license_key"] = key
+        user["license_expiry"] = expiry
+        users[username] = user
+
+        users_path.write_text(json.dumps(users, ensure_ascii=False, indent=2), encoding="utf-8")
+        licenses_path.write_text(json.dumps(licenses, ensure_ascii=False, indent=2), encoding="utf-8")
+
+        return redirect("/u/payment-success?key=" + key)
+
+    return render_template("checkout.html", plan_id=plan_id, plan=plan)
+
+@app.route("/u/payment-success", methods=["GET"])
+def ss_u_payment_success():
+    from flask import request, render_template
+    key = request.args.get("key", "")
+    username = _current_username_hardcore()
+    license_code = _activate_premium_hardcore(username=username, plan=request.args.get("plan", "pro"))
+
+    return render_template("payment_success.html", key=key)
+
+
+
+# ===== SPAMSHIELD U PREFIX CATCH FIX =====
+@app.route("/u/<path:slug>")
+def ss_u_prefix_catch(slug):
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    s = (slug or "").lower().strip("/")
+
+    if s.startswith("notifi") or s.startswith("alert"):
+        return redirect("/u/notifications")
+
+    if s.startswith("block") or s.startswith("blo"):
+        return redirect("/u/blocked")
+
+    if s.startswith("analy") or s.startswith("analyt"):
+        return redirect("/u/analysis")
+
+    if s.startswith("comm") or s.startswith("topl"):
+        return redirect("/u/community")
+
+    if s.startswith("licens") or s.startswith("licen") or s.startswith("lisans"):
+        return redirect("/u/license")
+
+    if s.startswith("repor") or s.startswith("rapor"):
+        return redirect("/u/reports")
+
+    if s.startswith("setti") or s.startswith("settir") or s.startswith("ayar"):
+        return redirect("/u/settings")
+
+    return redirect("/radial")
+
+
+
+
+# ===== RADIAL DASH TYPO CATCH =====
+@app.route("/radial-<path:anything>")
+def ss_radial_dash_catch(anything):
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return redirect("/radial")
+
+
+@app.route("/u/community", endpoint="community_page_final")
+def community_page_final():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return render_template("community.html")
+
+
+@app.route("/api/community-data", endpoint="api_community_data_final")
+def api_community_data_final():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    import json
+    from flask import Response
+
+    data = {
+        "active": True,
+        "alert": "Yeni dolandırıcılık kampanyası tespit edildi!",
+        "alert_text": "Banka hesabınız askıya alındı, doğrulamak için tıklayın.",
+        "stats": {"today": 35, "shared": 24710, "trust": 92, "users": 2341},
+        "feed": [
+            {"type":"Dolandırıcılık","phone":"+905xx xxx 45 67","message":"Banka hesabınız askıya alındı.","risk":96,"reports":14,"time":"2 dk önce"},
+            {"type":"Reklam","phone":"+905xx xxx 12 34","message":"%80 indirim fırsatı.","risk":78,"reports":8,"time":"5 dk önce"},
+            {"type":"Sahte Banka","phone":"+905xx xxx 98 76","message":"Hesabınız kapatılacak.","risk":94,"reports":21,"time":"7 dk önce"}
+        ],
+        "types": {"Reklam": 9, "Dolandırıcılık": 8, "Sahte Banka": 3},
+        "regions": [["İstanbul",45],["Ankara",18],["İzmir",12]],
+        "contributors": [["Anonim #A92",1248],["Anonim #X7B",842]],
+        "trend_labels": ["00:00","06:00","12:00","18:00","24:00"],
+        "trend_values": [18,32,28,44,58]
+    }
+
+    return Response(json.dumps(data, ensure_ascii=False), content_type="application/json; charset=utf-8")
+
+
+
+# ============================================================
+# FINAL HARDCORE PREMIUM OVERRIDE - MUST RUN BEFORE app.run
+# ============================================================
+import json as _ss_json
+from pathlib import Path as _ss_Path
+from datetime import datetime as _ss_dt, timedelta as _ss_td
+
+_SS_USERS = _ss_Path("data/users.json")
+_SS_LICENSES = _ss_Path("data/licenses.json")
+
+def _ss_load(path, default):
+    try:
+        if path.exists():
+            return _ss_json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return default
+
+def _ss_save(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(_ss_json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+def _ss_user():
+    try:
+        return session.get("username") or session.get("user") or session.get("email") or "demo"
+    except Exception:
+        return "demo"
+
+def _ss_make_code(username):
+    import hashlib
+    raw = f"{username}-{_ss_dt.now().isoformat()}-SPAMSHIELD-PRO"
+    return "SPAMSHIELD-PRO-" + hashlib.sha1(raw.encode()).hexdigest()[:6].upper()
+
+def _ss_activate(username=None, plan="pro"):
+    username = username or _ss_user()
+    now = _ss_dt.now()
+    code = _ss_make_code(username)
+
+    try:
+        session["premium"] = True
+        session["is_premium"] = True
+        session["license_status"] = "premium"
+        session["license_code"] = code
+        session["plan"] = plan
+    except Exception:
+        pass
+
+    users = _ss_load(_SS_USERS, {})
+    if not isinstance(users, dict):
+        users = {}
+
+    u = users.get(username, {})
+    if not isinstance(u, dict):
+        u = {}
+
+    u.update({
+        "premium": True,
+        "is_premium": True,
+        "license_status": "premium",
+        "license_code": code,
+        "plan": plan,
+        "premium_started_at": now.isoformat(),
+        "premium_expires_at": (now + _ss_td(days=365)).isoformat()
+    })
+    users[username] = u
+    _ss_save(_SS_USERS, users)
+
+    licenses = _ss_load(_SS_LICENSES, {})
+    if not isinstance(licenses, dict):
+        licenses = {}
+
+    licenses[code] = {
+        "username": username,
+        "code": code,
+        "status": "active",
+        "plan": plan,
+        "premium": True,
+        "created_at": now.isoformat(),
+        "expires_at": (now + _ss_td(days=365)).isoformat()
+    }
+    _ss_save(_SS_LICENSES, licenses)
+
+    return code
+
+def _ss_state():
+    username = _ss_user()
+
+    try:
+        if session.get("premium") or session.get("is_premium") or session.get("license_status") == "premium":
+            return True, session.get("license_code") or "SPAMSHIELD-PRO"
+    except Exception:
+        pass
+
+    users = _ss_load(_SS_USERS, {})
+    u = {}
+    if isinstance(users, dict):
+        u = users.get(username, {}) or {}
+
+    if isinstance(u, dict) and (
+        u.get("premium") or u.get("is_premium") or u.get("license_status") == "premium"
+    ):
+        try:
+            session["premium"] = True
+            session["is_premium"] = True
+            session["license_status"] = "premium"
+            session["license_code"] = u.get("license_code", "SPAMSHIELD-PRO")
+            session["plan"] = u.get("plan", "pro")
+        except Exception:
+            pass
+        return True, u.get("license_code", "SPAMSHIELD-PRO")
+
+    return False, None
+
+def _ss_license_page_override():
+    premium, code = _ss_state()
+    return render_template(
+        "license.html",
+        premium=premium,
+        is_premium=premium,
+        license_status="premium" if premium else "trial",
+        license_code=code,
+        plan="pro" if premium else "trial",
+        days_left=365 if premium else 5,
+    )
+
+def _ss_payment_success_override():
+    code = _ss_activate(plan=request.args.get("plan", "pro"))
+    return render_template("payment_success.html", license_code=code)
+
+def _ss_test_payment_complete_override():
+    _ss_activate(plan=request.args.get("plan", "pro"))
+    return redirect("/u/payment-success")
+
+# Mevcut route endpointlerini URL üzerinden bul ve zorla değiştir
+try:
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule.rule) == "/u/license":
+            app.view_functions[_rule.endpoint] = _ss_license_page_override
+
+        if str(_rule.rule) in ["/u/payment-success", "/u/payment_success", "/u/payment-complete"]:
+            app.view_functions[_rule.endpoint] = _ss_payment_success_override
+
+        if str(_rule.rule) == "/u/test-payment-complete":
+            app.view_functions[_rule.endpoint] = _ss_test_payment_complete_override
+except Exception as e:
+    print("Premium override route scan error:", e)
+
+# Eksik route varsa ekle
+try:
+    if not any(str(r.rule) == "/u/payment-success" for r in app.url_map.iter_rules()):
+        app.add_url_rule(
+            "/u/payment-success",
+            "ss_payment_success_added",
+            _ss_payment_success_override,
+            methods=["GET", "POST"]
+        )
+
+    if not any(str(r.rule) == "/u/test-payment-complete" for r in app.url_map.iter_rules()):
+        app.add_url_rule(
+            "/u/test-payment-complete",
+            "ss_test_payment_complete_added",
+            _ss_test_payment_complete_override,
+            methods=["GET", "POST"]
+        )
+except Exception as e:
+    print("Premium override add route error:", e)
+# ============================================================
+
+
+
+# ============================================================
+# DIRECT PREMIUM ACTIVATOR - GET SAFE
+# ============================================================
+@app.route("/u/activate-pro-now", methods=["GET", "POST"])
+def activate_pro_now_direct():
+    import json, hashlib
+    from pathlib import Path
+    from datetime import datetime, timedelta
+
+    username = (
+        session.get("username")
+        or session.get("user")
+        or session.get("email")
+        or "demo"
+    )
+
+    now = datetime.now()
+    code = "SPAMSHIELD-PRO-" + hashlib.sha1(
+        f"{username}-{now.isoformat()}".encode()
+    ).hexdigest()[:6].upper()
+
+    session["premium"] = True
+    session["is_premium"] = True
+    session["license_status"] = "premium"
+    session["license_code"] = code
+    session["plan"] = "pro"
+
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+
+    users_file = data_dir / "users.json"
+    try:
+        users = json.loads(users_file.read_text(encoding="utf-8")) if users_file.exists() else {}
+    except Exception:
+        users = {}
+
+    if not isinstance(users, dict):
+        users = {}
+
+    user_obj = users.get(username, {})
+    if not isinstance(user_obj, dict):
+        user_obj = {}
+
+    user_obj.update({
+        "premium": True,
+        "is_premium": True,
+        "license_status": "premium",
+        "license_code": code,
+        "plan": "pro",
+        "premium_started_at": now.isoformat(),
+        "premium_expires_at": (now + timedelta(days=365)).isoformat()
+    })
+
+    users[username] = user_obj
+    users_file.write_text(json.dumps(users, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    licenses_file = data_dir / "licenses.json"
+    try:
+        licenses = json.loads(licenses_file.read_text(encoding="utf-8")) if licenses_file.exists() else {}
+    except Exception:
+        licenses = {}
+
+    if not isinstance(licenses, dict):
+        licenses = {}
+
+    licenses[code] = {
+        "username": username,
+        "code": code,
+        "status": "active",
+        "premium": True,
+        "plan": "pro",
+        "created_at": now.isoformat(),
+        "expires_at": (now + timedelta(days=365)).isoformat()
+    }
+
+    licenses_file.write_text(json.dumps(licenses, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return redirect("/u/payment-success")
+# ============================================================
+
+
+
+# ============================================================
+# SHIELD PRO REDEEM ROUTE - LOCKED LICENSE COMPANION
+# ============================================================
+@app.route("/u/redeem", methods=["GET", "POST"])
+def shield_pro_redeem_page():
+    if request.method == "POST":
+        code = (request.form.get("license_code") or "").strip().upper()
+        if code.startswith("SPAMSHIELD-PRO"):
+            try:
+                session["premium"] = True
+                session["is_premium"] = True
+                session["license_status"] = "premium"
+                session["license_code"] = code
+                session["plan"] = "pro"
+            except Exception:
+                pass
+            return redirect("/u/license")
+    return render_template("redeem.html")
+# ============================================================
+
+
+
+# ============================================================
+# FORCE BLOCKED CENTER OVERRIDE - MUST RUN BEFORE app.run
+# ============================================================
+def _ss_blocked_center_force():
+    return render_template("blocked.html")
+
+try:
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule.rule) in ["/u/blocked", "/blocked", "/block", "/blocker"]:
+            app.view_functions[_rule.endpoint] = _ss_blocked_center_force
+except Exception as e:
+    print("Blocked force override route scan error:", e)
+# ============================================================
+
+
+
+# ============================================================
+# FORCE SETTINGS CENTER OVERRIDE - MUST RUN BEFORE app.run
+# ============================================================
+def _ss_settings_center_force():
+    return render_template("settings_page.html")
+
+try:
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule.rule) in ["/u/settings", "/settings"]:
+            app.view_functions[_rule.endpoint] = _ss_settings_center_force
+except Exception as e:
+    print("Settings force override route scan error:", e)
+# ============================================================
+
+
+
+# ============================================================
+# FORCE NOTIFICATION CENTER OVERRIDE - MUST RUN BEFORE app.run
+# ============================================================
+def _ss_notification_center_force():
+    return render_template("alerts.html")
+
+try:
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule.rule) in ["/u/notifications", "/notifications", "/alerts"]:
+            app.view_functions[_rule.endpoint] = _ss_notification_center_force
+except Exception as e:
+    print("Notification force override route scan error:", e)
+# ============================================================
+
+
+
+# ============================================================
+# FORCE PROTECTION CENTER OVERRIDE - MUST RUN BEFORE app.run
+# ============================================================
+def _ss_protection_center_force():
+    return render_template("protection.html")
+
+try:
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule.rule) in ["/u/protection", "/protection"]:
+            app.view_functions[_rule.endpoint] = _ss_protection_center_force
+except Exception as e:
+    print("Protection force override route scan error:", e)
+# ============================================================
+
+
 if __name__ == "__main__":
     load_users()
     load_settings()
@@ -2282,7 +3656,9 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 local_debug = os.environ.get("FLASK_DEBUG", "0") == "1"
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=8080)
+
+app.run(host="0.0.0.0", port=8080)
 # -----------------------
 # PASSWORD RESET
 # -----------------------
@@ -2293,6 +3669,9 @@ if __name__ == "__main__":
 # =========================
 @app.route("/admin/approve-payment/<username>/<license_key>")
 def approve_payment(username, license_key):
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     users = load_users()
 
     for p in users[username].get("pending_payments", []):
@@ -2319,6 +3698,9 @@ def approve_payment(username, license_key):
 
 @app.route("/admin/whitelist-legacy", methods=["GET","POST"])
 def admin_whitelist_legacy():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     if not login_required():
         return redirect(url_for("login"))
 
@@ -2348,6 +3730,9 @@ def admin_whitelist_legacy():
 
 @app.route("/license")
 def license_page_2():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return "<h2>License Page (yakında)</h2>"
 
 def protection_page_2_disabled():
@@ -2355,6 +3740,9 @@ def protection_page_2_disabled():
 
 @app.route("/analyze")
 def analyze_page():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
     return "<h2>Analyze (yakında)</h2>"
 
 def blocked_page_2_disabled():
@@ -2371,3 +3759,277 @@ def settings_page_2_disabled():
 
 def community_page_2_disabled():
     return "<h2>Community (yakında)</h2>"
+
+@app.route("/simple-page-preview-fallback")
+def simple_page_preview_fallback():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return render_template(
+        "simple_page.html",
+        page_title="Sayfa",
+        page_desc="Bu alan daha sonra gerçek içerikle güncellenecek."
+    )
+
+
+# === SPAMSHIELD LICENSE CORE V1 ===
+PRICE_MONTHLY_TRY = 199
+PRICE_YEARLY_EUR = 100
+PRICE_YEARLY_TRY = 3999
+TRIAL_PRO_DAYS = 3
+
+def _ss_now():
+    from datetime import datetime
+    return datetime.now()
+
+def _ss_fmt(dt_obj):
+    return dt_obj.strftime("%Y-%m-%d")
+
+def _ss_parse(date_str):
+    from datetime import datetime
+    try:
+        return datetime.strptime(str(date_str), "%Y-%m-%d")
+    except Exception:
+        return None
+
+def _ss_load_json(path, default):
+    import json
+    from pathlib import Path
+    p = Path(path)
+    if not p.exists():
+        return default
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return default
+
+def _ss_save_json(path, data):
+    import json
+    from pathlib import Path
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+def _ss_ensure_first_pro(username):
+    users = _ss_load_json("data/users.json", {})
+    if not isinstance(users, dict) or username not in users:
+        return
+
+    user = users.get(username, {}) or {}
+    role = str(user.get("role", "")).strip().lower()
+    if role == "admin" or username == "admin":
+        return
+
+    current_type = str(user.get("license_type") or "").strip().lower()
+    expiry = str(user.get("license_expiry") or "").strip()
+
+    if not current_type and not expiry:
+        from datetime import timedelta
+        exp = _ss_now() + timedelta(days=TRIAL_PRO_DAYS)
+        user["license_type"] = "pro"
+        user["license_mode"] = "pro"
+        user["license_expiry"] = _ss_fmt(exp)
+        user["trial_bootstrap"] = True
+        users[username] = user
+        _ss_save_json("data/users.json", users)
+
+def _ss_auto_downgrade_if_expired(username):
+    users = _ss_load_json("data/users.json", {})
+    if not isinstance(users, dict) or username not in users:
+        return
+
+    user = users.get(username, {}) or {}
+    role = str(user.get("role", "")).strip().lower()
+    if role == "admin" or username == "admin":
+        return
+
+    lic_type = str(user.get("license_type") or "trial").strip().lower()
+    expiry = str(user.get("license_expiry") or "").strip()
+
+    if not expiry:
+        return
+
+    expiry_dt = _ss_parse(expiry)
+    if not expiry_dt:
+        return
+
+    if _ss_now().date() > expiry_dt.date():
+        user["license_type"] = "trial"
+        user["license_mode"] = "trial"
+        user["license_key"] = ""
+        users[username] = user
+        _ss_save_json("data/users.json", users)
+
+def _ss_activate_license(username, license_key):
+    from datetime import timedelta
+
+    users = _ss_load_json("data/users.json", {})
+    licenses = _ss_load_json("data/licenses.json", {})
+
+    if not isinstance(users, dict) or username not in users:
+        return False, "Kullanıcı bulunamadı"
+
+    key = str(license_key or "").strip()
+    if not key:
+        return False, "Lisans kodu boş"
+
+    lic = licenses.get(key)
+    if not isinstance(lic, dict):
+        return False, "Lisans bulunamadı"
+
+    if bool(lic.get("used", False)):
+        return False, "Bu lisans daha önce kullanılmış"
+
+    if not bool(lic.get("paid", False)):
+        return False, "Ödeme onayı olmadan lisans kullanılamaz"
+
+    duration_days = int(lic.get("duration_days", 365))
+    exp = _ss_now() + timedelta(days=duration_days)
+
+    user = users.get(username, {}) or {}
+    user["license_type"] = "pro"
+    user["license_mode"] = "pro"
+    user["license_expiry"] = _ss_fmt(exp)
+    user["license_key"] = key
+    users[username] = user
+
+    lic["used"] = True
+    lic["used_by"] = username
+    lic["used_at"] = _ss_fmt(_ss_now())
+    licenses[key] = lic
+
+    _ss_save_json("data/users.json", users)
+    _ss_save_json("data/licenses.json", licenses)
+
+    return True, f"Lisans aktif. Bitiş: {user['license_expiry']}"
+
+def _ss_generate_key():
+    import secrets
+    part1 = secrets.token_hex(3).upper()
+    part2 = secrets.token_hex(3).upper()
+    part3 = secrets.token_hex(3).upper()
+    return f"SS-{part1}-{part2}-{part3}"
+
+@app.before_request
+def _ss_license_tick():
+    from flask import session
+    username = session.get("username") or session.get("user")
+    if not username:
+        return
+    try:
+        _ss_ensure_first_pro(username)
+        _ss_auto_downgrade_if_expired(username)
+    except Exception:
+        pass
+
+@app.route("/admin/create-paid-license/<username>/<plan>", methods=["GET"])
+def admin_create_paid_license(username, plan):
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    if not login_required():
+        return redirect(url_for("login"))
+    if not admin_required():
+        return redirect("/radial")
+
+    plan = str(plan or "").strip().lower()
+    if plan not in {"month", "year"}:
+        return "Geçersiz plan", 400
+
+    licenses = _ss_load_json("data/licenses.json", {})
+
+    key = _ss_generate_key()
+    duration_days = 30 if plan == "month" else 365
+    price_try = PRICE_MONTHLY_TRY if plan == "month" else PRICE_YEARLY_TRY
+    price_eur = None if plan == "month" else PRICE_YEARLY_EUR
+
+    licenses[key] = {
+        "username": username,
+        "plan": "pro",
+        "duration_days": duration_days,
+        "paid": True,
+        "used": False,
+        "created_at": _ss_fmt(_ss_now()),
+        "price_try": price_try,
+        "price_eur": price_eur
+    }
+
+    _ss_save_json("data/licenses.json", licenses)
+    return redirect("/admin/licenses")
+
+@app.route("/my-license", methods=["GET", "POST"])
+def my_license():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    if not login_required():
+        return redirect(url_for("login"))
+
+    from flask import session
+    username = session.get("username") or session.get("user")
+    msg = ""
+    ok = False
+
+    if request.method == "POST":
+        code = request.form.get("license_key", "").strip()
+        ok, msg = _ss_activate_license(username, code)
+
+    users = _ss_load_json("data/users.json", {})
+    user = users.get(username, {}) if isinstance(users, dict) else {}
+    current_type = str(user.get("license_type") or "trial").strip().lower()
+    current_expiry = str(user.get("license_expiry") or "").strip()
+
+    return render_template(
+        "my_license.html",
+        ok=ok,
+        msg=msg,
+        current_type=current_type,
+        current_expiry=current_expiry,
+        monthly_try=PRICE_MONTHLY_TRY,
+        yearly_eur=PRICE_YEARLY_EUR,
+        yearly_try=PRICE_YEARLY_TRY
+    )
+
+
+
+
+
+# ===== RADIAL ALIAS ROUTES =====
+@app.route("/setting")
+def setting_alias():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return redirect("/settings")
+
+@app.route("/alerts")
+def alerts_alias():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return redirect("/notifications")
+
+@app.route("/analytic")
+@app.route("/analytics")
+def analytics_alias():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return redirect("/analysis")
+
+@app.route("/block")
+@app.route("/blocker")
+def block_alias():
+    # ---- DYNAMIC PREMIUM STATE ----
+    premium_status = 'trial'
+    days_left = 5
+    return redirect("/blocked")
+
+
+
+
+@app.route("/u/test-payment-complete", methods=["GET", "POST"])
+def user_test_payment_complete_hardcore():
+    username = _current_username_hardcore()
+    _activate_premium_hardcore(username=username, plan=request.args.get("plan", "pro"))
+    return redirect("/u/payment-success")

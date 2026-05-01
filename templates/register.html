@@ -1,37 +1,267 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kayıt Ol</title>
-<style>
-body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#0f172a,#111827,#1e293b);color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh}
-.box{width:90%;max-width:400px;background:#0f172af2;border:1px solid #334155;border-radius:16px;padding:28px}
-h1{text-align:center;margin:0 0 8px}
-p.sub{text-align:center;color:#94a3b8;margin:0 0 22px}
-label{display:block;margin:10px 0 6px;color:#cbd5e1}
-input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #334155;border-radius:10px;background:#111827;color:#fff}
-button{width:100%;padding:12px;border:none;border-radius:10px;background:#16a34a;color:#fff;font-weight:bold;margin-top:14px}
-.err{background:#7f1d1d55;border:1px solid #dc262680;color:#fecaca;padding:10px;border-radius:10px;margin-bottom:14px;text-align:center}
-.links{text-align:center;margin-top:18px}
-.links a{color:#60a5fa;text-decoration:none}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Yeni Üye Oluştur - SpamShield</title>
+  <style>
+    :root{
+      --bg1:#020817;
+      --bg2:#071a3a;
+      --card:rgba(9,18,40,.90);
+      --line:rgba(96,165,250,.16);
+      --text:#eef4ff;
+      --muted:#9fb6d9;
+      --blue1:#3b82f6;
+      --blue2:#60a5fa;
+      --green1:#16a34a;
+      --green2:#22c55e;
+    }
+
+    *{
+      box-sizing:border-box;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    html,body{
+      margin:0;
+      min-height:100%;
+      font-family:Arial,Helvetica,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top, rgba(59,130,246,.18), transparent 28%),
+        radial-gradient(circle at 80% 80%, rgba(34,197,94,.08), transparent 22%),
+        linear-gradient(180deg,var(--bg1),var(--bg2));
+    }
+
+    .wrap{
+      max-width:430px;
+      margin:0 auto;
+      padding:26px 14px 34px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:28px;
+      padding:24px 18px 22px;
+      box-shadow:
+        0 18px 60px rgba(0,0,0,.24),
+        inset 0 1px 0 rgba(255,255,255,.03);
+      backdrop-filter:blur(10px);
+    }
+
+    .head{
+      text-align:center;
+      margin-bottom:18px;
+    }
+
+    .badge{
+      width:84px;
+      height:84px;
+      margin:0 auto 16px;
+      border-radius:24px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:36px;
+      font-weight:900;
+      background:linear-gradient(135deg,var(--blue1),var(--blue2));
+      box-shadow:0 16px 36px rgba(59,130,246,.30);
+    }
+
+    h1{
+      margin:0;
+      font-size:30px;
+      line-height:1.15;
+      font-weight:900;
+    }
+
+    .sub{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.5;
+    }
+
+    .msg{
+      margin:0 0 14px;
+      padding:12px 14px;
+      border-radius:14px;
+      font-size:14px;
+      font-weight:700;
+      text-align:center;
+    }
+
+    .msg.error{
+      background:rgba(239,68,68,.14);
+      color:#fecaca;
+      border:1px solid rgba(239,68,68,.24);
+    }
+
+    .msg.ok{
+      background:rgba(34,197,94,.14);
+      color:#bbf7d0;
+      border:1px solid rgba(34,197,94,.24);
+    }
+
+    form{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    label{
+      font-size:14px;
+      font-weight:800;
+      color:#dbe7ff;
+      padding-left:2px;
+    }
+
+    input{
+      width:100%;
+      border:none;
+      outline:none;
+      border-radius:16px;
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+      padding:15px 16px;
+      font-size:16px;
+      border:1px solid rgba(255,255,255,.06);
+    }
+
+    input::placeholder{
+      color:#8da0c6;
+    }
+
+    input:focus{
+      border-color:rgba(96,165,250,.55);
+      box-shadow:0 0 0 4px rgba(59,130,246,.14);
+    }
+
+    .btn{
+      margin-top:4px;
+      width:100%;
+      border:none;
+      border-radius:18px;
+      padding:15px 16px;
+      font-size:17px;
+      font-weight:900;
+      color:white;
+      background:linear-gradient(135deg,var(--green1),var(--green2));
+      box-shadow:0 14px 30px rgba(34,197,94,.20);
+    }
+
+    .btn:active{
+      transform:scale(.99);
+    }
+
+    .bottom{
+      margin-top:18px;
+      text-align:center;
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.5;
+    }
+
+    .bottom a{
+      color:#93c5fd;
+      text-decoration:none;
+      font-weight:800;
+    }
+
+    .mini{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+    }
+
+    .mini-box{
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.05);
+      border-radius:16px;
+      text-align:center;
+      padding:10px 8px;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+
+    .mini-box strong{
+      display:block;
+      color:#eef4ff;
+      font-size:14px;
+      margin-bottom:4px;
+    }
+
+    @media (max-width:390px){
+      .mini{grid-template-columns:1fr}
+      h1{font-size:28px}
+    }
+  </style>
 </head>
 <body>
-<div class="box">
-<h1>🛡 Yeni Üye Oluştur</h1>
-<p class="sub">SpamShield hesabınızı oluşturun</p>
-{% if error %}<div class="err">{{ error }}</div>{% endif %}
-<form method="POST" action="/register">
-<label>Kullanıcı Adı</label>
-<input type="text" name="username" required>
-<label>Şifre</label>
-<input type="password" name="password" required>
-<label>Şifre Tekrar</label>
-<input type="password" name="password2" required>
-<button type="submit">Üye Ol</button>
-</form>
-<div class="links">Zaten hesabın var mı? <a href="/login">Giriş yap</a></div>
-</div>
+  <div class="wrap">
+    <div class="card">
+      <div class="head">
+        <div class="badge">SS</div>
+        <h1>Yeni Üye Oluştur</h1>
+        <div class="sub">SpamShield hesabınızı oluşturun ve güvenli panele erişin.</div>
+      </div>
+
+      {% if error %}
+        <div class="msg error">{{ error }}</div>
+      {% endif %}
+
+      {% if message %}
+        <div class="msg ok">{{ message }}</div>
+      {% endif %}
+
+      <form method="POST">
+        <div class="field">
+          <label for="username">Kullanıcı Adı</label>
+          <input id="username" name="username" type="text" placeholder="Kullanıcı adını gir" required>
+        </div>
+
+        <div class="field">
+          <label for="password">Şifre</label>
+          <input id="password" name="password" type="password" placeholder="Şifreni gir" required>
+        </div>
+
+        <div class="field">
+          <label for="password2">Şifre Tekrar</label>
+          <input id="password2" name="password2" type="password" placeholder="Şifreni tekrar gir" required>
+        </div>
+
+        <button class="btn" type="submit">Üye Ol</button>
+      </form>
+
+      <div class="mini">
+        <div class="mini-box">
+          <strong>Hızlı</strong>
+          Dakikalar içinde hazır
+        </div>
+        <div class="mini-box">
+          <strong>Güvenli</strong>
+          Kontrollü erişim yapısı
+        </div>
+        <div class="mini-box">
+          <strong>Esnek</strong>
+          Trial ve Pro geçişi
+        </div>
+      </div>
+
+      <div class="bottom">
+        Zaten hesabın var mı? <a href="/login">Giriş yap</a>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

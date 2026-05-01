@@ -1,0 +1,409 @@
+<!--
+============================================================
+LOCKED DESIGN
+SpamShield Pro Block Center
+Status: FINAL / APPROVED / LOCKED
+Do not modify unless creating a new backup first.
+============================================================
+-->
+
+<!--
+============================================================
+SpamShield Pro Block Center
+Status: PREMIUM REDESIGN
+============================================================
+-->
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SpamShield Pro Engellenenler</title>
+  <style>
+    :root{
+      --bg:#00140b;
+      --green:#00e676;
+      --green2:#00ff88;
+      --text:#ffffff;
+      --muted:#cfd8d3;
+      --line:rgba(0,230,118,.34);
+      --danger:#ff4d6d;
+      --warn:#ffd966;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 50% -5%, rgba(0,230,118,.14), transparent 35%),
+        radial-gradient(circle at 100% 20%, rgba(255,77,109,.08), transparent 28%),
+        linear-gradient(180deg,#00140b 0%,#000f08 100%);
+      color:var(--text);
+      font-family:Arial,Helvetica,sans-serif;
+    }
+
+    .wrap{
+      width:min(90vw,390px);
+      margin:0 auto;
+      padding:22px 0 24px;
+    }
+
+    .top{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .logo{
+      font-size:38px;
+      line-height:1;
+    }
+
+    h1{
+      margin:0;
+      font-size:35px;
+      font-weight:900;
+      letter-spacing:-1.3px;
+    }
+
+    .hero{
+      border:1.4px solid var(--line);
+      border-radius:22px;
+      padding:16px 15px;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(255,77,109,.11), transparent 38%),
+        linear-gradient(180deg, rgba(4,34,20,.96), rgba(0,18,10,.92));
+      box-shadow:0 18px 38px rgba(0,0,0,.26);
+      margin-bottom:12px;
+      text-align:center;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      padding:7px 11px;
+      border-radius:999px;
+      background:rgba(0,230,118,.11);
+      border:1px solid rgba(0,230,118,.28);
+      font-size:13px;
+      font-weight:900;
+      margin-bottom:10px;
+    }
+
+    .shield{
+      width:58px;
+      height:58px;
+      border-radius:19px;
+      margin:0 auto 9px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(145deg,#00ff88,#00b85f);
+      font-size:28px;
+      box-shadow:0 12px 28px rgba(0,230,118,.20);
+    }
+
+    .hero-title{
+      margin:0 0 6px;
+      font-size:30px;
+      line-height:1.05;
+      font-weight:900;
+      letter-spacing:-1px;
+    }
+
+    .muted{
+      margin:0;
+      color:var(--muted);
+      font-size:14.5px;
+      line-height:1.35;
+    }
+
+    .main-card{
+      border:1.5px solid rgba(0,255,136,.52);
+      border-radius:23px;
+      padding:16px 15px;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(0,255,136,.10), transparent 38%),
+        linear-gradient(180deg, rgba(4,34,20,.98), rgba(0,18,10,.92));
+      box-shadow:
+        0 0 0 1px rgba(0,230,118,.08),
+        0 16px 34px rgba(0,230,118,.10);
+      margin-bottom:12px;
+    }
+
+    .main-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:12px;
+    }
+
+    .main-title{
+      font-size:24px;
+      font-weight:900;
+      line-height:1.05;
+    }
+
+    .main-sub{
+      margin-top:5px;
+      color:rgba(255,255,255,.66);
+      font-size:13.5px;
+      font-weight:800;
+    }
+
+    .status-pill{
+      color:#00140b;
+      background:linear-gradient(180deg,#5cffae,#00ff88);
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .big-count{
+      color:var(--green2);
+      font-size:52px;
+      line-height:1;
+      font-weight:900;
+      letter-spacing:-1.5px;
+      margin-bottom:12px;
+    }
+
+    .big-count small{
+      font-size:19px;
+      color:#bfffe0;
+      letter-spacing:0;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+      margin-bottom:12px;
+    }
+
+    .stat{
+      border:1.2px solid rgba(0,230,118,.24);
+      border-radius:18px;
+      padding:13px 11px;
+      background:rgba(0,30,17,.72);
+    }
+
+    .stat-value{
+      color:var(--green2);
+      font-size:28px;
+      line-height:1;
+      font-weight:900;
+      margin-bottom:6px;
+    }
+
+    .stat-value.danger{color:var(--danger)}
+    .stat-value.warn{color:var(--warn)}
+
+    .stat-label{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.25;
+      font-weight:800;
+    }
+
+    .section-title{
+      color:rgba(255,255,255,.72);
+      font-size:14px;
+      font-weight:900;
+      margin:2px 0 9px;
+      text-align:center;
+    }
+
+    .blocked-list{
+      display:flex;
+      flex-direction:column;
+      gap:9px;
+      margin-bottom:12px;
+    }
+
+    .item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border:1.2px solid rgba(0,230,118,.24);
+      border-radius:18px;
+      padding:12px 13px;
+      background:rgba(0,30,17,.72);
+    }
+
+    .item-left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+
+    .item-icon{
+      width:38px;
+      height:38px;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(255,77,109,.10);
+      border:1px solid rgba(255,77,109,.22);
+      font-size:19px;
+      flex:0 0 auto;
+    }
+
+    .item-main{
+      min-width:0;
+    }
+
+    .item-name{
+      font-size:15.5px;
+      font-weight:900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .item-desc{
+      color:var(--muted);
+      font-size:12.5px;
+      margin-top:3px;
+      font-weight:800;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:210px;
+    }
+
+    .risk{
+      color:var(--danger);
+      font-size:13px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .btn{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:52px;
+      border-radius:18px;
+      text-decoration:none;
+      background:linear-gradient(180deg,#00f083,#00d970);
+      color:#00140b;
+      font-size:18px;
+      font-weight:900;
+      margin-bottom:10px;
+    }
+
+    .btn.secondary{
+      background:rgba(0,230,118,.13);
+      border:1px solid rgba(0,230,118,.28);
+      color:#dffff0;
+    }
+
+    .note{
+      text-align:center;
+      color:rgba(255,255,255,.45);
+      font-size:11.5px;
+      line-height:1.35;
+      margin:6px 6px 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <div class="logo">🚫</div>
+      <h1>Engellenenler</h1>
+    </div>
+
+    <section class="hero">
+      <div class="badge">🛡️ SHIELD BLOCK CENTER</div>
+      <div class="shield">⛔</div>
+      <h2 class="hero-title">SpamShield<br>Engel Merkezi</h2>
+      <p class="muted">Spam numaralar, riskli mesajlar ve engelleme kayıtları.</p>
+    </section>
+
+    <section class="main-card">
+      <div class="main-top">
+        <div>
+          <div class="main-title">Bugünkü Engeller</div>
+          <div class="main-sub">Koruma filtresi aktif</div>
+        </div>
+        <div class="status-pill">Aktif</div>
+      </div>
+
+      <div class="big-count">17 <small>spam engellendi</small></div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value danger">4</div>
+          <div class="stat-label">Yüksek risk</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value warn">3</div>
+          <div class="stat-label">Sahte banka</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">6</div>
+          <div class="stat-label">Reklam spam</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">4</div>
+          <div class="stat-label">Şüpheli bağlantı</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-title">Son engellenen kayıtlar</div>
+
+    <section class="blocked-list">
+      <div class="item">
+        <div class="item-left">
+          <div class="item-icon">🏦</div>
+          <div class="item-main">
+            <div class="item-name">+905xx xxx 45 67</div>
+            <div class="item-desc">Sahte banka bildirimi</div>
+          </div>
+        </div>
+        <div class="risk">%96</div>
+      </div>
+
+      <div class="item">
+        <div class="item-left">
+          <div class="item-icon">🔗</div>
+          <div class="item-main">
+            <div class="item-name">+905xx xxx 98 76</div>
+            <div class="item-desc">Şüpheli link içeriyor</div>
+          </div>
+        </div>
+        <div class="risk">%91</div>
+      </div>
+
+      <div class="item">
+        <div class="item-left">
+          <div class="item-icon">📢</div>
+          <div class="item-main">
+            <div class="item-name">+905xx xxx 12 34</div>
+            <div class="item-desc">Reklam ve kampanya spamı</div>
+          </div>
+        </div>
+        <div class="risk">%78</div>
+      </div>
+    </section>
+
+    <a class="btn" href="/radial-menu">Radial Menüye Dön</a>
+    <a class="btn secondary" href="/u/reports">Raporları Gör</a>
+
+    <p class="note">Engelleme verileri test modunda örnek değerlerle gösterilmektedir.</p>
+  </main>
+</body>
+</html>

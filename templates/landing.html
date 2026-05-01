@@ -1,200 +1,259 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ app_name }}</title>
-<style>
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#0b1220;
-  color:#fff;
-}
-.topbar{
-  position:fixed; top:0; left:0; right:0;
-  height:64px;
-  background:rgba(15,23,42,.92);
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid #23324b;
-  display:flex; align-items:center;
-  padding:0 14px; z-index:1100;
-}
-.topbar-left{
-  display:flex; align-items:center; gap:12px;
-}
-.menu-btn{
-  width:44px; height:44px;
-  border:none; border-radius:14px;
-  background:#1f2937; color:#fff;
-  font-size:22px; cursor:pointer;
-}
-.brand{font-size:22px; font-weight:800}
-.sidebar{
-  position:fixed; top:64px; left:0;
-  width:88px; height:calc(100vh - 64px);
-  background:rgba(15,23,42,.90);
-  border-right:1px solid #23324b;
-  padding:14px 10px; overflow-y:auto;
-  transition:.25s ease; z-index:1000;
-}
-.sidebar.expanded{width:230px}
-.sidebar a{
-  display:flex; align-items:center; gap:12px;
-  text-decoration:none; color:#fff;
-  background:#1c2739; border:1px solid #23324b;
-  padding:13px 14px; border-radius:16px; margin-bottom:10px;
-  white-space:nowrap; overflow:hidden;
-}
-.sidebar a:hover,.sidebar a.active{background:#2563eb}
-.icon{font-size:24px; min-width:28px; text-align:center}
-.label{
-  opacity:0; transition:.2s ease;
-  font-size:16px; font-weight:600;
-}
-.sidebar.expanded .label{opacity:1}
-.content{
-  margin-top:64px; margin-left:88px;
-  padding:18px; transition:.25s ease;
-}
-.content.expanded{margin-left:230px}
-.hero{
-  background:linear-gradient(135deg,#101a2c 0%, #0f172a 100%);
-  border:1px solid #23324b;
-  border-radius:24px;
-  padding:24px;
-  margin-bottom:18px;
-}
-.hero h1{margin:0 0 12px 0; font-size:36px}
-.hero p{margin:0; color:#cbd5e1; line-height:1.7; font-size:17px}
-.actions{
-  display:flex; gap:12px; flex-wrap:wrap; margin-top:18px;
-}
-.btn{
-  display:inline-block; text-decoration:none; color:#fff;
-  padding:12px 16px; border-radius:12px; font-weight:bold;
-}
-.btn-green{background:#16a34a}
-.btn-blue{background:#2563eb}
-.grid{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:16px;
-}
-.card{
-  background:#10192c;
-  border:1px solid #23324b;
-  border-radius:22px;
-  padding:22px;
-}
-.card h3{margin-top:0}
-.price{font-size:30px; font-weight:800; margin:10px 0}
-.list{padding-left:18px; color:#dbeafe}
-.overlay{
-  display:none; position:fixed; inset:0;
-  background:rgba(0,0,0,.6);
-  backdrop-filter:blur(3px);
-  z-index:900;
-}
-.overlay.show{display:block}
-@media (min-width:900px){
-  .grid{grid-template-columns:1fr 1fr}
-}
-@media (max-width:768px){
-  .brand{font-size:18px}
-  .sidebar{left:-240px; width:220px}
-  .sidebar.expanded{left:0; width:220px}
-  .label{opacity:1}
-  .content{margin-left:0; padding:14px}
-  .content.expanded{margin-left:0}
-  .hero h1{font-size:28px}
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SpamShield</title>
+  <style>
+    :root{
+      --bg1:#020817;
+      --bg2:#071a3a;
+      --card:rgba(9,18,40,.88);
+      --line:rgba(96,165,250,.18);
+      --text:#eef4ff;
+      --muted:#9fb6d9;
+      --blue1:#3b82f6;
+      --blue2:#60a5fa;
+      --soft:rgba(255,255,255,.05);
+    }
+
+    *{
+      box-sizing:border-box;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    html,body{
+      margin:0;
+      min-height:100%;
+      font-family:Arial,Helvetica,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top, rgba(59,130,246,.20), transparent 30%),
+        radial-gradient(circle at 85% 85%, rgba(34,197,94,.08), transparent 22%),
+        linear-gradient(180deg,var(--bg1),var(--bg2));
+      overflow-x:hidden;
+    }
+
+    .glow{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 50% 8%, rgba(96,165,250,.14), transparent 20%),
+        radial-gradient(circle at 20% 70%, rgba(59,130,246,.08), transparent 22%);
+      filter:blur(18px);
+    }
+
+    .wrap{
+      position:relative;
+      z-index:1;
+      max-width:430px;
+      margin:0 auto;
+      padding:28px 14px 34px;
+      text-align:center;
+    }
+
+    .hero{
+      padding:6px 4px 12px;
+    }
+
+    .logo{
+      width:92px;
+      height:92px;
+      margin:10px auto 18px;
+      border-radius:26px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:38px;
+      font-weight:900;
+      background:linear-gradient(135deg,#3b82f6,#60a5fa);
+      box-shadow:
+        0 18px 38px rgba(59,130,246,.34),
+        0 0 28px rgba(96,165,250,.18);
+    }
+
+    h1{
+      margin:0;
+      font-size:48px;
+      font-weight:900;
+      letter-spacing:.2px;
+      text-shadow:0 8px 30px rgba(0,0,0,.28);
+    }
+
+    .sub{
+      margin:14px auto 22px;
+      color:var(--muted);
+      font-size:18px;
+      line-height:1.6;
+      max-width:350px;
+    }
+
+    .buttons{
+      display:flex;
+      gap:12px;
+      margin-top:22px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+
+    .btn{
+      text-decoration:none;
+      padding:16px 18px;
+      border-radius:18px;
+      font-weight:900;
+      min-width:150px;
+      text-align:center;
+      display:inline-block;
+      transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+
+    .btn:active{
+      transform:scale(.98);
+    }
+
+    .primary{
+      background:linear-gradient(135deg,#3b82f6,#60a5fa);
+      color:#fff;
+      box-shadow:0 14px 30px rgba(59,130,246,.26);
+    }
+
+    .secondary{
+      background:rgba(255,255,255,.05);
+      color:#dbeafe;
+      border:1px solid rgba(255,255,255,.08);
+      backdrop-filter:blur(10px);
+    }
+
+    .section{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:28px;
+      padding:20px 16px 18px;
+      box-shadow:
+        0 18px 60px rgba(0,0,0,.24),
+        inset 0 1px 0 rgba(255,255,255,.03);
+      text-align:left;
+      margin-top:18px;
+      backdrop-filter:blur(10px);
+    }
+
+    .section h2{
+      margin:2px 0 16px;
+      font-size:28px;
+      color:#fff;
+      text-align:center;
+    }
+
+    .feature{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      background:var(--soft);
+      border:1px solid rgba(255,255,255,.04);
+      border-radius:18px;
+      padding:16px 14px;
+      margin-bottom:12px;
+      color:#d6e3f8;
+      line-height:1.45;
+      font-size:16px;
+    }
+
+    .feature .icon{
+      width:36px;
+      text-align:center;
+      font-size:24px;
+      flex:0 0 36px;
+    }
+
+    .trust{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+
+    .trust-box{
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.05);
+      border-radius:18px;
+      padding:12px 8px;
+      text-align:center;
+    }
+
+    .trust-box strong{
+      display:block;
+      font-size:20px;
+      margin-bottom:4px;
+    }
+
+    .trust-box span{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.3;
+    }
+
+    @media (max-width:390px){
+      h1{font-size:42px}
+      .sub{font-size:16px}
+      .logo{width:84px;height:84px;font-size:34px}
+      .trust{grid-template-columns:1fr}
+    }
+  </style>
 </head>
 <body>
+  <div class="glow"></div>
 
-<div class="topbar">
-  <div class="topbar-left">
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-    <div class="brand">🛡 {{ app_name }}</div>
+  <div class="wrap">
+    <section class="hero">
+      <div class="logo">SS</div>
+      <h1>SpamShield</h1>
+      <div class="sub">Akıllı SMS koruma, lisans yönetimi ve güvenli kullanıcı deneyimini tek merkezde sunar.</div>
+
+      <div class="buttons">
+        <a class="btn primary" href="/login">Giriş Yap</a>
+        <a class="btn secondary" href="/register">Hesap Oluştur</a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Neler sunuyor?</h2>
+
+      <div class="feature">
+        <div class="icon">🛡️</div>
+        <div>Spam ve istenmeyen içerik kontrolü</div>
+      </div>
+
+      <div class="feature">
+        <div class="icon">🔑</div>
+        <div>Trial ve Pro lisans yönetimi</div>
+      </div>
+
+      <div class="feature">
+        <div class="icon">📊</div>
+        <div>Yönetim paneli ve rapor ekranları</div>
+      </div>
+
+      <div class="feature">
+        <div class="icon">📱</div>
+        <div>Mobil uyumlu modern arayüz</div>
+      </div>
+
+      <div class="trust">
+        <div class="trust-box">
+          <strong>Hızlı</strong>
+          <span>Akıcı mobil deneyim</span>
+        </div>
+        <div class="trust-box">
+          <strong>Güvenli</strong>
+          <span>Lisans ve erişim kontrolü</span>
+        </div>
+        <div class="trust-box">
+          <strong>Modern</strong>
+          <span>Premium arayüz yapısı</span>
+        </div>
+      </div>
+    </section>
   </div>
-</div>
-
-<div id="overlay" class="overlay" onclick="closeSidebarMobile()"></div>
-
-<div id="sidebar" class="sidebar">
-  <a href="/dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
-  <a href="/users"><span class="icon">👥</span><span class="label">Kullanıcılar</span></a>
-  <a href="/add-user"><span class="icon">➕</span><span class="label">Kullanıcı Ekle</span></a>
-  <a href="/change"><span class="icon">🔑</span><span class="label">Şifre Değiştir</span></a>
-  <a href="/setting"><span class="icon">⚙️</span><span class="label">Ayarlar</span></a>
-  <a href="/activate-license"><span class="icon">💳</span><span class="label">Lisans</span></a>
-  {% if session.get('username') == 'admin' %}
-  <a href="/admin/licenses"><span class="icon">🧾</span><span class="label">Lisans Havuzu</span></a>
-  {% endif %}
-  <a href="/landing" class="active"><span class="icon">🌐</span><span class="label">Landing</span></a>
-  <a href="/logout"><span class="icon">🚪</span><span class="label">Çıkış</span></a>
-</div>
-
-<div id="content" class="content">
-  <div class="hero">
-    <h1>{{ app_name }}</h1>
-    <p>Trial ile hemen başla, PRO lisans ile süreni uzat. Tek kullanımlık lisans, panel içi aktivasyon ve admin lisans havuzu hazır.</p>
-    <div class="actions">
-      <a class="btn btn-green" href="/buy-license">Lisans Satın Al</a>
-      <a class="btn btn-blue" href="/activate-license">Lisans Aktifleştir</a>
-    </div>
-  </div>
-
-  <div class="grid">
-    <div class="card">
-      <h3>Trial Paket</h3>
-      <div class="price">7 Gün</div>
-      <ul class="list">
-        <li>Panel erişimi</li>
-        <li>Temel kullanım</li>
-        <li>Hızlı kurulum</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h3>PRO Paket</h3>
-      <div class="price">30+ Gün</div>
-      <ul class="list">
-        <li>Tek kullanımlık lisans</li>
-        <li>PRO aktivasyon</li>
-        <li>Süre uzatma desteği</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<script>
-const sidebar=document.getElementById("sidebar");
-const content=document.getElementById("content");
-const overlay=document.getElementById("overlay");
-function isMobile(){ return window.innerWidth <= 768; }
-function toggleSidebar(){
-  if(isMobile()){
-    sidebar.classList.toggle("expanded");
-    overlay.classList.toggle("show");
-  }else{
-    sidebar.classList.toggle("expanded");
-    content.classList.toggle("expanded");
-  }
-}
-function closeSidebarMobile(){
-  if(isMobile()){
-    sidebar.classList.remove("expanded");
-    overlay.classList.remove("show");
-  }
-}
-window.addEventListener("resize",()=>{
-  if(!isMobile()) overlay.classList.remove("show");
-  else content.classList.remove("expanded");
-});
-</script>
-
 </body>
 </html>

@@ -1,0 +1,171 @@
+<!--
+============================================================
+PRICE LOCK
+SpamShield Pro Pricing
+Starter Shield: 149 TL / ay
+Shield Pro+: 999 TL / yıl
+Lifetime Shield: 1999 TL
+Annual advantage: 789 TL
+Status: FINAL / APPROVED / LOCKED
+============================================================
+-->
+
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SpamShield Pro Ödeme</title>
+  <style>
+    :root{
+      --bg:#00140b;
+      --green:#00e676;
+      --green2:#00ff88;
+      --text:#ffffff;
+      --muted:#cfd8d3;
+      --line:rgba(0,230,118,.34);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(0,230,118,.10), transparent 34%),
+        linear-gradient(180deg,#00140b 0%,#000f08 100%);
+      color:var(--text);
+      font-family:Arial,Helvetica,sans-serif;
+    }
+    .wrap{
+      width:min(90vw,390px);
+      margin:0 auto;
+      padding:22px 0 24px;
+    }
+    .top{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:16px;
+    }
+    .logo{
+      font-size:38px;
+      line-height:1;
+    }
+    h1{
+      margin:0;
+      font-size:36px;
+      font-weight:900;
+      letter-spacing:-1.2px;
+    }
+    .card{
+      border:1.4px solid var(--line);
+      border-radius:22px;
+      padding:18px 16px;
+      background:linear-gradient(180deg, rgba(4,34,20,.96), rgba(0,18,10,.92));
+      box-shadow:0 18px 38px rgba(0,0,0,.28);
+      margin-bottom:14px;
+      text-align:center;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(0,230,118,.11);
+      border:1px solid rgba(0,230,118,.28);
+      font-size:14px;
+      font-weight:900;
+      margin-bottom:12px;
+    }
+    .shield{
+      width:70px;
+      height:70px;
+      border-radius:23px;
+      margin:0 auto 10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(145deg,#00ff88,#00b85f);
+      color:#00140b;
+      font-size:34px;
+      box-shadow:0 12px 28px rgba(0,230,118,.22);
+    }
+    .plan{
+      margin:0 0 8px;
+      font-size:30px;
+      font-weight:900;
+      line-height:1.05;
+    }
+    .price{
+      color:var(--green2);
+      font-size:34px;
+      font-weight:900;
+      margin:0 0 10px;
+    }
+    .muted{
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.4;
+      margin:0 0 16px;
+    }
+    .btn{
+      width:100%;
+      border:0;
+      min-height:56px;
+      border-radius:18px;
+      background:linear-gradient(180deg,#00f083,#00d970);
+      color:#00140b;
+      font-size:19px;
+      font-weight:900;
+    }
+    .back{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:52px;
+      border-radius:17px;
+      text-decoration:none;
+      background:rgba(0,230,118,.14);
+      border:1px solid rgba(0,230,118,.28);
+      color:#dffff0;
+      font-size:17px;
+      font-weight:900;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <div class="logo">💳</div>
+      <h1>Ödeme</h1>
+    </div>
+
+    <section class="card">
+      <div class="badge">🛡️ SHIELD PRO CHECKOUT</div>
+      <div class="shield">✅</div>
+
+      {% set selected_plan = request.args.get("plan", "pro_monthly") %}
+
+      {% if selected_plan == "pro_yearly" %}
+        <h2 class="plan">Pro Yıllık</h2>
+        <div class="price">999 TL</div>
+      {% elif selected_plan == "lifetime" %}
+        <h2 class="plan">Lifetime</h2>
+        <div class="price">1999 TL</div>
+      {% else %}
+        <h2 class="plan">Pro Aylık</h2>
+        <div class="price">149 TL</div>
+      {% endif %}
+
+      <p class="muted">Test ödeme sonrası lisans otomatik oluşturulup hesabına bağlanacak.</p>
+
+      <form method="get" action="/u/activate-pro-now">
+        <input type="hidden" name="plan" value="{{ selected_plan }}">
+        <button class="btn" type="submit">Test Ödemeyi Tamamla</button>
+      </form>
+    </section>
+
+    <a class="back" href="/u/pricing">← Paketlere Dön</a>
+  </main>
+</body>
+</html>

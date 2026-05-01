@@ -1,624 +1,429 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SpamShield Premium</title>
-
-<style>
-* { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #071224;
-    color: #ffffff;
-    overflow-x: hidden;
-}
-
-.header {
-    position: sticky;
-    top: 0;
-    z-index: 1002;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 18px;
-    background: rgba(12, 22, 42, 0.96);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    backdrop-filter: blur(8px);
-}
-
-.menu-toggle {
-    font-size: 26px;
-    cursor: pointer;
-    user-select: none;
-    line-height: 1;
-}
-
-.brand {
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 0.2px;
-}
-
-.header-right {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-}
-
-.pro-badge {
-    display: inline-block;
-    background: linear-gradient(90deg,#6366f1,#8b5cf6);
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: 800;
-    color: white;
-    text-decoration: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-}
-
-.pro-label {
-    font-size: 12px;
-    font-weight: 900;
-    color: #a78bfa;
-}
-
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: -220px;
-    width: 200px;
-    height: 100%;
-    background: rgba(11,30,58,0.85);
-    backdrop-filter: blur(12px);
-    border-right: 1px solid rgba(255,255,255,0.05);
-    box-shadow: 20px 0 60px rgba(0,0,0,0.65);
-    padding: 16px 10px;
-    transition: left 0.28s ease;
-    z-index: 1003;
-}
-
-.sidebar.active {
-    left: 0;
-}
-
-.sidebar-title {
-    font-size: 20px;
-    font-weight: 800;
-    margin: 8px 6px 18px 6px;
-    text-shadow: 0 0 10px rgba(120,180,255,0.4);
-    animation: logoPulse 3s infinite;
-}
-
-@keyframes logoPulse {
-    0% { text-shadow: 0 0 5px rgba(120,180,255,0.3); }
-    50% { text-shadow: 0 0 20px rgba(120,180,255,0.7); }
-    100% { text-shadow: 0 0 5px rgba(120,180,255,0.3); }
-}
-
-.menu-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    text-decoration: none;
-    color: #eef2ff;
-    background: #1a2740;
-    border: 1px solid rgba(255,255,255,0.04);
-    border-radius: 16px;
-    padding: 12px 12px;
-    margin-bottom: 10px;
-    font-size: 17px;
-    font-weight: 700;
-    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
-}
-
-.menu-link:hover {
-    background: #263b63;
-    transform: translateX(4px);
-    box-shadow: 0 0 15px rgba(100,150,255,0.4);
-}
-
-.menu-link:active {
-    transform: scale(0.985);
-}
-
-.menu-link.active {
-    background: linear-gradient(90deg,#3169ea,#4a7bff);
-    box-shadow: 0 0 25px rgba(80,120,255,0.6);
-}
-
-.menu-icon {
-    font-size: 24px;
-    width: 28px;
-    text-align: center;
-    flex-shrink: 0;
-}
-
-.overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(2px);
-    display: none;
-    z-index: 1001;
-}
-
-.overlay.active {
-    display: block;
-}
-
-.content {
-    padding: 18px;
-    transition: filter 0.2s ease;
-}
-
-.content.dimmed {
-    filter: blur(3px) brightness(0.6);
-}
-
-.page-title {
-    font-size: 28px;
-    font-weight: 800;
-    margin: 8px 0 18px 0;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-}
-
-.card {
-    background: #14223a;
-    border: 1px solid rgba(255,255,255,0.04);
-    border-radius: 22px;
-    padding: 22px 18px;
-    margin-bottom: 16px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.14);
-}
-
-.card-title {
-    font-size: 16px;
-    color: #dbe7ff;
-    margin-bottom: 18px;
-    font-weight: 700;
-}
-
-.card-value {
-    font-size: 24px;
-    font-weight: 800;
-}
-
-.sms-box {
-    margin-top: 12px;
-    background: #1d2a42;
-    border-radius: 18px;
-    padding: 16px;
-    color: #f8fbff;
-    line-height: 1.45;
-    min-height: 70px;
-}
-
-.btn {
-    display: block;
-    width: 100%;
-    text-align: center;
-    padding: 14px 16px;
-    border-radius: 16px;
-    text-decoration: none;
-    color: white;
-    margin-top: 12px;
-    font-size: 16px;
-    font-weight: 800;
-}
-
-.blue { background: #3169ea; }
-.purple { background: #9a39f3; }
-
-@media (max-width: 640px) {
-    .grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-    }
-
-    .card {
-        padding: 18px 14px;
-        border-radius: 18px;
-    }
-
-    .card-value {
-        font-size: 22px;
-    }
-
-    .page-title {
-        font-size: 24px;
-    }
-}
-</style>
-
-<style>
-.toast-container{
-  position:fixed;
-  top:18px;
-  right:18px;
-  z-index:9999;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  width:min(360px, calc(100vw - 24px));
-  pointer-events:none;
-}
-
-.toast{
-  position:relative;
-  overflow:hidden;
-  border-radius:18px;
-  padding:14px 16px 16px 16px;
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
-  border:1px solid rgba(255,255,255,.12);
-  box-shadow:0 18px 40px rgba(0,0,0,.28);
-  color:#fff;
-  opacity:0;
-  transform:translateY(-12px) scale(.97);
-  transition:opacity .35s ease, transform .35s ease;
-  pointer-events:auto;
-}
-
-.toast.show{
-  opacity:1;
-  transform:translateY(0) scale(1);
-}
-
-.toast.hide{
-  opacity:0;
-  transform:translateY(-12px) scale(.97);
-}
-
-.toast::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
-  pointer-events:none;
-}
-
-.toast-top{
-  display:flex;
-  align-items:flex-start;
-  gap:12px;
-  position:relative;
-  z-index:1;
-}
-
-.toast-icon{
-  width:36px;
-  height:36px;
-  min-width:36px;
-  border-radius:12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:18px;
-  font-weight:700;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
-}
-
-.toast-body{
-  flex:1;
-  min-width:0;
-}
-
-.toast-title{
-  font-size:14px;
-  font-weight:800;
-  margin:0 0 4px 0;
-  letter-spacing:.2px;
-}
-
-.toast-message{
-  font-size:13px;
-  line-height:1.45;
-  margin:0;
-  opacity:.95;
-  word-wrap:break-word;
-}
-
-.toast-close{
-  background:transparent;
-  border:0;
-  color:rgba(255,255,255,.75);
-  font-size:18px;
-  line-height:1;
-  cursor:pointer;
-  padding:0;
-  margin:0;
-}
-
-.toast-close:hover{
-  color:#fff;
-}
-
-.toast-progress{
-  position:absolute;
-  left:0;
-  bottom:0;
-  height:3px;
-  width:100%;
-  transform-origin:left center;
-  animation:toastProgress 2.6s linear forwards;
-  opacity:.95;
-}
-
-@keyframes toastProgress{
-  from{ transform:scaleX(1); }
-  to{ transform:scaleX(0); }
-}
-
-.toast-success{
-  background:linear-gradient(135deg, rgba(16,185,129,.28), rgba(6,95,70,.22));
-}
-.toast-success .toast-icon{
-  background:rgba(16,185,129,.22);
-}
-.toast-success .toast-progress{
-  background:#34d399;
-}
-
-.toast-error{
-  background:linear-gradient(135deg, rgba(239,68,68,.28), rgba(127,29,29,.22));
-}
-.toast-error .toast-icon{
-  background:rgba(239,68,68,.22);
-}
-.toast-error .toast-progress{
-  background:#f87171;
-}
-
-.toast-warning{
-  background:linear-gradient(135deg, rgba(245,158,11,.28), rgba(120,53,15,.22));
-}
-.toast-warning .toast-icon{
-  background:rgba(245,158,11,.22);
-}
-.toast-warning .toast-progress{
-  background:#fbbf24;
-}
-
-.toast-info{
-  background:linear-gradient(135deg, rgba(59,130,246,.28), rgba(30,58,138,.22));
-}
-.toast-info .toast-icon{
-  background:rgba(59,130,246,.22);
-}
-.toast-info .toast-progress{
-  background:#60a5fa;
-}
-
-@media (max-width: 640px){
-  .toast-container{
-    top:12px;
-    right:12px;
-    left:12px;
-    width:auto;
-  }
-  .toast{
-    border-radius:16px;
-  }
-}
-</style>
-
-</head>
-<body>
-
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="toast-container" id="toastContainer">
-      {% for category, message in messages %}
-        <div class="toast toast-{{ category if category in ['success','error','warning','info'] else 'info' }}">
-          <div class="toast-top">
-            <div class="toast-icon">
-              {% if category == 'success' %}✓
-              {% elif category == 'error' %}✕
-              {% elif category == 'warning' %}! 
-              {% else %}i{% endif %}
-            </div>
-
-            <div class="toast-body">
-              <div class="toast-title">
-                {% if category == 'success' %}Başarılı
-                {% elif category == 'error' %}Hata
-                {% elif category == 'warning' %}Uyarı
-                {% else %}Bilgi{% endif %}
-              </div>
-              <p class="toast-message">{{ message }}</p>
-            </div>
-
-            <button class="toast-close" type="button" aria-label="Kapat">×</button>
-          </div>
-
-          <div class="toast-progress"></div>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-{% endwith %}
-
-
-<div class="header">
-    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-    <div class="brand">🛡 SpamShield</div>
-
-    <div class="header-right">
-        {% if user and user.get("license_type") == "pro" %}
-            <span class="pro-label">⭐ PRO</span>
-        {% else %}
-            <a href="/upgrade" class="pro-badge">🚀 PRO</a>
-        {% endif %}
-    </div>
-</div>
-
-<div id="sidebar" class="sidebar">
-    <div class="sidebar-title">🛡 SpamShield</div>
-
-    <a href="/dashboard" class="menu-link active">
-        <span class="menu-icon">🏠</span>
-        <span>Dashboard</span>
-    </a>
-
-    <a href="/admin/spam-logs" class="menu-link">
-        <span class="menu-icon">📜</span>
-        <span>Spam Logları</span>
-    </a>
-
-    <a href="/admin/panel" class="menu-link">
-        <span class="menu-icon">⚙️</span>
-        <span>Admin Panel</span>
-    </a>
-
-    <a href="/admin/whitelist" class="menu-link">
-        <span class="menu-icon">🧠</span>
-        <span>Beyaz Liste</span>
-    </a>
-
-    <a href="/logout" class="menu-link">
-        <span class="menu-icon">🚪</span>
-        <span>Çıkış</span>
-    </a>
-</div>
-
-<div id="overlay" class="overlay" onclick="closeMenu()"></div>
-
-<div id="content" class="content">
-    <div class="page-title">📊 Dashboard</div>
-
-    <div class="grid">
-        <div class="card">
-            <div class="card-title">Toplam Kullanıcı</div>
-            <div class="card-value">{{ total_users }}</div>
-        </div>
-
-        <div class="card">
-            <div class="card-title">Lisans</div>
-            <div class="card-value">{{ license_mode }}</div>
-            <div style="margin-top:10px; color:#dbe7ff;">Kalan Gün: {{ trial_days }}</div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-title">📡 Canlı SMS</div>
-
-        <div class="sms-box">
-            {% if last_sms %}
-                {{ last_sms }}
-            {% else %}
-                Henüz SMS yok
-            {% endif %}
-        </div>
-
-        <a href="/admin/panel" class="btn blue">Admin Panel</a>
-        <a href="/admin/spam-logs" class="btn blue">Spam Logları</a>
-        <a href="/admin/whitelist" class="btn purple">Beyaz Liste</a>
-    </div>
-</div>
-
-<script>
-function openMenu() {
-    document.getElementById("sidebar").classList.add("active");
-    document.getElementById("overlay").classList.add("active");
-    document.getElementById("content").classList.add("dimmed");
-    document.body.style.overflow = "hidden";
-}
-
-function closeMenu() {
-    document.getElementById("sidebar").classList.remove("active");
-    document.getElementById("overlay").classList.remove("active");
-    document.getElementById("content").classList.remove("dimmed");
-    document.body.style.overflow = "auto";
-}
-
-function toggleMenu() {
-    const sidebar = document.getElementById("sidebar");
-    if (sidebar.classList.contains("active")) {
-        closeMenu();
-    } else {
-        openMenu();
-    }
-}
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const messages = document.querySelectorAll(".flash-msg");
-
-    messages.forEach((msg, index) => {
-        // Küçük animasyon
-        msg.style.opacity = "0";
-        msg.style.transform = "translateY(-10px)";
-
-        setTimeout(() => {
-            msg.style.transition = "all 0.4s ease";
-            msg.style.opacity = "1";
-            msg.style.transform = "translateY(0)";
-        }, 50);
-
-        // 2.5 saniye sonra kaybol
-        setTimeout(() => {
-            msg.style.transition = "all 0.4s ease";
-            msg.style.opacity = "0";
-            msg.style.transform = "translateY(-10px)";
-        }, 2500);
-
-        // tamamen DOM'dan sil
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
-    });
-});
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const toasts = document.querySelectorAll(".toast");
-
-  toasts.forEach((toast, index) => {
-    const closeBtn = toast.querySelector(".toast-close");
-
-    const showDelay = 80 + (index * 120);
-    const hideDelay = 2600 + (index * 120);
-
-    setTimeout(() => {
-      toast.classList.add("show");
-    }, showDelay);
-
-    const hideToast = () => {
-      if (toast.dataset.closed === "1") return;
-      toast.dataset.closed = "1";
-      toast.classList.remove("show");
-      toast.classList.add("hide");
-      setTimeout(() => {
-        toast.remove();
-        const container = document.getElementById("toastContainer");
-        if (container && !container.querySelector(".toast")) {
-          container.remove();
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpamShield Pro - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            user-select: none;
         }
-      }, 380);
-    };
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .nav-item:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+        }
+        .nav-item.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .status-badge {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">
+                <i class="fas fa-shield-alt mr-3"></i>
+                SpamShield Pro
+            </h1>
+            <p class="text-purple-200">Akıllı SMS Koruma Sistemi</p>
+        </div>
 
-    setTimeout(hideToast, hideDelay);
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Sidebar Menü -->
+            <div class="lg:col-span-1">
+                <div class="glass-card p-4 shadow-xl">
+                    <div class="space-y-2">
+                        <div class="nav-item active p-3 rounded-xl flex items-center space-x-3">
+                            <i class="fas fa-chart-line w-5"></i>
+                            <span>Dashboard</span>
+                        </div>
+                        <div class="nav-item p-3 rounded-xl flex items-center space-x-3">
+                            <i class="fas fa-chart-simple w-5"></i>
+                            <span>Analiz</span>
+                        </div>
+                        <div class="nav-item p-3 rounded-xl flex items-center space-x-3">
+                            <i class="fas fa-ban w-5"></i>
+                            <span>Engellenenler</span>
+                        </div>
+                        <div class="nav-item p-3 rounded-xl flex items-center space-x-3">
+                            <i class="fas fa-bell w-5"></i>
+                            <span>Bildirimler</span>
+                        </div>
+                        <div class="nav-item p-3 rounded-xl flex items-center space-x-3">
+                            <i class="fas fa-cog w-5"></i>
+                            <span>Ayarlar</span>
+                        </div>
+                        <div class="nav-item p-3 rounded-xl flex items-center space-x-3">
+                            <i class="fas fa-chart-bar w-5"></i>
+                            <span>Raporlar</span>
+                        </div>
+                        <div class="nav-item p-3 rounded-xl flex items-center space-x-3">
+                            <i class="fas fa-key w-5"></i>
+                            <span>Lisans</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    if (closeBtn) {
-      closeBtn.addEventListener("click", hideToast);
-    }
-  });
-});
-</script>
+            <!-- Ana İçerik -->
+            <div class="lg:col-span-3">
+                <!-- İstatistik Kartları -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="glass-card p-6 text-center shadow-lg">
+                        <i class="fas fa-envelope text-4xl text-purple-500 mb-3"></i>
+                        <div class="stat-number">125</div>
+                        <p class="text-gray-600 text-sm mt-2">Toplam SMS</p>
+                        <div class="text-xs text-green-500 mt-1">
+                            <i class="fas fa-arrow-up"></i> +12 bu hafta
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card p-6 text-center shadow-lg">
+                        <i class="fas fa-ban text-4xl text-red-500 mb-3"></i>
+                        <div class="stat-number">24</div>
+                        <p class="text-gray-600 text-sm mt-2">Engellendi</p>
+                        <div class="text-xs text-red-500 mt-1">
+                            <i class="fas fa-shield-alt"></i> %19.2 oran
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card p-6 text-center shadow-lg">
+                        <i class="fas fa-bell text-4xl text-yellow-500 mb-3"></i>
+                        <div class="stat-number">3</div>
+                        <p class="text-gray-600 text-sm mt-2">Bildirim</p>
+                        <div class="text-xs text-yellow-500 mt-1">
+                            <i class="fas fa-clock"></i> 2 yeni
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card p-6 text-center shadow-lg">
+                        <i class="fas fa-shield-alt text-4xl text-green-500 mb-3"></i>
+                        <div class="flex items-center justify-center space-x-2">
+                            <span class="status-badge w-2 h-2 bg-green-500 rounded-full"></span>
+                            <span class="text-xl font-bold text-green-600">Aktif</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mt-2">Koruma</p>
+                        <div class="text-xs text-green-500 mt-1">
+                            <i class="fas fa-check-circle"></i> 7/24 Aktif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grafik ve Detaylar -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Son Aktivite -->
+                    <div class="glass-card p-6 shadow-lg">
+                        <h3 class="font-bold text-lg mb-4 flex items-center">
+                            <i class="fas fa-history mr-2 text-purple-500"></i>
+                            Son Aktiviteler
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-ban text-red-500"></i>
+                                    <span class="text-sm">Spam SMS engellendi</span>
+                                </div>
+                                <span class="text-xs text-gray-400">5 dk önce</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-check-circle text-green-500"></i>
+                                    <span class="text-sm">Güvenli SMS alındı</span>
+                                </div>
+                                <span class="text-xs text-gray-400">15 dk önce</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-chart-line text-blue-500"></i>
+                                    <span class="text-sm">Haftalık rapor oluşturuldu</span>
+                                </div>
+                                <span class="text-xs text-gray-400">1 saat önce</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- İstatistikler -->
+                    <div class="glass-card p-6 shadow-lg">
+                        <h3 class="font-bold text-lg mb-4 flex items-center">
+                            <i class="fas fa-chart-pie mr-2 text-purple-500"></i>
+                            Haftalık İstatistik
+                        </h3>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Güvenli SMS</span>
+                                    <span class="font-semibold">%80</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-500 h-2 rounded-full" style="width: 80%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Spam SMS</span>
+                                    <span class="font-semibold">%20</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-red-500 h-2 rounded-full" style="width: 20%"></div>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Koruma Oranı</span>
+                                    <span class="font-bold text-green-600">%98.5</span>
+                                </div>
+                                <div class="flex justify-between text-sm mt-2">
+                                    <span class="text-gray-600">Engellenen Spam</span>
+                                    <span class="font-bold text-red-600">24 SMS</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Son Engellenenler -->
+                <div class="glass-card p-6 shadow-lg mt-6">
+                    <h3 class="font-bold text-lg mb-4 flex items-center">
+                        <i class="fas fa-list mr-2 text-purple-500"></i>
+                        Son Engellenen SMS'ler
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-mobile-alt text-red-500"></i>
+                                <div>
+                                    <p class="text-sm font-medium">+90 555 123 45 67</p>
+                                    <p class="text-xs text-gray-500">Kazandınız kampanyası</p>
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-400">10 dk önce</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-mobile-alt text-red-500"></i>
+                                <div>
+                                    <p class="text-sm font-medium">+90 532 987 65 43</p>
+                                    <p class="text-xs text-gray-500">Ödül kazandınız</p>
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-400">25 dk önce</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Menü aktiflik
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Bildirim göster
+                const menuText = this.querySelector('span').innerText;
+                showToast(menuText + ' sayfası açılıyor...', 'info');
+            });
+        });
+        
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 right-4 bg-white rounded-lg shadow-xl p-4 z-50 animate-slideIn';
+            toast.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-${type === 'info' ? 'info-circle' : 'check-circle'} text-purple-500"></i>
+                    <span class="text-sm">${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+        
+        // Animasyon CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            .animate-slideIn {
+                animation: slideIn 0.3s ease;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+
+    <!-- Radial Menü -->
+    <div class="radial-menu" id="radialMenu">
+        <div class="radial-toggle" id="radialToggle">
+            <i class="fas fa-plus"></i>
+        </div>
+        <ul class="radial-items">
+            <li class="radial-item" onclick="window.location.href='/admin'"><i class="fas fa-users"></i><span class="tooltip">Admin Panel</span></li>
+            <li class="radial-item" onclick="window.location.href='/dashboard'"><i class="fas fa-chart-line"></i><span class="tooltip">Dashboard</span></li>
+            <li class="radial-item" onclick="showNotification('Ayarlar Yakında')"><i class="fas fa-cog"></i><span class="tooltip">Ayarlar</span></li>
+            <li class="radial-item" onclick="showNotification('Raporlar Hazırlanıyor')"><i class="fas fa-file-alt"></i><span class="tooltip">Raporlar</span></li>
+            <li class="radial-item" onclick="showNotification('Yeni Bildirim Yok')"><i class="fas fa-bell"></i><span class="tooltip">Bildirimler</span></li>
+            <li class="radial-item" onclick="showNotification('Profil Bilgileri')"><i class="fas fa-user"></i><span class="tooltip">Profil</span></li>
+            <li class="radial-item" onclick="showNotification('Sistem Sağlıklı')"><i class="fas fa-heartbeat"></i><span class="tooltip">Sistem Durumu</span></li>
+            <li class="radial-item" onclick="showNotification('Güvenlik Duvarı Aktif')"><i class="fas fa-shield-alt"></i><span class="tooltip">Güvenlik</span></li>
+            <li class="radial-item" onclick="showNotification('Destek: 0850...')"><i class="fas fa-headset"></i><span class="tooltip">Destek</span></li>
+            <li class="radial-item" onclick="window.location.href='/logout'"><i class="fas fa-sign-out-alt"></i><span class="tooltip">Çıkış</span></li>
+        </ul>
+    </div>
+
+    <style>
+        .radial-menu {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 80px;
+            height: 80px;
+            z-index: 1000;
+        }
+        .radial-toggle {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        .radial-toggle:hover { transform: scale(1.1); }
+        .radial-toggle i { font-size: 32px; color: white; transition: transform 0.3s ease; }
+        .radial-toggle.active i { transform: rotate(45deg); }
+        .radial-items {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            list-style: none;
+        }
+        .radial-item {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            opacity: 0;
+            visibility: hidden;
+            right: 10px;
+            bottom: 10px;
+        }
+        .radial-menu.active .radial-item {
+            opacity: 1;
+            visibility: visible;
+        }
+        .radial-item:hover { transform: scale(1.15); }
+        .radial-item i { font-size: 24px; color: white; }
+        .radial-menu.active .radial-item:nth-child(1) { transform: translate(-100px, -100px); }
+        .radial-menu.active .radial-item:nth-child(2) { transform: translate(-140px, -60px); }
+        .radial-menu.active .radial-item:nth-child(3) { transform: translate(-160px, 0px); }
+        .radial-menu.active .radial-item:nth-child(4) { transform: translate(-140px, 60px); }
+        .radial-menu.active .radial-item:nth-child(5) { transform: translate(-100px, 100px); }
+        .radial-menu.active .radial-item:nth-child(6) { transform: translate(-30px, 130px); }
+        .radial-menu.active .radial-item:nth-child(7) { transform: translate(40px, 130px); }
+        .radial-menu.active .radial-item:nth-child(8) { transform: translate(100px, 100px); }
+        .radial-menu.active .radial-item:nth-child(9) { transform: translate(140px, 60px); }
+        .radial-menu.active .radial-item:nth-child(10) { transform: translate(160px, 0px); }
+        .radial-item:nth-child(1) { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .radial-item:nth-child(2) { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .radial-item:nth-child(3) { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .radial-item:nth-child(4) { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .radial-item:nth-child(5) { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .radial-item:nth-child(6) { background: linear-gradient(135deg, #30cfd0, #330867); }
+        .radial-item:nth-child(7) { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+        .radial-item:nth-child(8) { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
+        .radial-item:nth-child(9) { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+        .radial-item:nth-child(10) { background: linear-gradient(135deg, #ff6e7f, #bfe9ff); }
+        .tooltip {
+            position: absolute;
+            right: 70px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .radial-item:hover .tooltip { opacity: 1; }
+        @media (max-width: 768px) {
+            .radial-menu { bottom: 20px; right: 20px; width: 60px; height: 60px; }
+            .radial-toggle { width: 60px; height: 60px; }
+            .radial-toggle i { font-size: 24px; }
+            .radial-item { width: 50px; height: 50px; }
+            .radial-item i { font-size: 20px; }
+        }
+    </style>
+
+    <script>
+        const menu = document.getElementById('radialMenu');
+        const toggle = document.getElementById('radialToggle');
+        if(toggle) {
+            toggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                menu.classList.toggle('active');
+            });
+        }
+        document.addEventListener('click', function(e) {
+            if(menu && !menu.contains(e.target)) menu.classList.remove('active');
+        });
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.innerHTML = `<div style="position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 9999; animation: slideIn 0.3s ease;">${message}</div>`;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 2500);
+        }
+    </style>
 
 </body>
 </html>

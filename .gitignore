@@ -1,17 +1,65 @@
+# secrets
+.env
+*.env
+
+# python cache
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
 
-*.tar.gz
+# logs/runtime
+logs/
 *.log
-*.bak
-*.tmp
+*.pid
+daemon.out
 
-app.py.bak_*
-_stage1_archive/
-spamshield_snapshots/
-telegram_cleanup_backup/
+# database / runtime data
+*.db
+spamshield.db
 
-.env
-*.env
+# sensitive/runtime data
+data/users.json
+data/licenses.json
+data/logs.json
+data/spam_logs.json
+data/settings.json
+data/*backup*.json
+data/*.bak*
+data/admin_actions.json
+data/client_alert.json
+data/community_feed.json
+data/inbox.json
+
+# backups / old copies / locks
+backup*/
+backups/
+emergency_backup/
+stable_backups/
+locked_release_*/
+locked_ui_backup/
+release_lock_*/
+final_lock_*/
+LOCKED_*/
+*_LOCK_MANIFEST_*.txt
+*_MANIFEST_*.txt
+*.bak*
+*.backup*
+*.BROKEN*
+*.corrupted
+*.save
+*.working
+*.LOCKED_FINAL
+*.LOCKED
+*.FINAL_LOCK*
+*.PRICE_FIXED_LOCKED_FINAL
+*.DAMAT_FINAL_LOCKED
+
+# archives
+*.tar.gz
+*.zip
+*.sha256
+
+# local generated
+AKTIF_DOSYALAR.txt
+radial_menu.html
+index.html

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Engellenen Kullanıcılar - SpamShield</title>
+  <style>
+    body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#120814,#3d1450);color:#fff}
+    .wrap{max-width:980px;margin:auto;padding:24px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .btn{display:inline-block;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.1);color:#fff;text-decoration:none}
+    .list{display:grid;gap:14px;margin-top:22px}
+    .card{background:rgba(255,255,255,.08);padding:16px;border-radius:16px}
+    .title{font-size:18px;font-weight:700}
+    .meta{margin-top:8px;opacity:.9}
+    .empty{margin-top:24px;background:rgba(255,255,255,.08);padding:18px;border-radius:16px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Engellenen Kullanıcılar</h1>
+        <p>Canlı kullanıcı engel listesi</p>
+      </div>
+      <a class="btn" href="/radial-menu">← Radial Menüye Dön</a>
+    </div>
+
+    <div id="empty" class="empty">Yükleniyor...</div>
+    <div id="list" class="list"></div>
+  </div>
+
+  <script>
+    async function loadBlockedUsers(){
+      const empty = document.getElementById('empty');
+      const list = document.getElementById('list');
+
+      try{
+        const res = await fetch('/api/blocked-users-list');
+        if(!res.ok){
+          empty.textContent = 'Veri alınamadı.';
+          return;
+        }
+
+        const data = await res.json();
+        list.innerHTML = '';
+
+        if(!data.items || !data.items.length){
+          empty.textContent = 'Engellenen kullanıcı yok.';
+          return;
+        }
+
+        empty.style.display = 'none';
+
+        data.items.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.innerHTML = `
+            <div class="title">${item.username}</div>
+            <div class="meta">Rol: ${item.role}</div>
+            <div class="meta">Durum: ${item.status}</div>
+            <div class="meta">E-posta: ${item.email}</div>
+          `;
+          list.appendChild(div);
+        });
+      }catch(e){
+        empty.textContent = 'Yükleme hatası oluştu.';
+      }
+    }
+
+    loadBlockedUsers();
+    setInterval(loadBlockedUsers, 5000);
+  </script>
+</body>
+</html>

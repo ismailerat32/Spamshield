@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpamShield - Karşılama</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:Arial,Helvetica,sans-serif;
+      background:linear-gradient(135deg,#140a37 0%, #2d246a 45%, #4f3fb0 100%);
+      color:#fff;
+      overflow:hidden;
+    }
+    .wrap{
+      text-align:center;
+      padding:24px;
+      animation:fadeIn .7s ease;
+    }
+    .logo{
+      font-size:82px;
+      margin-bottom:12px;
+      filter:drop-shadow(0 10px 30px rgba(0,0,0,.25));
+    }
+    .brand{
+      font-size:52px;
+      font-weight:700;
+      margin-bottom:10px;
+      letter-spacing:.4px;
+    }
+    .sub{
+      font-size:20px;
+      color:#d8d8f5;
+      margin-bottom:26px;
+    }
+    .loader{
+      width:68px;
+      height:68px;
+      margin:0 auto;
+      border-radius:50%;
+      border:5px solid rgba(255,255,255,.18);
+      border-top-color:#fff;
+      animation:spin 1s linear infinite;
+    }
+    .hint{
+      margin-top:20px;
+      font-size:15px;
+      color:#eee7a9;
+      opacity:.95;
+    }
+    @keyframes spin{
+      to{transform:rotate(360deg)}
+    }
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(10px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+  </style>
+  <script>
+    setTimeout(function(){
+      window.location.href = "/login";
+    }, 1800);
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">🛡️</div>
+    <div class="brand">SpamShield</div>
+    <div class="sub">Akıllı SMS Koruma Sistemi</div>
+    <div class="loader"></div>
+    <div class="hint">Yükleniyor...</div>
+  </div>
+</body>
+</html>

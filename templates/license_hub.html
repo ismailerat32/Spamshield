@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lisans</title>
+
+<style>
+body{margin:0;background:#06140d;color:white;font-family:Arial;padding:24px}
+
+.card{
+  border-radius:26px;
+  padding:22px;
+  margin:20px 0;
+}
+
+.active{border:1px solid #00ff88}
+.trial{border:1px solid #ffd54f}
+.none{border:1px solid #ff5252}
+
+.big{font-size:34px;font-weight:900;margin:10px 0}
+.sub{opacity:.8}
+
+.btn{
+  display:block;
+  text-align:center;
+  margin:12px 0;
+  padding:16px;
+  border-radius:16px;
+  background:#00e676;
+  color:#001b0c;
+  font-weight:900;
+  text-decoration:none;
+}
+</style>
+</head>
+
+<body>
+
+<h1>👑 Lisans</h1>
+
+<div class="card {{ premium_status }}">
+
+{% if premium_status == "active" %}
+<div>🟢 PREMIUM AKTİF</div>
+<div class="big">🔥 Tüm özellikler açık</div>
+<p class="sub">Spam koruma tam güçte çalışıyor.</p>
+
+{% elif premium_status == "trial" %}
+<div>🟡 TRIAL AKTİF</div>
+<div class="big">⚡ Deneme sürümündesin</div>
+<p class="sub">{{ days_left }} gün kaldı</p>
+
+{% else %}
+<div>🔴 PREMIUM YOK</div>
+<div class="big">🚫 Koruma sınırlı</div>
+<p class="sub">Tüm özellikleri açmak için yükselt.</p>
+{% endif %}
+
+</div>
+
+{% if premium_status == "active" %}
+
+<div style="margin-top:20px; text-align:center; color:#00ff88; font-weight:bold;">
+    ✅ Premium aktif
+</div>
+
+<a class="btn" href="/u/settings">
+    ⚙️ Aboneliği Yönet
+</a>
+
+{% else %}
+
+<a class="btn" href="/u/pricing">
+    💎 Premium’a Geç
+</a>
+
+<a class="btn" href="/activate-license">
+    🔑 Kodum Var
+</a>
+
+{% endif %}
+
+</body>
+</html>

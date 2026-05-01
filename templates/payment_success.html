@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SpamShield Pro Aktif</title>
+  <style>
+    :root{
+      --bg:#00140b;
+      --green:#00e676;
+      --green2:#00ff88;
+      --text:#ffffff;
+      --muted:#cfd8d3;
+      --line:rgba(0,230,118,.34);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(0,230,118,.10), transparent 34%),
+        linear-gradient(180deg,#00140b 0%,#000f08 100%);
+      color:var(--text);
+      font-family:Arial,Helvetica,sans-serif;
+    }
+    .wrap{
+      width:min(90vw,390px);
+      margin:0 auto;
+      padding:32px 0 24px;
+    }
+    .card{
+      border:1.4px solid var(--line);
+      border-radius:22px;
+      padding:20px 16px;
+      background:linear-gradient(180deg, rgba(4,34,20,.96), rgba(0,18,10,.92));
+      box-shadow:0 18px 38px rgba(0,0,0,.28);
+      margin-bottom:14px;
+      text-align:center;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(0,230,118,.11);
+      border:1px solid rgba(0,230,118,.28);
+      font-size:14px;
+      font-weight:900;
+      margin-bottom:12px;
+    }
+    .shield{
+      width:76px;
+      height:76px;
+      border-radius:24px;
+      margin:0 auto 12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(145deg,#00ff88,#00b85f);
+      color:#00140b;
+      font-size:38px;
+      box-shadow:0 12px 28px rgba(0,230,118,.22);
+    }
+    h1{
+      margin:0 0 10px;
+      font-size:34px;
+      line-height:1.05;
+      font-weight:900;
+    }
+    .muted{
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.4;
+      margin:0 0 12px;
+    }
+    .code{
+      display:inline-flex;
+      max-width:100%;
+      padding:8px 10px;
+      border-radius:14px;
+      background:rgba(0,230,118,.10);
+      border:1px solid rgba(0,230,118,.22);
+      color:var(--green2);
+      font-size:20px;
+      line-height:1.12;
+      font-weight:900;
+      word-break:break-word;
+      margin-bottom:2px;
+    }
+    .actions{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .btn{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:56px;
+      border-radius:18px;
+      background:linear-gradient(180deg,#00f083,#00d970);
+      color:#00140b;
+      text-decoration:none;
+      font-size:19px;
+      font-weight:900;
+    }
+    .btn.secondary{
+      background:rgba(0,230,118,.14);
+      color:#dffff0;
+      border:1px solid rgba(0,230,118,.28);
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <div class="badge">✅ SHIELD PRO AKTİF</div>
+      <div class="shield">🛡️</div>
+      <h1>Premium<br>Aktif</h1>
+      <p class="muted">Lisans hesabına bağlandı.</p>
+      <div class="code">{{ license_code or session.get("license_code") or "SPAMSHIELD-PRO" }}</div>
+    </section>
+
+    <div class="actions">
+      <a class="btn" href="/u/license">Lisans Merkezine Dön</a>
+      <a class="btn secondary" href="/radial">Radial Menü</a>
+    </div>
+  </main>
+</body>
+</html>

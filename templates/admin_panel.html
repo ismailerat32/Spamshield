@@ -1,932 +1,327 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SpamShield Admin</title>
-  <style>
-    :root{
-      --bg1:#020b18;
-      --bg2:#05162d;
-      --panel:rgba(14,30,56,.88);
-      --line:rgba(255,255,255,.07);
-      --text:#f8fbff;
-      --muted:#9db5df;
-      --blue:#4d8dff;
-      --blue2:#78a9ff;
-      --purple:#a066ff;
-      --yellow:#ffd34f;
-      --green:#1db56e;
-      --red:#e85a4f;
-      --orange:#f59e0b;
-      --shadow:0 22px 60px rgba(0,0,0,.34);
-      --shadow-soft:0 12px 28px rgba(0,0,0,.24);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpamShield Pro - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', sans-serif;
+        }
+        .premium-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .stat-card {
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .user-card {
+            transition: all 0.3s ease;
+        }
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        button, a {
+            cursor: pointer;
+            user-select: auto;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+    
+        .user-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -12px rgba(0,0,0,0.1);
+        }
+        button {
+            transition: all 0.2s ease;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
 
-    *{box-sizing:border-box}
-    html,body{min-height:100%}
+    
+        /* ===== TAM KORUMA ===== */
+        * {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
+        
+        /* Tüm kartlar ve elementler kilitli */
+        body, div, section, .stat-card, .user-card, .glass-card {
+            cursor: default !important;
+            pointer-events: none !important;
+        }
+        
+        /* SADECE butonlar ve linkler tıklanabilir */
+        button, a, .btn, [onclick], .cursor-pointer {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+        }
+        
+        /* Butonlar hariç hiçbir şey seçilemez */
+        *:not(button):not(a):not(input):not(textarea) {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            user-select: none !important;
+        }
+        
+        /* Sayfa kaydırma çalışsın */
+        body {
+            overflow-y: auto !important;
+        }
+        
+        /* Sağ tıklama engeli */
+        body {
+            -webkit-touch-callout: none !important;
+        }
 
-    body{
-      margin:0;
-      color:var(--text);
-      font-family:Inter, Arial, sans-serif;
-      background:
-        radial-gradient(circle at 12% 10%, rgba(77,141,255,.14), transparent 26%),
-        radial-gradient(circle at 88% 14%, rgba(160,102,255,.12), transparent 24%),
-        radial-gradient(circle at 50% 100%, rgba(40,110,255,.08), transparent 36%),
-        linear-gradient(180deg, var(--bg1), var(--bg2) 56%, #041224);
-      padding:22px 15px 42px;
-    }
-
-    body::before{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      background:
-        linear-gradient(rgba(255,255,255,.018), rgba(255,255,255,0)),
-        repeating-linear-gradient(
-          180deg,
-          rgba(255,255,255,.012) 0px,
-          rgba(255,255,255,.012) 1px,
-          transparent 1px,
-          transparent 26px
-        );
-      opacity:.28;
-    }
-
-    .topbar{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:14px;
-      margin-bottom:20px;
-    }
-
-    .brand{
-      display:flex;
-      align-items:flex-start;
-      gap:14px;
-    }
-
-    .brand .logo{
-      width:58px;
-      height:58px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:42px;
-      border-radius:18px;
-      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
-      border:1px solid rgba(255,255,255,.08);
-      box-shadow:var(--shadow-soft);
-    }
-
-    .brand h1{
-      margin:0;
-      font-size:31px;
-      line-height:.95;
-      font-weight:900;
-      letter-spacing:-1px;
-      text-shadow:0 8px 24px rgba(0,0,0,.28);
-    }
-
-    .back-link{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 12px;
-      border-radius:15px;
-      text-decoration:none;
-      color:var(--blue2);
-      font-weight:800;
-      font-size:16px;
-      background:rgba(255,255,255,.03);
-      border:1px solid rgba(255,255,255,.05);
-      box-shadow:var(--shadow-soft);
-    }
-
-    .main-card{
-      position:relative;
-      background:linear-gradient(180deg, rgba(17,36,67,.90), rgba(12,28,53,.92));
-      border:1px solid var(--line);
-      border-radius:30px;
-      padding:18px;
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-
-    .main-card::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,.05), transparent 30%),
-        linear-gradient(180deg, rgba(77,141,255,.05), transparent 45%);
-    }
-
-    .main-title{
-      position:relative;
-      z-index:1;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      margin:4px 4px 16px;
-      font-size:23px;
-      font-weight:900;
-      letter-spacing:-.4px;
-    }
-
-    .main-title::before{
-      content:"⚙️";
-      font-size:26px;
-    }
-
-    .stats-grid{
-      display:grid;
-      grid-template-columns:repeat(2, minmax(0,1fr));
-      gap:12px;
-      margin:0 4px 16px;
-      position:relative;
-      z-index:1;
-    }
-
-    .stat-card{
-      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.022));
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:18px;
-      padding:14px 14px;
-      box-shadow:var(--shadow-soft);
-    }
-
-    .stat-label{
-      font-size:12px;
-      color:var(--muted);
-      margin-bottom:6px;
-      font-weight:700;
-    }
-
-    .stat-value{
-      font-size:24px;
-      font-weight:900;
-      letter-spacing:-.8px;
-    }
-
-    .section{
-      position:relative;
-      background:linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,.018));
-      border:1px solid rgba(255,255,255,.055);
-      border-radius:24px;
-      margin-bottom:14px;
-      overflow:hidden;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
-      transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
-    }
-
-    .section.active{
-      border-color:rgba(100,150,255,.20);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.05),
-        0 18px 52px rgba(0,0,0,.28),
-        0 0 34px rgba(73,123,255,.10);
-    }
-
-    .section-toggle{
-      width:100%;
-      border:0;
-      background:transparent;
-      color:var(--text);
-      text-align:left;
-      padding:20px 18px;
-      font-size:18px;
-      font-weight:850;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      cursor:pointer;
-    }
-
-    .section-toggle .left{
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-
-    .section-toggle .icon{
-      font-size:28px;
-      line-height:1;
-    }
-
-    .section-toggle .chev{
-      width:34px;
-      height:34px;
-      border-radius:999px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.06);
-      transition:transform .25s ease, background .25s ease;
-    }
-
-    .section.active .section-toggle .chev{
-      transform:rotate(180deg);
-      background:rgba(77,141,255,.12);
-    }
-
-    .section-content{
-      display:none;
-      padding:0 18px 18px;
-    }
-
-    .section.active .section-content{
-      display:block;
-    }
-
-    .card,
-    .user-card{
-      background:linear-gradient(180deg, rgba(255,255,255,.032), rgba(255,255,255,.022));
-      border:1px solid rgba(255,255,255,.055);
-      border-radius:22px;
-      padding:18px;
-      margin-top:14px;
-      box-shadow:var(--shadow-soft);
-    }
-
-    .user-card.is-banned{
-      border-color:rgba(232,90,79,.28);
-      box-shadow:
-        0 18px 36px rgba(0,0,0,.24),
-        0 0 24px rgba(232,90,79,.08);
-    }
-
-    input, select, button{
-      width:100%;
-      border:none;
-      border-radius:18px;
-      padding:18px 16px;
-      font-size:16px;
-      margin-top:12px;
-    }
-
-    input, select{
-      color:#fff;
-      background:linear-gradient(180deg, rgba(34,52,90,.98), rgba(29,45,78,.98));
-      border:1px solid rgba(255,255,255,.05);
-      outline:none;
-    }
-
-    input::placeholder{
-      color:rgba(220,230,255,.45);
-    }
-
-    button{
-      cursor:pointer;
-      font-weight:800;
-      transition:transform .15s ease, opacity .15s ease;
-    }
-
-    button:active{
-      transform:translateY(1px);
-    }
-
-    button.primary{
-      background:linear-gradient(135deg, #3d6df2, #4d89ff);
-      color:#fff;
-      box-shadow:0 16px 28px rgba(50,90,220,.28);
-    }
-
-    .user-name{
-      font-size:25px;
-      font-weight:900;
-      letter-spacing:-.8px;
-      margin:0 0 12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
-
-    .mini-status{
-      font-size:11px;
-      font-weight:900;
-      letter-spacing:.4px;
-      padding:7px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.04);
-    }
-
-    .mini-status.banned{
-      background:rgba(232,90,79,.14);
-      border-color:rgba(232,90,79,.25);
-      color:#ffd8d4;
-    }
-
-    .badges{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-bottom:12px;
-    }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:10px 14px;
-      border-radius:999px;
-      font-weight:850;
-      font-size:14px;
-      border:1px solid rgba(255,255,255,.06);
-    }
-
-    .b-role{ background:linear-gradient(135deg, rgba(52,103,240,.90), rgba(64,117,255,.76)); }
-    .b-license{ background:linear-gradient(135deg, rgba(149,73,201,.92), rgba(171,91,223,.78)); }
-    .b-active{ background:linear-gradient(135deg, rgba(24,163,74,.94), rgba(31,185,96,.78)); }
-    .b-banned{ background:linear-gradient(135deg, rgba(232,90,79,.94), rgba(215,73,53,.78)); }
-
-    .meta{
-      font-size:15px;
-      color:#d9e5ff;
-      opacity:.92;
-      margin:10px 0 0;
-    }
-
-    .license-box{
-      margin-top:14px;
-      background:linear-gradient(180deg, rgba(255,255,255,.032), rgba(255,255,255,.02));
-      border:1px solid rgba(255,255,255,.05);
-      border-radius:16px;
-      padding:16px;
-      font-size:15px;
-      font-weight:850;
-      word-break:break-word;
-      cursor:pointer;
-      user-select:none;
-      -webkit-tap-highlight-color:transparent;
-    }
-
-    .license-box:active{
-      transform:scale(.99);
-    }
-
-    .row-actions{
-      display:flex;
-      gap:12px;
-      margin-top:14px;
-      flex-wrap:wrap;
-    }
-
-    .row-actions form{
-      flex:1 1 140px;
-      margin:0;
-    }
-
-    .btn-small{
-      width:100%;
-      min-width:120px;
-      padding:14px 18px;
-      font-size:15px;
-      font-weight:850;
-      border-radius:16px;
-      color:#fff;
-      border:none;
-    }
-
-    .btn-purple{
-      background:linear-gradient(135deg, #9b52d1, #b567e8);
-      box-shadow:0 10px 22px rgba(155,82,209,.22);
-    }
-
-    .btn-red{
-      background:linear-gradient(135deg, #d54935, #e65b46);
-      box-shadow:0 10px 22px rgba(213,73,53,.22);
-    }
-
-    .btn-green{
-      background:linear-gradient(135deg, #16a34a, #22c55e);
-      box-shadow:0 10px 22px rgba(34,197,94,.22);
-    }
-
-    .btn-disabled{
-      background:linear-gradient(135deg, #475569, #64748b);
-      box-shadow:none;
-      opacity:.78;
-      cursor:not-allowed;
-    }
-
-    .is-loading{
-      opacity:.82;
-      pointer-events:none;
-    }
-
-    .empty-note{
-      opacity:.78;
-      font-size:14px;
-      color:var(--muted);
-      margin-top:10px;
-    }
-
-    .toast-top{
-      position:fixed;
-      top:20px;
-      right:20px;
-      background:rgba(15,23,42,0.95);
-      color:#fff;
-      padding:12px 18px;
-      border-radius:14px;
-      z-index:9999;
-      font-weight:600;
-      box-shadow:0 10px 30px rgba(0,0,0,0.4);
-      opacity:0;
-      transform:translateY(-10px);
-      transition:all .3s ease;
-    }
-
-    .section.section-add .left{ color:#8d63ff; }
-    .section.section-users .left{ color:#ffd34f; }
-    .section.section-upgrades .left{ color:#ffffff; }
-
-    @media (max-width:640px){
-      body{ padding:20px 14px 40px; }
-      .brand .logo{ width:52px; height:52px; font-size:38px; }
-      .brand h1{ font-size:30px; }
-      .back-link{ font-size:15px; padding:8px 10px; }
-      .main-card{ border-radius:28px; padding:16px; }
-      .main-title{ font-size:21px; }
-      .section-toggle{ font-size:17px; padding:18px 16px; }
-      .card,.user-card{ padding:16px; }
-      .user-name{ font-size:23px; }
-      .stats-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
-      .stat-value{ font-size:22px; }
-      .toast-top{
-        top:16px;
-        right:16px;
-        padding:10px 14px;
-        font-size:12px;
-      }
-    }
-  </style>
+    </style>
 </head>
-<body>
-
-  <div class="topbar">
-    <div class="brand">
-      <div class="logo">🛡️</div>
-      <h1>SpamShield<br>Admin</h1>
-    </div>
-    <a class="back-link" href="/dashboard">← Dashboard’a dön</a>
-  </div>
-
-  <div class="main-card">
-    <div class="main-title">Kullanıcı ve Lisans İşlemleri</div>
-
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Toplam Kullanıcı</div>
-        <div class="stat-value" id="statTotal">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Pro Lisans</div>
-        <div class="stat-value" id="statPro">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Trial</div>
-        <div class="stat-value" id="statTrial">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Banlı</div>
-        <div class="stat-value" id="statBanned">0</div>
-      </div>
-    </div>
-
-    <div class="section section-add">
-      <button type="button" class="section-toggle">
-        <div class="left">
-          <span class="icon">👤</span>
-          <span>Kullanıcı Ekle</span>
-        </div>
-        <div class="chev">˅</div>
-      </button>
-      <div class="section-content">
-        <div class="card">
-          <form method="POST" action="/admin/add-user" id="addUserForm">
-            <input type="text" name="username" placeholder="Kullanıcı adı" required>
-            <input type="password" name="password" placeholder="Şifre" required>
-
-            <select name="role">
-              <option value="user">user</option>
-              <option value="admin">admin</option>
-            </select>
-
-            <select name="license_type">
-              <option value="trial">trial</option>
-              <option value="pro">pro</option>
-            </select>
-
-            <input type="text" name="license_expiry" placeholder="Lisans bitişi (örn: 2099-01-01)">
-            <button class="primary" type="submit">Kullanıcı Ekle</button>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <div class="section section-users active">
-      <button type="button" class="section-toggle">
-        <div class="left">
-          <span class="icon">📋</span>
-          <span>Kullanıcılar</span>
-        </div>
-        <div class="chev">˅</div>
-      </button>
-      <div class="section-content">
-        {% if users %}
-          {% for row in users %}
-            {% set has_valid_license = row.license_key and row.license_key[:4] == 'LIC-' %}
-            <div class="user-card {% if row.is_banned %}is-banned{% endif %}"
-                 id="user-{{ row.username }}"
-                 data-username="{{ row.username }}"
-                 data-role="{{ row.role if row.role else 'user' }}"
-                 data-license-type="{{ row.license_type if row.license_type else 'trial' }}"
-                 data-license-expiry="{{ row.license_expiry if row.license_expiry else '' }}"
-                 data-license-key="{{ row.license_key if row.license_key else '' }}"
-                 data-is-banned="{{ '1' if row.is_banned else '0' }}">
-              <div class="user-name">
-                <span>{{ row.username }}</span>
-                <span class="mini-status {% if row.is_banned %}banned{% endif %}">
-                  {% if row.is_banned %}BANLI{% else %}AKTİF{% endif %}
-                </span>
-              </div>
-
-              <div class="badges">
-                <span class="badge b-role role-badge">Rol: {{ row.role if row.role else 'user' }}</span>
-                <span class="badge b-license license-badge">Lisans: {{ row.license_type if row.license_type else 'trial' }}</span>
-                {% if row.is_banned %}
-                  <span class="badge b-banned state-badge">BANLI</span>
-                {% else %}
-                  <span class="badge b-active state-badge">AKTİF</span>
-                {% endif %}
-              </div>
-
-              <div class="meta expiry-text">Bitiş: {{ row.license_expiry if row.license_expiry else '-' }}</div>
-
-              <div class="license-box" data-copy="{{ row.license_key if row.license_key else '' }}">
-                Lisans Kodu:
-                <span class="license-key-text">
-                  {% if row.license_key %}{{ row.license_key }}{% else %}-{% endif %}
-                </span>
-              </div>
-
-              <form method="POST" action="/admin/update-license/{{ row.username }}" class="normal-update-form">
-                <input type="hidden" name="username" value="{{ row.username }}">
-
-                <select name="license_type">
-                  <option value="trial" {% if row.license_type == 'trial' %}selected{% endif %}>trial</option>
-                  <option value="pro" {% if row.license_type == 'pro' %}selected{% endif %}>pro</option>
-                </select>
-
-                <input type="text" name="license_expiry" value="{{ row.license_expiry if row.license_expiry else '' }}" placeholder="YYYY-AA-GG">
-
-                <button class="primary action-update-btn" type="submit">Lisans Güncelle</button>
-              </form>
-
-              <div class="row-actions">
-                <form method="POST" action="/admin/generate-license/{{ row.username }}" class="ajax-form ajax-generate-form">
-                  <input type="hidden" name="username" value="{{ row.username }}">
-                  <button
-                    class="btn-small action-generate-btn {% if has_valid_license %}btn-disabled{% else %}btn-purple{% endif %}"
-                    type="submit"
-                    {% if has_valid_license %}disabled{% endif %}>
-                    {% if has_valid_license %}Zaten Var{% else %}Lisans Üret{% endif %}
-                  </button>
-                </form>
-
-                <form method="POST" action="/admin/toggle-ban/{{ row.username }}" class="ajax-form ajax-ban-form">
-                  <input type="hidden" name="username" value="{{ row.username }}">
-                  <button
-                    class="btn-small action-ban-btn {% if row.is_banned %}btn-green{% else %}btn-red{% endif %}"
-                    type="submit">
-                    {% if row.is_banned %}Ban Kaldır{% else %}Banla{% endif %}
-                  </button>
-                </form>
-              </div>
-            </div>
-          {% endfor %}
-        {% else %}
-          <div class="empty-note">Henüz kullanıcı yok.</div>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="section section-upgrades">
-      <button type="button" class="section-toggle">
-        <div class="left">
-          <span class="icon">⭐</span>
-          <span>Yükseltme Talepleri</span>
-        </div>
-        <div class="chev">˅</div>
-      </button>
-      <div class="section-content">
-        <div class="card">
-          {% if upgrade_requests %}
-            {% for req in upgrade_requests %}
-              <div class="user-card">
-                <div class="user-name">
-                  <span>{{ req.username if req.username else 'Bilinmeyen Kullanıcı' }}</span>
-                  <span class="mini-status">TALEP</span>
+<body class="min-h-screen">
+    <!-- Header -->
+    <div class="premium-gradient shadow-2xl">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">SpamShield <span class="text-yellow-300">Pro</span></h1>
+                        <p class="text-purple-100 text-xs">Çıkış Çıkış ay Zeka Destekli Koruma Sistemi</p>
+                    </div>
                 </div>
-                <div class="meta">Talep: {{ req.request_type if req.request_type else 'upgrade' }}</div>
-                <div class="meta">Tarih: {{ req.created_at if req.created_at else '-' }}</div>
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="empty-note">Bekleyen yükseltme talebi yok.</div>
-          {% endif %}
+                <div class="bg-white/10 rounded-xl px-4 py-2">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white text-sm"></i>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-white font-semibold text-sm">{{ session.get('username', 'Admin') }}</p>
+                            <p class="text-purple-200 text-xs">Administrator</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
-  </div>
+    <div class="container mx-auto px-6 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl p-6 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-purple-100 text-sm">Toplam Kullanıcı</p>
+                        <p class="text-4xl font-bold text-white">{{ users|length }}</p>
+                        <p class="text-purple-200 text-xs mt-2">Sistemdeki tüm kullanıcılar</p>
+                    </div>
+                    <i class="fas fa-users text-4xl text-white/50"></i>
+                </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-green-500 to-green-700 rounded-2xl p-6 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-green-100 text-sm">Aktif Kullanıcılar</p>
+                        <p class="text-4xl font-bold text-white">{{ users|selectattr('status', 'equalto', 'active')|list|length }}</p>
+                        <p class="text-green-200 text-xs mt-2">Aktif durumdaki hesaplar</p>
+                    </div>
+                    <i class="fas fa-user-check text-4xl text-white/50"></i>
+                </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl p-6 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-orange-100 text-sm">Yöneticiler</p>
+                        <p class="text-4xl font-bold text-white">{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</p>
+                        <p class="text-orange-200 text-xs mt-2">Admin yetkili kullanıcılar</p>
+                    </div>
+                    <i class="fas fa-user-shield text-4xl text-white/50"></i>
+                </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-red-500 to-red-700 rounded-2xl p-6 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-red-100 text-sm">Pasif Kullanıcılar</p>
+                        <p class="text-4xl font-bold text-white">{{ users|selectattr('status', 'equalto', 'inactive')|list|length }}</p>
+                        <p class="text-red-200 text-xs mt-2">Pasif durumdaki hesaplar</p>
+                    </div>
+                    <i class="fas fa-user-slash text-4xl text-white/50"></i>
+                </div>
+            </div>
+        </div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const sections = document.querySelectorAll(".section");
+        <!-- Users Section -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="premium-gradient px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Kullanıcı Yönetimi</h2>
+                        <p class="text-purple-100 text-sm">Tüm kullanıcıları yönetin</p>
+                    </div>
+                    <button onclick="addUser()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-plus mr-2"></i><i class="fas fa-user-plus mr-1"></i> Yeni Kullanıcı
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for user in users %}
+                                                <div class="user-card bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100">
+                                <div class="premium-gradient h-20"></div>
+                                <div class="px-4 pb-4">
+                                    <div class="flex justify-between items-start -mt-8">
+                                        <div class="w-16 h-16 rounded-full border-4 border-white shadow-lg premium-gradient flex items-center justify-center text-white font-bold text-2xl">
+                                            {{ user.username[0].upper() }}
+                                        </div>
+                                        <span class="mt-2 px-2 py-1 text-xs rounded-full {% if user.status == 'active' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                                            {{ user.status }}
+                                        </span>
+                                    </div>
+                                    <div class="mt-3">
+                                        <h3 class="font-bold text-lg">{{ user.username }}</h3>
+                                        <p class="text-purple-600 text-sm">{{ user.role|upper }}</p>
+                                    </div>
+                                    <div class="mt-3 space-y-2 text-sm">
+                                        <p><i class="fas fa-envelope text-gray-400 w-5"></i> {{ user.email }}</p>
+                                        <p><i class="fas fa-calendar text-gray-400 w-5"></i> {{ user.created_at[:10] if user.created_at else '?' }}</p>
+                                        <p><i class="fas fa-clock text-gray-400 w-5"></i> {{ user.last_login[:10] if user.last_login and user.last_login != 'Hiç' else 'Hiç giriş yapmadı' }}</p>
+                                    </div>
+                                    <div class="mt-4 flex gap-2">
+                                        <button onclick="editUser('{{ user.username }}')" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm transition-all duration-200">
+                                            <i class="fas fa-edit mr-1"></i> Düzenle
+                                        </button>
+                                        <button onclick="deleteUser('{{ user.username }}')" class="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm transition-all duration-200">
+                                            <i class="fas fa-trash mr-1"></i> Sil
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
 
-      sections.forEach(function(section){
-        const toggle = section.querySelector(".section-toggle");
-        if (toggle) {
-          toggle.addEventListener("click", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            section.classList.toggle("active");
-          });
-        }
-      });
-
-      function showTopToast(message){
-        const old = document.getElementById("topToast");
-        if (old) old.remove();
-
-        const toast = document.createElement("div");
-        toast.id = "topToast";
-        toast.className = "toast-top";
-        toast.textContent = message;
-        document.body.appendChild(toast);
-
-        requestAnimationFrame(function(){
-          toast.style.opacity = "1";
-          toast.style.transform = "translateY(0)";
-        });
-
-        setTimeout(function(){
-          toast.style.opacity = "0";
-          toast.style.transform = "translateY(-10px)";
-          setTimeout(function(){ toast.remove(); }, 300);
-        }, 1800);
-      }
-
-      async function copyText(text){
-        if (!text || text === "-") {
-          showTopToast("Kopyalanacak lisans yok");
-          return;
-        }
-        try{
-          if(navigator.clipboard && navigator.clipboard.writeText){
-            await navigator.clipboard.writeText(text);
-          }else{
-            const ta = document.createElement("textarea");
-            ta.value = text;
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand("copy");
-            ta.remove();
-          }
-          showTopToast("Lisans kopyalandı");
-        }catch(err){
-          console.log("copy error:", err);
-          showTopToast("Kopyalama başarısız");
-        }
-      }
-
-      document.querySelectorAll(".license-box[data-copy]").forEach(function(el){
-        el.addEventListener("click", function(e){
-          e.preventDefault();
-          e.stopPropagation();
-          const text = (el.getAttribute("data-copy") || "").trim();
-          copyText(text);
-        });
-      });
-
-      function updateStats(){
-        const cards = Array.from(document.querySelectorAll(".user-card[data-username]"));
-        const total = cards.length;
-        let pro = 0;
-        let trial = 0;
-        let banned = 0;
-
-        cards.forEach(function(card){
-          const t = card.dataset.licenseType || "trial";
-          const isBanned = card.dataset.isBanned === "1";
-          if (t === "pro") pro += 1;
-          else trial += 1;
-          if (isBanned) banned += 1;
-        });
-
-        const totalEl = document.getElementById("statTotal");
-        const proEl = document.getElementById("statPro");
-        const trialEl = document.getElementById("statTrial");
-        const bannedEl = document.getElementById("statBanned");
-
-        if (totalEl) totalEl.textContent = String(total);
-        if (proEl) proEl.textContent = String(pro);
-        if (trialEl) trialEl.textContent = String(trial);
-        if (bannedEl) bannedEl.textContent = String(banned);
-      }
-
-      function setButtonLoading(btn, loadingText){
-        if (!btn) return;
-        btn.dataset.originalText = btn.textContent;
-        btn.textContent = loadingText;
-        btn.classList.add("is-loading");
-        btn.disabled = true;
-      }
-
-      function restoreButton(btn){
-        if (!btn) return;
-        if (btn.dataset.originalText) btn.textContent = btn.dataset.originalText;
-        btn.classList.remove("is-loading");
-        btn.disabled = false;
-      }
-
-      async function submitAjaxForm(form, onSuccess){
-        const btn = form.querySelector("button[type='submit']");
-        const formData = new FormData(form);
-        const loadingText = btn && btn.classList.contains("action-update-btn")
-          ? "Güncelleniyor..."
-          : btn && btn.classList.contains("action-generate-btn")
-            ? "Üretiliyor..."
-            : btn && btn.classList.contains("action-ban-btn")
-              ? "İşleniyor..."
-              : "Gönderiliyor...";
-
-        setButtonLoading(btn, loadingText);
-
-        try{
-          const response = await fetch(form.action, {
-            method: "POST",
-            body: formData,
-            credentials: "same-origin",
-            redirect: "follow"
-          });
-
-          const finalUrl = new URL(response.url);
-          const ok = finalUrl.searchParams.get("ok") || "";
-          const licenseKey = finalUrl.searchParams.get("license_key") || "";
-
-          if (typeof onSuccess === "function") {
-            onSuccess({ ok, licenseKey, response, finalUrl });
-          }
-        }catch(err){
-          console.log("ajax form error:", err);
-          showTopToast("İşlem başarısız");
-        }finally{
-          restoreButton(btn);
-        }
-      }
-
-            document.querySelectorAll(".ajax-generate-form").forEach(function(form){
-        form.addEventListener("submit", function(e){
-          e.preventDefault();
-          e.stopPropagation();
-
-          const card = form.closest(".user-card");
-          submitAjaxForm(form, function(data){
-            if (!card) return;
-
-            let key = "";
-            if (data.licenseKey) {
-              key = data.licenseKey;
-            } else {
-              key = (card.dataset.licenseKey || "").trim();
+        <!-- Footer -->
+                                <div class="mt-8 text-center">
+            <div class="flex justify-center space-x-6 mb-4">
+                <a href="#" class="text-gray-400 hover:text-purple-600 text-sm"><i class="fab fa-twitter mr-1"></i> Twitter</a>
+                <a href="#" class="text-gray-400 hover:text-purple-600 text-sm"><i class="fab fa-github mr-1"></i> GitHub</a>
+                <a href="#" class="text-gray-400 hover:text-purple-600 text-sm"><i class="fas fa-envelope mr-1"></i> İletişim</a>
+                <a href="/logout" class="text-red-400 hover:text-red-600 text-sm"><i class="fas fa-sign-out-alt mr-1"></i> Çıkış Yap</a>
+            </div>
+            <p class="text-xs text-gray-400">© 2024 SpamShield Pro - Tüm hakları saklıdır | v3.0.0</p>
+        </div>
+    <script>
+        // Sağ tıklama engeli
+        document.addEventListener('contextmenu', function(e) {
+            if(!e.target.closest('button') && !e.target.closest('a')) {
+                e.preventDefault();
+                return false;
             }
-
-            if (key) {
-              card.dataset.licenseKey = key;
-
-              const licenseBox = card.querySelector(".license-box");
-              const keyText = card.querySelector(".license-key-text");
-              const genBtn = card.querySelector(".action-generate-btn");
-
-              if (licenseBox) licenseBox.setAttribute("data-copy", key);
-              if (keyText) keyText.textContent = key;
-
-              if (genBtn) {
-                genBtn.textContent = "Zaten Var";
-                genBtn.disabled = true;
-                genBtn.classList.remove("btn-purple");
-                genBtn.classList.add("btn-disabled");
-              }
-
-              copyText(key);
-              updateStats();
-              if (data.ok === "license_exists") showTopToast("Lisans zaten var");
-              else showTopToast("Lisans üretildi");
-            } else {
-              showTopToast("Lisans bilgisi alınamadı");
-            }
-          });
         });
-      });
-
-      document.querySelectorAll(".ajax-ban-form").forEach(function(form){
-        form.addEventListener("submit", function(e){
-          e.preventDefault();
-          e.stopPropagation();
-
-          const card = form.closest(".user-card");
-          submitAjaxForm(form, function(){
-            if (!card) return;
-
-            const currentlyBanned = card.dataset.isBanned === "1";
-            const nextBanned = !currentlyBanned;
-            card.dataset.isBanned = nextBanned ? "1" : "0";
-
-            const mini = card.querySelector(".mini-status");
-            const stateBadge = card.querySelector(".state-badge");
-            const banBtn = card.querySelector(".action-ban-btn");
-
-            if (nextBanned) {
-              card.classList.add("is-banned");
-              if (mini) {
-                mini.textContent = "BANLI";
-                mini.classList.add("banned");
-              }
-              if (stateBadge) {
-                stateBadge.textContent = "BANLI";
-                stateBadge.classList.remove("b-active");
-                stateBadge.classList.add("b-banned");
-              }
-              if (banBtn) {
-                banBtn.textContent = "Ban Kaldır";
-                banBtn.classList.remove("btn-red");
-                banBtn.classList.add("btn-green");
-              }
-              showTopToast("Kullanıcı banlandı");
-            } else {
-              card.classList.remove("is-banned");
-              if (mini) {
-                mini.textContent = "AKTİF";
-                mini.classList.remove("banned");
-              }
-              if (stateBadge) {
-                stateBadge.textContent = "AKTİF";
-                stateBadge.classList.remove("b-banned");
-                stateBadge.classList.add("b-active");
-              }
-              if (banBtn) {
-                banBtn.textContent = "Banla";
-                banBtn.classList.remove("btn-green");
-                banBtn.classList.add("btn-red");
-              }
-              showTopToast("Ban kaldırıldı");
+        
+        // Kopyalama engeli
+        document.addEventListener('copy', function(e) {
+            if(!e.target.closest('button') && !e.target.closest('a')) {
+                e.preventDefault();
+                return false;
             }
-
-            updateStats();
-          });
         });
-      });
+        
+        // Kesme engeli
+        document.addEventListener('cut', function(e) {
+            if(!e.target.closest('button') && !e.target.closest('a')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Klavye kısayolları engeli (Ctrl+C, Ctrl+V, Ctrl+X)
+        document.addEventListener('keydown', function(e) {
+            if((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'v' || e.key === 'x' || e.key === 's')) {
+                if(!e.target.closest('button') && !e.target.closest('a') && !e.target.closest('input')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            
+            // F12 engeli
+            if(e.key === 'F12') {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Tüm kartları kilitle
+        document.querySelectorAll('.stat-card, .user-card').forEach(card => {
+            card.setAttribute('draggable', 'false');
+            card.ondragstart = function() { return false; };
+            card.onselectstart = function() { return false; };
+        });
+        
+        console.log('🔒 Panel tamamen kilitlendi');
+    </script>
 
-      updateStats();
 
-      const params = new URLSearchParams(window.location.search);
-      const openSection = params.get("open");
-      if (openSection === "users") {
-        const s = document.querySelector(".section-users");
-        if (s) s.classList.add("active");
-      } else if (openSection === "add") {
-        const s = document.querySelector(".section-add");
-        if (s) s.classList.add("active");
-      } else if (openSection === "upgrades") {
-        const s = document.querySelector(".section-upgrades");
-        if (s) s.classList.add("active");
-      }
-
-      const ok = params.get("ok");
-      if (ok === "license_generated") showTopToast("Lisans üretildi");
-      else if (ok === "license_exists") showTopToast("Lisans zaten var");
-      else if (ok === "license_updated") showTopToast("Lisans güncellendi");
-      else if (ok === "ban_toggled") showTopToast("Kullanıcı durumu güncellendi");
-      else if (ok === "upgrade_approved") showTopToast("Yükseltme onaylandı");
-      else if (ok === "user_added") showTopToast("Kullanıcı eklendi");
-      else if (ok === "user_exists") showTopToast("Bu kullanıcı zaten var");
-      else if (ok === "missing_fields") showTopToast("Eksik alan var");
-      else if (ok === "user_not_found") showTopToast("Kullanıcı bulunamadı");
-      else if (ok === "done") showTopToast("İşlem tamamlandı");
-    });
-  </script>
+    <!-- Radial Menü -->
+    <div class="radial-menu" id="radialMenu" style="position:fixed;bottom:40px;right:40px;width:80px;height:80px;z-index:1000">
+        <div class="radial-toggle" id="radialToggle" style="width:80px;height:80px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 5px 20px rgba(0,0,0,0.3)">
+            <i class="fas fa-plus" style="font-size:32px;color:white"></i>
+        </div>
+        <ul class="radial-items" style="position:absolute;bottom:40px;right:40px;list-style:none">
+            <li class="radial-item" onclick="window.location.href='/dashboard'" style="position:absolute;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;opacity:0;visibility:hidden;right:10px;bottom:10px"><i class="fas fa-chart-line" style="font-size:24px;color:white"></i><span class="tooltip" style="position:absolute;right:70px;background:rgba(0,0,0,0.9);color:white;padding:6px 12px;border-radius:8px;font-size:12px;white-space:nowrap;opacity:0;transition:opacity 0.3s">Dashboard</span></li>
+            <li class="radial-item" onclick="window.location.href='/admin'" style="position:absolute;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;opacity:0;visibility:hidden;right:10px;bottom:10px"><i class="fas fa-users" style="font-size:24px;color:white"></i><span class="tooltip" style="position:absolute;right:70px;background:rgba(0,0,0,0.9);color:white;padding:6px 12px;border-radius:8px;font-size:12px;white-space:nowrap;opacity:0;transition:opacity 0.3s">Admin Panel</span></li>
+            <li class="radial-item" onclick="window.location.href='/logout'" style="position:absolute;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#ff6e7f,#bfe9ff);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;opacity:0;visibility:hidden;right:10px;bottom:10px"><i class="fas fa-sign-out-alt" style="font-size:24px;color:white"></i><span class="tooltip" style="position:absolute;right:70px;background:rgba(0,0,0,0.9);color:white;padding:6px 12px;border-radius:8px;font-size:12px;white-space:nowrap;opacity:0;transition:opacity 0.3s">Çıkış</span></li>
+        </ul>
+    </div>
+    <style>
+        .radial-menu.active .radial-item { opacity:1 !important; visibility:visible !important; }
+        .radial-menu.active .radial-item:nth-child(1) { transform: translate(-100px, -100px); }
+        .radial-menu.active .radial-item:nth-child(2) { transform: translate(-140px, -60px); }
+        .radial-menu.active .radial-item:nth-child(3) { transform: translate(-160px, 0px); }
+        .radial-item:hover { transform: scale(1.15); }
+        .radial-item:hover .tooltip { opacity:1; }
+    </style>
+    <script>
+        const adminMenu = document.getElementById('radialMenu');
+        const adminToggle = document.getElementById('radialToggle');
+        if(adminToggle) {
+            adminToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                adminMenu.classList.toggle('active');
+            });
+        }
+        document.addEventListener('click', function(e) {
+            if(adminMenu && !adminMenu.contains(e.target)) adminMenu.classList.remove('active');
+        });
+    </script>
 
 </body>
 </html>

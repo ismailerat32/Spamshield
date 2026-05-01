@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpamShield Premium</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Arial,Helvetica,sans-serif;
+  color:#f7ffe9;
+  background:
+    radial-gradient(circle at 88% 8%,rgba(120,255,60,.20),transparent 23%),
+    radial-gradient(circle at 20% 48%,rgba(0,255,120,.10),transparent 28%),
+    linear-gradient(180deg,#010302,#031107 45%,#010302);
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 92% 14%,rgba(120,255,60,.18),transparent 9%),
+    linear-gradient(120deg,transparent 70%,rgba(80,255,80,.15),transparent 75%);
+}
+.wrap{
+  max-width:760px;
+  margin:auto;
+  padding:34px 18px 42px;
+  position:relative;
+  z-index:1;
+}
+.hero{
+  margin-bottom:22px;
+}
+h1{
+  margin:0;
+  font-size:52px;
+  line-height:1;
+  color:#ffd86b;
+  text-shadow:0 0 18px rgba(255,216,107,.75),0 0 42px rgba(255,216,107,.25);
+}
+.sub{
+  margin-top:12px;
+  font-size:20px;
+  line-height:1.35;
+  color:#f1ffe8;
+}
+.card{
+  margin-top:22px;
+  padding:22px;
+  border-radius:24px;
+  background:#06140d !important;
+  border:1px solid rgba(161,255,93,.25); box-shadow:0 0 40px rgba(100,255,100,.18), inset 0 0 25px rgba(255,255,255,.04);
+  box-shadow:0 0 28px rgba(93,255,75,.14), inset 0 0 20px rgba(255,255,255,.035);
+  backdrop-filter:none !important;
+}
+.statusCard{
+  display:grid;
+  grid-template-columns:130px 1fr;
+  gap:22px;
+  align-items:center;
+}
+.emblem{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:60px;
+  background:#06140d !important;
+  border:2px solid rgba(190,255,95,.75);
+  box-shadow:0 0 32px rgba(157,255,90,.55), inset 0 0 22px rgba(255,255,255,.06);
+}
+.topline{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.08em;
+  opacity:.82;
+}
+.dot{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:#55ff7a;
+  box-shadow:0 0 12px rgba(85,255,122,.8);
+}
+.big{
+  margin:16px 0 8px;
+  font-size:38px;
+  font-weight:900;
+  color:#6dff82;
+  text-shadow:0 0 18px rgba(98,255,123,.52);
+}
+.detail{
+  font-size:16px;
+  opacity:.9;
+}
+.divider{
+  height:1px;
+  margin:18px 0;
+  background:rgba(255,255,255,.12);
+}
+.miniStats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.mini{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  font-size:14px;
+}
+.mini .ico{font-size:24px}
+.mini b{display:block;color:#fff}
+.mini span{color:#70ff84;font-weight:800}
+.featureStrip{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:0;
+  padding:16px 8px;
+}
+.feature{
+  padding:8px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border-right:1px solid rgba(255,255,255,.13);
+}
+.feature:last-child{border-right:none}
+.feature .ico{
+  font-size:28px;
+  filter:none !important;
+}
+.feature b{
+  display:block;
+  font-size:14px;
+}
+.feature span{
+  display:block;
+  font-size:13px;
+  opacity:.85;
+  margin-top:3px;
+}
+.activate{
+  display:grid;
+  grid-template-columns:72px 1fr;
+  gap:18px;
+}
+.keyIcon{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  background:#06140d !important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:30px;
+  box-shadow:0 0 24px rgba(150,255,80,.45);
+}
+.activate h2{
+  margin:0 0 8px;
+  font-size:28px;
+}
+.activate p{
+  margin:0 0 16px;
+  opacity:.84;
+  line-height:1.4;
+}
+input{
+  width:100%;
+  padding:18px;
+  border-radius:17px;
+  border:1px solid rgba(160,255,90,.55);
+  background:rgba(0,0,0,.38);
+  color:#fff;
+  font-size:18px;
+  outline:none;
+}
+input:focus{
+  border-color:#9dff5a;
+  box-shadow:0 0 20px rgba(157,255,90,.45);
+}
+button{
+  width:100%;
+  margin-top:14px;
+  padding:18px;
+  border:none;
+  border-radius:17px;
+  background:#06140d !important;
+  color:#061305;
+  font-size:20px;
+  font-weight:900;
+  box-shadow:0 0 30px rgba(70,255,110,.34);
+}
+.secure{
+  text-align:center;
+  margin-top:14px;
+  opacity:.72;
+  font-weight:700;
+}
+.msg{
+  margin-top:12px;
+  min-height:20px;
+  font-weight:bold;
+}
+.promo{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  border-color:rgba(255,216,107,.35);
+  background:#06140d !important;
+}
+.promoLeft{
+  display:flex;
+  gap:16px;
+  align-items:center;
+}
+.diamond{
+  font-size:44px;
+  filter:none !important;
+}
+.arrow{
+  font-size:34px;
+  color:#ffd86b;
+  opacity:.65;
+}
+.back{
+  display:block;
+  text-align:center;
+  margin-top:28px;
+  color:#6dff85;
+  text-decoration:none;
+  font-size:20px;
+}
+@media(max-width:560px){
+  h1{font-size:44px}
+  .sub{font-size:18px}
+  .statusCard{grid-template-columns:1fr;text-align:center}
+  .emblem{margin:auto}
+  .topline{justify-content:center}
+  .big{font-size:34px}
+  .featureStrip{grid-template-columns:repeat(2,1fr);gap:10px;padding:16px}
+  .feature{border-right:none;background:rgba(255,255,255,.05);border-radius:16px}
+  .activate{grid-template-columns:1fr}
+  .keyIcon{margin-bottom:4px}
+}
+.topline{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.status-label{
+  font-size:12px;
+  letter-spacing:.12em;
+  opacity:.7;
+}
+
+.status-text{
+  opacity:.9;
+  font-weight:600;
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  background:#00ff88;
+  border-radius:50%;
+  box-shadow:0 0 10px #00ff88, 0 0 20px #00ff88;
+}
+/* 🔥 PREMIUM PULSE */
+@keyframes premiumPulse {
+  0% { text-shadow: 0 0 10px #00ff88; }
+  50% { text-shadow: 0 0 25px #00ff88, 0 0 40px #00ff88; }
+  100% { text-shadow: 0 0 10px #00ff88; }
+}
+
+.premium-title{
+  animation:none;
+  color:#00ff88;
+}
+
+/* 🔥 ARKA IŞIK EFEKTİ */
+.bg-animate::before{
+  content:"";
+  position:fixed;
+  top:-50%;
+  left:-50%;
+  width:200%;
+  height:200%;
+  background:#06140d !important;
+  animation:none;
+  z-index:-1;
+}
+
+@keyframes rotateLight{
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
+
+/* 🔧 MOBILE REFERANS STİLİNE YAKLAŞTIRMA */
+@media(max-width:560px){
+  .wrap{
+    padding:22px 18px 34px;
+  }
+
+  .hero{
+    margin-bottom:14px;
+  }
+
+  h1{
+    font-size:42px;
+  }
+
+  .sub{
+    font-size:17px;
+  }
+
+  .card{
+    margin-top:18px;
+    padding:18px;
+    border-radius:22px;
+  }
+
+  .statusCard{
+    grid-template-columns:96px 1fr;
+    text-align:left;
+    gap:14px;
+    align-items:center;
+  }
+
+  .emblem{
+    width:90px;
+    height:90px;
+    font-size:42px;
+    margin:0;
+  }
+
+  .topline{
+    justify-content:flex-start;
+    gap:7px;
+  }
+
+  .big{
+    font-size:31px;
+    margin:10px 0 6px;
+    line-height:1.05;
+  }
+
+  .detail{
+    font-size:14px;
+  }
+
+  .divider{
+    margin:12px 0;
+  }
+
+  .miniStats{
+    gap:8px;
+  }
+
+  .mini{
+    font-size:12px;
+    gap:6px;
+  }
+
+  .mini .ico{
+    font-size:20px;
+  }
+
+  .featureStrip{
+    grid-template-columns:repeat(4,1fr);
+    gap:0;
+    padding:12px 6px;
+  }
+
+  .feature{
+    display:block;
+    text-align:center;
+    padding:8px 5px;
+    border-right:1px solid rgba(255,255,255,.12);
+    background:transparent;
+    border-radius:0;
+  }
+
+  .feature:last-child{
+    border-right:none;
+  }
+
+  .feature .ico{
+    font-size:22px;
+    margin-bottom:5px;
+  }
+
+  .feature b{
+    font-size:11px;
+    line-height:1.1;
+  }
+
+  .feature span{
+    font-size:10px;
+    line-height:1.1;
+  }
+
+  .activate{
+    grid-template-columns:52px 1fr;
+    gap:14px;
+  }
+
+  .keyIcon{
+    width:50px;
+    height:50px;
+    font-size:25px;
+  }
+
+  .activate h2{
+    font-size:25px;
+  }
+
+  .activate p{
+    font-size:15px;
+  }
+}
+
+
+/* 🔥 FINAL PREMIUM FIX */
+
+/* Üst boşluğu düzelt */
+.hero{
+  margin-bottom:10px;
+}
+
+/* Status kartı daha sıkı */
+.statusCard{
+  padding:16px 18px !important;
+}
+
+/* PREMIUM yazı dengesi */
+.big{
+  font-size:28px !important;
+  letter-spacing:.5px;
+  text-shadow:0 0 10px #00ff88, 0 0 18px #00ff88;
+}
+
+/* Açıklama daha premium */
+.detail{
+  font-size:14px;
+  opacity:.85;
+}
+
+/* Üst durum satırı */
+.topline{
+  margin-bottom:6px;
+}
+
+/* Feature strip daha flat */
+.featureStrip{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
+}
+
+/* Feature yazıları dengeli */
+.feature b{
+  font-size:12px;
+}
+
+.feature span{
+  font-size:11px;
+  opacity:.8;
+}
+
+/* Lisans kartı spacing */
+.activate{
+  padding:18px;
+}
+
+/* Input daha premium */
+.activate input{
+  font-size:16px;
+  padding:14px;
+}
+
+/* Buton glow daha soft */
+.activate button{
+  box-shadow:0 0 15px rgba(0,255,120,.4);
+}
+
+</style>
+
+
+<style id="license_perf_fix">
+/* MOBİL PERFORMANS FIX */
+* {
+  animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .08s !important;
+}
+
+.card, .premium-card, .license-card, .feature-card, .benefit-card,
+.status-card, .glass, .panel, .box {
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  box-shadow: 0 0 12px rgba(0,255,120,.10) !important;
+}
+
+body {
+  background-attachment: scroll !important;
+}
+
+.tab-btn {
+  box-shadow: none !important;
+}
+
+@media (max-width: 768px) {
+  * {
+    filter:none !important;
+  }
+}
+</style>
+
+
+<style id="ultra_smooth_license_ui">
+/* ⚡ ULTRA SMOOTH MOBILE MODE */
+* {
+  animation:none;
+  transition: none !important;
+  will-change: auto !important;
+}
+
+body {
+  background: #06140d !important;
+  background-attachment: scroll !important;
+}
+
+.premium-card,
+.card,
+.box,
+.panel,
+.glow,
+.neon,
+[class*="glow"],
+[class*="neon"] {
+  filter:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  box-shadow: 0 0 8px rgba(0,255,130,.14) !important;
+}
+
+button,
+input,
+a {
+  box-shadow: none !important;
+  filter:none !important;
+}
+
+h1, h2, h3,
+.premium-title,
+.title {
+  text-shadow: 0 0 4px rgba(0,255,130,.20) !important;
+}
+
+@media (max-width: 768px) {
+  * {
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+}
+</style>
+
+
+<style id="button-visibility-fix">
+button, .btn, .activate-btn {
+  background: linear-gradient(135deg, #00ff88, #00cc66) !important;
+  color: #002211 !important;
+  font-weight: bold !important;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+button span, .btn span {
+  color: #002211 !important;
+}
+
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <h1>👑 Premium</h1>
+    <div class="sub">SpamShield Pro özelliklerinin keyfini çıkarın</div>
+  </div>
+
+  <div class="card statusCard">
+    <div class="emblem"><div style="position:relative;display:inline-block;">🛡️<span style="position:absolute;bottom:-10px;right:-10px;font-size:28px;">👑</span></div></div>
+    <div>
+      <div class="topline">
+  <span class="status-label">DURUM</span>
+  <span class="dot"></span>
+  <span class="status-text">Aktif</span>
+</div>
+      <div id="status" class="big premium-title">PREMIUM AKTİF</div>
+      <div class="detail">Tüm premium özellikler açık durumda.</div>
+      <div class="divider"></div>
+      <div class="miniStats">
+        <div class="mini"><div class="ico">📅</div><div><b>Bitiş Tarihi</b><span id="expiryText">-</span></div></div>
+        <div class="mini"><div class="ico">↻</div><div><b>Kalan Süre</b><span id="daysText">-</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card featureStrip">
+    <div class="feature"><div class="ico">🛡️</div><div><b>AI Analiz</b><span>Sınırsız</span></div></div>
+    <div class="feature"><div class="ico">👥</div><div><b>Topluluk</b><span>Tam Erişim</span></div></div>
+    <div class="feature"><div class="ico">⚡</div><div><b>Gelişmiş Koruma</b><span>Aktif</span></div></div>
+    <div class="feature"><div class="ico">📈</div><div><b>Öncelikli Destek</b><span>7/24</span></div></div>
+  </div>
+
+  <div class="card activate">
+    <div class="keyIcon">🔑</div>
+    <div>
+      <h2>Lisans Kodu Gir</h2>
+      <p>Elinizdeki lisans kodunu girerek premium erişimi açın.</p>
+      <input id="key" placeholder="SPAMSHIELD-PRO-XXXX">
+      <button onclick="activate()">🛡️ Lisansı Aktifleştir</button>
+
+
+<!-- LICENSE_SALES_FLOW_V1 -->
+<style>
+.lic-sales{margin:24px 0;padding:18px;border:1px solid rgba(0,255,130,.25);border-radius:22px;background:rgba(0,20,10,.72)}
+.lic-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.lic-tab{padding:12px;border:0;border-radius:14px;background:#0aff86;color:#03210f;font-weight:800}
+.lic-panel{display:none}
+.lic-panel.active{display:block}
+.plan{padding:14px;margin:10px 0;border:1px solid rgba(0,255,130,.25);border-radius:16px;background:rgba(0,0,0,.28)}
+.plan b{font-size:20px}
+.paybtn{width:100%;margin-top:10px;padding:14px;border:0;border-radius:14px;background:#0aff86;color:#03210f;font-weight:900}
+.small-note{opacity:.75;font-size:13px;margin-top:8px}
+</style>
+
+<div class="lic-sales">
+  <div class="lic-tabs">
+    <button class="lic-tab" onclick="licShow('plans')">Paketler</button>
+    <button class="lic-tab" onclick="licShow('pay')">Ödeme</button>
+    <button class="lic-tab" onclick="licShow('activate')">Aktivasyon</button>
+  </div>
+
+  <div id="lic-plans" class="lic-panel active">
+    <div class="plan">
+      <b>Pro Aylık</b><br>
+      99 TL / ay
+      <button class="paybtn" onclick="selectPlan('Pro Aylık','99 TL')">Satın Al</button>
+    </div>
+    <div class="plan">
+      <b>Pro Yıllık</b><br>
+      799 TL / yıl
+      <button class="paybtn" onclick="selectPlan('Pro Yıllık','799 TL')">Satın Al</button>
+    </div>
+    <div class="plan">
+      <b>Lifetime</b><br>
+      1499 TL tek sefer
+      <button class="paybtn" onclick="selectPlan('Lifetime','1499 TL')">Satın Al</button>
+    </div>
+  </div>
+
+  <div id="lic-pay" class="lic-panel">
+    <h3>💳 Ödeme</h3>
+    <p id="selectedPlan">Paket seçilmedi.</p>
+    <button class="paybtn" onclick="alert('Ödeme altyapısı burada bağlanacak: iyzico / PayTR / Shopier')">Ödemeye Geç</button>
+    <div class="small-note">Ödeme başarılı olunca lisans kodu üretilecek ve bu sayfada aktive edilecek.</div>
+  </div>
+
+  <div id="lic-activate" class="lic-panel">
+    <h3>🔑 Aktivasyon</h3>
+    <p>Lisans kodunu yukarıdaki kutuya girip “Lisansı Aktifleştir” butonuna bas.</p>
+    <div class="small-note">Aktivasyon bu sayfada kalır, yeni sayfa açılmaz.</div>
+  </div>
+</div>
+
+<script>
+function licShow(name){
+  document.querySelectorAll('.lic-panel').forEach(x=>x.classList.remove('active'));
+  document.getElementById('lic-' + name).classList.add('active');
+}
+function selectPlan(plan, price){
+  localStorage.setItem('ss_selected_plan', plan);
+  localStorage.setItem('ss_selected_price', price);
+  document.getElementById('selectedPlan').innerText = plan + ' seçildi • ' + price;
+  licShow('pay');
+}
+</script>
+
+</body>
+</html>

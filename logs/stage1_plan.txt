@@ -1,6 +1,0 @@
-STAGE 1 PLAN
-1. / -> splash
-2. /login -> login
-3. /radial -> main center
-4. keep current working license + bot-orders
-5. remove route chaos only after snapshot

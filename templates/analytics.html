@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analiz - SpamShield</title>
+  <style>
+    body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#08140e,#15351d);color:#fff}
+    .wrap{max-width:980px;margin:auto;padding:24px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .btn{display:inline-block;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.1);color:#fff;text-decoration:none}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:24px}
+    .card{background:rgba(255,255,255,.08);padding:20px;border-radius:18px}
+    .value{font-size:40px;font-weight:800;margin:8px 0}
+    .label{opacity:.9}
+  
+.premium-lock{
+  filter: blur(6px);
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.lock-overlay{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  font-size:18px;
+  color:#fff;
+}
+</style>
+
+</head>
+<body>
+  <div class="wrap"><div id="aiContainer" style="position:relative;">
+    <div class="top">
+      <div>
+        <h1>Analiz</h1>
+        <p>Canlı admin özet verileri</p>
+      </div>
+      <a class="btn" href="/radial-menu">← Radial Menüye Dön</a>
+    </div>
+
+    <div class="grid">
+      <div class="card"><div class="label">Toplam Kullanıcı</div><div class="value" id="total_users">0</div></div>
+      <div class="card"><div class="label">Aktif Kullanıcı</div><div class="value" id="active_users">0</div></div>
+      <div class="card"><div class="label">Admin Sayısı</div><div class="value" id="admin_users">0</div></div>
+      <div class="card"><div class="label">Engelli Kullanıcı</div><div class="value" id="blocked_users">0</div></div>
+      <div class="card"><div class="label">Toplam SMS</div><div class="value" id="total_sms">0</div></div>
+      <div class="card"><div class="label">Toplam Lisans</div><div class="value" id="total_licenses">0</div></div>
+    
+    <div class="card" style="margin-top:18px">
+      <div class="label">AI Risk Skoru</div>
+      <div class="value" id="ai_score">0</div>
+      <div id="ai_level" class="label">Yükleniyor...</div>
+      <p id="ai_advice"></p>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h3>AI Şüpheli Örnekler</h3>
+      <div id="ai_samples"></div>
+    </div>
+  </div>
+
+  <script>
+    async function loadSummary(){
+      try{
+        const res = await fetch('/api/admin-summary');
+        if(!res.ok) return;
+        const data = await res.json();
+
+        for (const key of ['total_users','active_users','admin_users','blocked_users','total_sms','total_licenses']){
+          const el = document.getElementById(key);
+          if(el) el.textContent = data[key] ?? 0;
+        }
+      }catch(e){
+        console.log('summary error', e);
+      }
+    }
+
+    async function loadAI(){
+      try{
+        const res = await fetch('/api/ai-analysis');
+        if(!res.ok) return;
+        const data = await res.json();
+
+        document.getElementById('ai_score').textContent = data.ai_score ?? 0;
+        document.getElementById('ai_level').textContent = data.level ?? '-';
+        document.getElementById('ai_advice').textContent = data.advice ?? '';
+
+        const box = document.getElementById('ai_samples');
+        box.innerHTML = '';
+
+        (data.samples || []).forEach(s => {
+          const div = document.createElement('div');
+          div.style.padding = '10px';
+          div.style.marginTop = '8px';
+          div.style.borderRadius = '12px';
+          div.style.background = 'rgba(255,255,255,.08)';
+          div.innerHTML = `<b>Skor:</b> ${s.score} | <b>Kelimeler:</b> ${(s.matched || []).join(', ')}<br>${s.text}`;
+          box.appendChild(div);
+        });
+      }catch(e){
+        console.log('ai error', e);
+      }
+    }
+
+    loadSummary();
+    loadAI();
+    setInterval(loadSummary, 5000);
+    setInterval(loadAI, 5000);
+  </script>
+</body>
+</html>

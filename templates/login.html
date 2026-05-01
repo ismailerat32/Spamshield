@@ -1,444 +1,532 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>SpamShield Pro</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpamShield Giriş</title>
+  <style>
+    :root{
+      --bg:#dfe8f1;
+      --card:#ffffff;
+      --blue1:#0f5fd7;
+      --blue2:#2d8cff;
+      --blue3:#78b7ff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --input:#f2f6fb;
+      --shadow:0 24px 70px rgba(2, 22, 53, .18);
+      --radius:28px;
+      --success:#22c55e;
+      --danger:#dc2626;
+    }
 
-<style>
-*{box-sizing:border-box}
-body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background: linear-gradient(135deg,#08122e,#10214e,#1b2d6b);
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    color:white;
-    overflow-x:hidden;
-}
-body::before{
-    content:"";
-    position:fixed;
-    inset:0;
-    background:
-        radial-gradient(circle at top left, rgba(124,58,237,.20), transparent 30%),
-        radial-gradient(circle at bottom right, rgba(37,99,235,.20), transparent 30%);
-    pointer-events:none;
-}
-.box{
-    position:relative;
-    z-index:1;
-    width:min(92vw,420px);
-    background:rgba(8,18,46,.75);
-    border:1px solid rgba(255,255,255,.08);
-    backdrop-filter: blur(14px);
-    border-radius:24px;
-    padding:34px 24px 26px;
-    box-shadow:0 20px 50px rgba(0,0,0,.35);
-}
-.logo{
-    text-align:center;
-    font-size:58px;
-    margin-bottom:6px;
-}
-h1{
-    margin:0;
-    text-align:center;
-    font-size:34px;
-    line-height:1.1;
-}
-.subtitle{
-    text-align:center;
-    color:#94a3b8;
-    margin:10px 0 24px;
-    font-size:15px;
-}
-label{
-    display:block;
-    margin:14px 0 8px;
-    color:#e5e7eb;
-    font-size:15px;
-}
-input{
-    width:100%;
-    padding:14px 15px;
-    border-radius:14px;
-    border:1px solid rgba(255,255,255,.10);
-    background:rgba(2,6,23,.45);
-    color:white;
-    font-size:16px;
-    outline:none;
-}
-input:focus{
-    border-color:#3b82f6;
-    box-shadow:0 0 0 3px rgba(59,130,246,.18);
-}
-button{
-    width:100%;
-    margin-top:18px;
-    padding:14px 16px;
-    border:none;
-    border-radius:14px;
-    background:linear-gradient(90deg,#2563eb,#7c3aed);
-    color:white;
-    font-size:18px;
-    font-weight:700;
-    cursor:pointer;
-    box-shadow:0 10px 24px rgba(37,99,235,.28);
-}
-button:hover{opacity:.96}
-.error{
-    margin:14px 0 6px;
-    padding:14px;
-    border-radius:16px;
-    background:rgba(127,29,29,.35);
-    border:1px solid rgba(239,68,68,.35);
-    color:#fecaca;
-    text-align:center;
-    font-weight:600;
-}
-.register{
-    margin-top:22px;
-    text-align:center;
-    color:#e5e7eb;
-    font-size:15px;
-}
-.register a{
-    color:#60a5fa;
-    text-decoration:none;
-    font-weight:700;
-}
-.copyright{
-    position:fixed;
-    left:0;
-    bottom:0;
-    width:100%;
-    padding:14px 10px;
-    text-align:center;
-    font-size:12px;
-    color:rgba(255,255,255,.55);
-    background:linear-gradient(to top, rgba(2,6,23,.65), transparent);
-    backdrop-filter: blur(6px);
-}
-@media (max-width:480px){
-    .box{padding:28px 18px 24px}
-    h1{font-size:30px}
-}
-</style>
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      min-height:100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #eef3f8 0%, #dde7f0 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px;
+      color:var(--text);
+    }
 
-<style>
-.toast-container{
-  position:fixed;
-  top:18px;
-  right:18px;
-  z-index:9999;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  width:min(360px, calc(100vw - 24px));
-  pointer-events:none;
-}
+    .auth-shell{
+      width:min(100%, 1020px);
+      min-height:auto;
+      background:var(--card);
+      border-radius:26px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      display:grid;
+      grid-template-columns: 1fr 1.1fr;
+    }
 
-.toast{
-  position:relative;
-  overflow:hidden;
-  border-radius:18px;
-  padding:14px 16px 16px 16px;
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
-  border:1px solid rgba(255,255,255,.12);
-  box-shadow:0 18px 40px rgba(0,0,0,.28);
-  color:#fff;
-  opacity:0;
-  transform:translateY(-12px) scale(.97);
-  transition:opacity .35s ease, transform .35s ease;
-  pointer-events:auto;
-}
+    .left-panel{
+      position:relative;
+      background: linear-gradient(180deg, var(--blue1) 0%, var(--blue2) 100%);
+      color:#fff;
+      padding:34px 36px 28px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      overflow:hidden;
+    }
 
-.toast.show{
-  opacity:1;
-  transform:translateY(0) scale(1);
-}
+    .left-panel::after{
+      content:"";
+      position:absolute;
+      top:0;
+      right:-82px;
+      width:170px;
+      height:100%;
+      background:
+        radial-gradient(circle at left 8%, rgba(255,255,255,.35) 0 26px, transparent 27px),
+        radial-gradient(circle at left 24%, rgba(255,255,255,.45) 0 34px, transparent 35px),
+        radial-gradient(circle at left 40%, rgba(255,255,255,.55) 0 42px, transparent 43px),
+        radial-gradient(circle at left 56%, rgba(255,255,255,.65) 0 50px, transparent 51px),
+        radial-gradient(circle at left 72%, rgba(255,255,255,.8) 0 58px, transparent 59px),
+        radial-gradient(circle at left 88%, rgba(255,255,255,.95) 0 66px, transparent 67px);
+      opacity:.95;
+      pointer-events:none;
+    }
 
-.toast.hide{
-  opacity:0;
-  transform:translateY(-12px) scale(.97);
-}
+    .left-top{
+      position:relative;
+      z-index:1;
+    }
 
-.toast::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
-  pointer-events:none;
-}
+    .welcome{
+      font-size:16px;
+      font-weight:700;
+      opacity:.95;
+      margin-bottom:18px;
+    }
 
-.toast-top{
-  display:flex;
-  align-items:flex-start;
-  gap:12px;
-  position:relative;
-  z-index:1;
-}
+    .brand-badge{
+      width:86px;
+      height:86px;
+      border-radius:50%;
+      background:rgba(255,255,255,.96);
+      color:var(--blue1);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:42px;
+      margin-bottom:14px;
+      box-shadow:0 16px 40px rgba(0,0,0,.16);
+    }
 
-.toast-icon{
-  width:36px;
-  height:36px;
-  min-width:36px;
-  border-radius:12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:18px;
-  font-weight:700;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
-}
+    .brand-name{
+      font-size:26px;
+      font-weight:800;
+      line-height:1.05;
+      letter-spacing:.2px;
+      margin:0 0 10px;
+    }
 
-.toast-body{
-  flex:1;
-  min-width:0;
-}
+    .brand-sub{
+      font-size:16px;
+      line-height:1.48;
+      max-width:330px;
+      opacity:.95;
+      margin:0;
+    }
 
-.toast-title{
-  font-size:14px;
-  font-weight:800;
-  margin:0 0 4px 0;
-  letter-spacing:.2px;
-}
+    .left-bottom{
+      position:relative;
+      z-index:1;
+      font-size:12px;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      opacity:.95;
+      display:flex;
+      gap:16px;
+      flex-wrap:wrap;
+    }
 
-.toast-message{
-  font-size:13px;
-  line-height:1.45;
-  margin:0;
-  opacity:.95;
-  word-wrap:break-word;
-}
+    .right-panel{
+      padding:34px 36px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#fff;
+    }
 
-.toast-close{
-  background:transparent;
-  border:0;
-  color:rgba(255,255,255,.75);
-  font-size:18px;
-  line-height:1;
-  cursor:pointer;
-  padding:0;
-  margin:0;
-}
+    .form-box{
+      width:100%;
+      max-width:430px;
+    }
 
-.toast-close:hover{
-  color:#fff;
-}
+    .form-box h1{
+      margin:0 0 10px;
+      font-size:26px;
+      line-height:1.15;
+      font-weight:800;
+      color:#111827;
+    }
 
-.toast-progress{
-  position:absolute;
-  left:0;
-  bottom:0;
-  height:3px;
-  width:100%;
-  transform-origin:left center;
-  animation:toastProgress 2.6s linear forwards;
-  opacity:.95;
-}
+    .form-box .sub{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.6;
+    }
 
-@keyframes toastProgress{
-  from{ transform:scaleX(1); }
-  to{ transform:scaleX(0); }
-}
+    .alert{
+      margin-bottom:13px;
+      padding:12px 14px;
+      border-radius:13px;
+      background:#fef2f2;
+      border:1px solid #fecaca;
+      color:#991b1b;
+      font-size:12.5px;
+      font-weight:700;
+    }
 
-.toast-success{
-  background:linear-gradient(135deg, rgba(16,185,129,.28), rgba(6,95,70,.22));
-}
-.toast-success .toast-icon{
-  background:rgba(16,185,129,.22);
-}
-.toast-success .toast-progress{
-  background:#34d399;
-}
+    .field{
+      margin-bottom:13px;
+    }
 
-.toast-error{
-  background:linear-gradient(135deg, rgba(239,68,68,.28), rgba(127,29,29,.22));
-}
-.toast-error .toast-icon{
-  background:rgba(239,68,68,.22);
-}
-.toast-error .toast-progress{
-  background:#f87171;
-}
+    .field label{
+      display:block;
+      margin-bottom:8px;
+      font-size:12.5px;
+      font-weight:700;
+      color:#374151;
+    }
 
-.toast-warning{
-  background:linear-gradient(135deg, rgba(245,158,11,.28), rgba(120,53,15,.22));
-}
-.toast-warning .toast-icon{
-  background:rgba(245,158,11,.22);
-}
-.toast-warning .toast-progress{
-  background:#fbbf24;
-}
+    .input-wrap{
+      position:relative;
+    }
 
-.toast-info{
-  background:linear-gradient(135deg, rgba(59,130,246,.28), rgba(30,58,138,.22));
-}
-.toast-info .toast-icon{
-  background:rgba(59,130,246,.22);
-}
-.toast-info .toast-progress{
-  background:#60a5fa;
-}
+    .input-wrap input{
+      width:100%;
+      height:44px;
+      border:1px solid var(--line);
+      border-radius:13px;
+      background:var(--input);
+      outline:none;
+      padding:0 16px;
+      font-size:15px;
+      color:#111827;
+      transition:.2s ease;
+    }
 
-@media (max-width: 640px){
-  .toast-container{
-    top:12px;
-    right:12px;
-    left:12px;
-    width:auto;
-  }
-  .toast{
-    border-radius:16px;
-  }
-}
-</style>
+    .input-wrap input:focus{
+      border-color:#7db8ff;
+      background:#fff;
+      box-shadow:0 0 0 4px rgba(59,130,246,.12);
+    }
 
+    .helper-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin:8px 0 16px;
+      flex-wrap:wrap;
+    }
+
+    .check{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:12.5px;
+      color:#374151;
+      user-select:none;
+    }
+
+    .check input{
+      width:16px;
+      height:16px;
+      accent-color:var(--blue1);
+    }
+
+    .helper-row a,
+    .extra a{
+      color:var(--blue1);
+      text-decoration:none;
+      font-weight:700;
+    }
+
+    .helper-row a:hover,
+    .extra a:hover{
+      text-decoration:underline;
+    }
+
+    .submit-btn{
+      width:100%;
+      height:44px;
+      border:none;
+      border-radius:13px;
+      background: linear-gradient(180deg, var(--blue2) 0%, var(--blue1) 100%);
+      color:#fff;
+      font-size:16px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 12px 24px rgba(15,95,215,.22);
+      transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+    }
+
+    .submit-btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 16px 28px rgba(15,95,215,.26);
+    }
+
+    .submit-btn:active{
+      transform:translateY(0);
+      opacity:.96;
+    }
+
+    .divider{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin:10px 0 8px;
+      color:#94a3b8;
+      font-size:12.5px;
+      font-weight:700;
+      text-transform:uppercase;
+    }
+
+    .divider::before,
+    .divider::after{
+      content:"";
+      flex:1;
+      height:1px;
+      background:#e5e7eb;
+    }
+
+    .secondary-btn{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+      height:52px;
+      border-radius:13px;
+      border:1px solid #dbe2ea;
+      background:#fff;
+      color:#111827;
+      font-size:16px;
+      font-weight:800;
+      text-decoration:none;
+      transition:.2s ease;
+    }
+
+    .secondary-btn:hover{
+      background:#f8fafc;
+      border-color:#cbd5e1;
+    }
+
+    .pro-note{
+      text-align:center;
+      margin-top:6px;
+      color:var(--blue1);
+      font-weight:800;
+      font-size:15px;
+    }
+
+    .extra{
+      margin-top:8px;
+      text-align:center;
+      color:var(--muted);
+      font-size:12.5px;
+    }
+
+    @media (max-width: 900px){
+      body{
+        padding:10px;
+      }
+
+      .auth-shell{
+        grid-template-columns:1fr;
+      }
+
+      .left-panel{
+        min-height:230px;
+        padding:26px 24px 22px;
+      }
+
+      .left-panel::after{
+        display:none;
+      }
+
+      .brand-badge{
+        width:86px;
+        height:86px;
+        font-size:42px;
+      }
+
+      .brand-name{
+        font-size:32px;
+      }
+
+      .brand-sub{
+        max-width:none;
+      }
+
+      .right-panel{
+        padding:26px 22px 28px;
+      }
+
+      .form-box h1{
+        font-size:23px;
+      }
+    }
+
+    @media (max-width: 480px){
+      body{
+        padding:10px;
+      }
+
+      .auth-shell{
+        border-radius:24px;
+      }
+
+      .left-panel{
+        min-height:155px;
+        padding:16px 20px 14px;
+      }
+
+      .welcome{
+        font-size:15px;
+        margin-bottom:14px;
+      }
+
+      .brand-badge{
+        width:48px;
+        height:48px;
+        font-size:26px;
+        margin-bottom:10px;
+      }
+
+      .brand-name{
+        font-size:26px;
+        line-height:1.05;
+        margin-bottom:8px;
+      }
+
+      .brand-sub{
+        font-size:12.5px;
+        line-height:1.25;
+      }
+
+      .left-bottom{
+        font-size:9.5px;
+        gap:7px;
+        letter-spacing:1.2px;
+      }
+
+      .right-panel{
+        padding:18px 20px 20px;
+      }
+
+      .form-box h1{
+        font-size:23px;
+        margin-bottom:8px;
+      }
+
+      .form-box .sub{
+        font-size:12.5px;
+        margin-bottom:10px;
+      }
+
+      .input-wrap input{
+        height:42px;
+        font-size:14.5px;
+      }
+
+      .helper-row{
+        flex-direction:row;
+        align-items:center;
+        justify-content:space-between;
+      }
+
+      .check,
+      .helper-row a,
+      .extra{
+        font-size:12.5px;
+      }
+
+      .submit-btn,
+      .secondary-btn{
+        height:44px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="auth-shell">
+    <section class="left-panel">
+      <div class="left-top">
+        <div class="welcome">SpamShield'e hoş geldin</div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="toast-container" id="toastContainer">
-      {% for category, message in messages %}
-        <div class="toast toast-{{ category if category in ['success','error','warning','info'] else 'info' }}">
-          <div class="toast-top">
-            <div class="toast-icon">
-              {% if category == 'success' %}✓
-              {% elif category == 'error' %}✕
-              {% elif category == 'warning' %}! 
-              {% else %}i{% endif %}
+        <div class="brand-badge">🛡️</div>
+
+        <h2 class="brand-name">SpamShield</h2>
+        <p class="brand-sub">
+          AI destekli SMS koruma sistemi ile hesabına güvenli şekilde giriş yap,
+          spam filtreleme ve premium güvenlik özelliklerini tek merkezden yönet.
+        </p>
+      </div>
+
+      <div class="left-bottom">
+        <span>Güvenli Giriş</span>
+        <span>|</span>
+        <span>AI Koruma</span>
+        <span>|</span>
+        <span>SpamShield PRO</span>
+      </div>
+    </section>
+
+    <section class="right-panel">
+      <div class="form-box">
+        <h1>Hesabına giriş yap</h1>
+        <p class="sub">
+          Kullanıcı bilgilerinle giriş yaparak SpamShield paneline erişebilirsin.
+        </p>
+
+        {% if error %}
+          <div class="alert">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="/login">
+          <div class="field">
+            <label for="username">Kullanıcı adı</label>
+            <div class="input-wrap">
+              <input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Kullanıcı adını gir"
+                autocomplete="username"
+                required
+              >
             </div>
-
-            <div class="toast-body">
-              <div class="toast-title">
-                {% if category == 'success' %}Başarılı
-                {% elif category == 'error' %}Hata
-                {% elif category == 'warning' %}Uyarı
-                {% else %}Bilgi{% endif %}
-              </div>
-              <p class="toast-message">{{ message }}</p>
-            </div>
-
-            <button class="toast-close" type="button" aria-label="Kapat">×</button>
           </div>
 
-          <div class="toast-progress"></div>
+          <div class="field">
+            <label for="password">Şifre</label>
+            <div class="input-wrap">
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Şifreni gir"
+                autocomplete="current-password"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="helper-row">
+            <label class="check">
+              <input type="checkbox" name="remember_me">
+              <span>Beni hatırla</span>
+            </label>
+
+            <a href="#" onclick="return false;">Şifremi unuttum</a>
+          </div>
+
+          <button type="submit" class="submit-btn">Giriş Yap</button>
+        </form>
+
+        <div class="divider">veya</div>
+
+        <a class="secondary-btn" href="/register">Hesap oluştur</a>
+
+        <div class="pro-note">🛡️ SpamShield PRO</div>
+
+        <div class="extra">
+          Hesabın yok mu?
+          <a href="/register">Yeni hesap oluştur</a>
         </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-{% endwith %}
-
-
-<div class="box">
-    <div class="logo">🛡️</div>
-    <h1>SpamShield</h1>
-    <div class="subtitle">Yönetim paneline giriş yapın</div>
-
-    {% if error %}
-    <div class="error">{{ error }}</div>
-    {% endif %}
-
-    <form method="POST">
-        <label for="username">Kullanıcı Adı</label>
-        <input id="username" name="username" placeholder="Kullanıcı adınızı girin">
-
-        <label for="password">Şifre</label>
-        <input id="password" type="password" name="password" placeholder="Şifrenizi girin">
-
-        <button type="submit">Giriş Yap</button>
-    </form>
-    <div style="margin-top:12px;text-align:center;">
-        <a href="/forgot-password" style="color:#8ab4ff;text-decoration:none;font-size:15px;">
-            Şifremi unuttum
-        </a>
-    </div>
-
-
-    <div class="register">
-        Hesabın yok mu? <a href="/register">Yeni üye ol</a>
-    </div>
-</div>
-
-<div class="copyright">
-    SpamShield © 2026 • All rights reserved • v1.0
-</div>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const messages = document.querySelectorAll(".flash-msg");
-
-    messages.forEach((msg, index) => {
-        // Küçük animasyon
-        msg.style.opacity = "0";
-        msg.style.transform = "translateY(-10px)";
-
-        setTimeout(() => {
-            msg.style.transition = "all 0.4s ease";
-            msg.style.opacity = "1";
-            msg.style.transform = "translateY(0)";
-        }, 50);
-
-        // 2.5 saniye sonra kaybol
-        setTimeout(() => {
-            msg.style.transition = "all 0.4s ease";
-            msg.style.opacity = "0";
-            msg.style.transform = "translateY(-10px)";
-        }, 2500);
-
-        // tamamen DOM'dan sil
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
-    });
-});
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const toasts = document.querySelectorAll(".toast");
-
-  toasts.forEach((toast, index) => {
-    const closeBtn = toast.querySelector(".toast-close");
-
-    const showDelay = 80 + (index * 120);
-    const hideDelay = 2600 + (index * 120);
-
-    setTimeout(() => {
-      toast.classList.add("show");
-    }, showDelay);
-
-    const hideToast = () => {
-      if (toast.dataset.closed === "1") return;
-      toast.dataset.closed = "1";
-      toast.classList.remove("show");
-      toast.classList.add("hide");
-      setTimeout(() => {
-        toast.remove();
-        const container = document.getElementById("toastContainer");
-        if (container && !container.querySelector(".toast")) {
-          container.remove();
-        }
-      }, 380);
-    };
-
-    setTimeout(hideToast, hideDelay);
-
-    if (closeBtn) {
-      closeBtn.addEventListener("click", hideToast);
-    }
-  });
-});
-</script>
-
+      </div>
+    </section>
+  </div>
 </body>
 </html>

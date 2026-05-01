@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>SpamShield Topluluk</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{margin:0;font-family:Arial;background:radial-gradient(circle at top,#12343d,#071629 65%,#04101f);color:#fff}
+.page{padding:12px;max-width:1100px;margin:auto}
+.hero,.card,.alert,.stat,.report{background:rgba(0,0,0,.34);border-radius:18px;padding:16px;box-shadow:0 0 22px rgba(0,255,210,.12);margin-bottom:12px}
+.hero{background:linear-gradient(135deg,rgba(0,255,210,.15),rgba(0,0,0,.42))}
+.title{font-size:34px;font-weight:900;color:#fff;text-shadow:0 0 16px rgba(0,255,210,.7)}
+.sub{opacity:.75;margin-top:6px}
+.live{color:#00ffd0;font-size:13px;font-weight:bold}
+.alert{border:1px solid rgba(255,77,77,.35);background:linear-gradient(90deg,rgba(255,50,50,.18),rgba(0,0,0,.35))}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.num{font-size:26px;font-weight:900;margin-top:8px}
+.layout{display:grid;grid-template-columns:1.7fr .9fr;gap:12px}
+.feed-item{display:grid;grid-template-columns:48px 1fr 55px;gap:10px;align-items:center;padding:12px;border-radius:14px;background:rgba(255,255,255,.04);margin-bottom:8px}
+.icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;background:rgba(0,255,210,.12)}
+.kind{font-weight:800}.msg{opacity:.75;font-size:12px;margin-top:4px}.risk{font-size:18px;font-weight:900;color:#ff5959}
+.bottom{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.back{display:block;margin:18px auto 24px;width:220px;text-align:center;padding:13px;background:linear-gradient(90deg,#00ffd0,#00ffa2);color:#000;border-radius:24px;text-decoration:none;font-weight:900}
+button,input,select{border:1px solid rgba(0,255,210,.25);background:rgba(0,0,0,.28);color:#fff;border-radius:12px;padding:12px}
+button{background:linear-gradient(90deg,#00ffd0,#00ffa2);color:#001;font-weight:900}
+.form{display:grid;grid-template-columns:1fr 1fr 1fr 150px;gap:10px}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.layout,.bottom,.form{grid-template-columns:1fr}.title{font-size:30px}}
+</style>
+
+<style>
+.risk-high { color:#ff4d4f !important; font-weight:bold }
+.risk-mid  { color:#ffb84d !important }
+.risk-low  { color:#00e6a8 !important }
+</style>
+
+
+<style>
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0px rgba(0,255,200,0); }
+  50% { box-shadow: 0 0 12px rgba(0,255,200,0.4); }
+  100% { box-shadow: 0 0 0px rgba(0,255,200,0); }
+}
+.live-pulse {
+  animation: pulseGlow 1.2s ease;
+}
+</style>
+
+</head>
+<body>
+<div class="page">
+  <div class="hero">
+    <div class="title">👥 Topluluk</div>
+    <div class="sub">Birlikte daha güçlüyüz. Spamı birlikte durduruyoruz.</div>
+    <div class="live">● Topluluk aktif</div>
+  </div>
+
+  <div class="alert">🚨 <b id="alertTitle">Yükleniyor...</b><br><span id="alertText"></span></div>
+
+  <div class="stats">
+    <div class="stat">Bugün bildirim<div class="num" id="today">--</div></div>
+    <div class="stat">Ortak spam verisi<div class="num" id="shared">--</div></div>
+    <div class="stat">Doğrulama<div class="num" id="trust">--</div></div>
+    <div class="stat">Aktif kullanıcı<div class="num" id="users">--</div></div>
+  </div>
+
+  <div class="layout">
+    <div class="card">
+      <h3>CANLI SPAM AKIŞI <span class="live">● CANLI</span></h3>
+      <div id="feed"></div>
+    </div>
+    <div>
+      <div class="card"><h3>🤖 AI + Topluluk</h3><div class="num">%92</div><p>Spam olasılığı yüksek<br><small>Topluluk eşleşme: yüksek • Pattern: banka + link</small></p></div>
+      <div class="card"><h3>📍 En Aktif Bölgeler</h3><div id="regions"></div></div>
+      <div class="card"><h3>🏆 Katkı Sağlayanlar</h3><div id="contributors"></div></div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="card"><h3>📈 Son 24 Saat</h3><canvas id="trendChart"></canvas></div>
+    <div class="card"><h3>🍩 Spam Türleri</h3><canvas id="pieChart"></canvas></div>
+  </div>
+
+  <div class="report">
+    <h2 style="color:#00ffd0">🛡 SPAM BİLDİR</h2>
+    <div class="form">
+      <input placeholder="+90 5xx xxx xx xx">
+      <input placeholder="Mesaj içeriği">
+      <select><option>Spam Türü</option><option>Reklam</option><option>Dolandırıcılık</option><option>Sahte Banka</option></select>
+      <button>BİLDİR</button>
+    </div>
+  </div>
+
+  <a href="/radial" class="back">← Radial menüye dön</a>
+</div>
+
+<script>
+let trendChart,pieChart;
+function n(v){return Number(v||0).toLocaleString("tr-TR")}
+async function loadCommunity(){
+  const res=await fetch("/api/community-data?t="+Date.now());
+  const data=await res.json();
+
+  alertTitle.innerText=data.alert;
+  alertText.innerText=data.alert_text;
+  today.innerText=n(data.stats.today);
+  shared.innerText=n(data.stats.shared);
+  trust.innerText="%"+data.stats.trust;
+  users.innerText=n(data.stats.users);
+
+  feed.innerHTML=data.feed.map(x=>`
+    <div class="feed-item">
+      <div class="icon">⚠️</div>
+      <div><div class="kind">${x.type} • ${x.phone}</div><div class="msg">${x.message}</div></div>
+      <div class="risk">%${x.risk}</div>
+    </div>`).join("");
+
+  regions.innerHTML=data.regions.map(x=>`<p>${x[0]}: <b>${x[1]}</b> bildirim</p>`).join("");
+  contributors.innerHTML=data.contributors.map(x=>`<p>🏆 ${x[0]}: <b>${n(x[1])}</b></p>`).join("");
+
+  if(trendChart)trendChart.destroy();
+  trendChart=new Chart(trendChartEl=document.getElementById("trendChart"),{
+    type:"line",
+    data:{labels:data.trend_labels,datasets:[{data:data.trend_values,borderColor:"#00ffd0",backgroundColor:"rgba(0,255,200,.08)",fill:true,tension:.4}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#fff"}},y:{ticks:{color:"#fff"},beginAtZero:true}}}
+  });
+
+  if(pieChart)pieChart.destroy();
+  pieChart=new Chart(document.getElementById("pieChart"),{
+    type:"doughnut",
+    data:{labels:Object.keys(data.types),datasets:[{data:Object.values(data.types),backgroundColor:["#00ffd0","#ff4d5a","#9b6cff"]}]},
+    options:{plugins:{legend:{labels:{color:"#fff"}}}}
+  });
+}
+loadCommunity();
+setInterval(loadCommunity,5000);
+</script>
+
+<script>
+function pulseCards(){
+  document.querySelectorAll('.feed-item').forEach(el=>{
+    el.classList.add('live-pulse')
+    setTimeout(()=>el.classList.remove('live-pulse'),1200)
+  })
+}
+
+setInterval(pulseCards, 5000)
+</script>
+
+</body>
+</html>
