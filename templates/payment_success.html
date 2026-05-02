@@ -1,130 +1,218 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SpamShield Pro Aktif</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>SpamShield PRO · Lisans Aktivasyonu</title>
   <style>
-    :root{
-      --bg:#00140b;
-      --green:#00e676;
-      --green2:#00ff88;
-      --text:#ffffff;
-      --muted:#cfd8d3;
-      --line:rgba(0,230,118,.34);
-    }
-    *{box-sizing:border-box}
+    *{box-sizing:border-box;margin:0;padding:0}
     body{
-      margin:0;
       min-height:100vh;
+      font-family:Arial, Helvetica, sans-serif;
+      color:#f5fff9;
       background:
-        radial-gradient(circle at 50% 0%, rgba(0,230,118,.10), transparent 34%),
-        linear-gradient(180deg,#00140b 0%,#000f08 100%);
-      color:var(--text);
-      font-family:Arial,Helvetica,sans-serif;
-    }
-    .wrap{
-      width:min(90vw,390px);
-      margin:0 auto;
-      padding:32px 0 24px;
+        radial-gradient(circle at 15% 0%, rgba(32,240,138,.17), transparent 30%),
+        radial-gradient(circle at 90% 10%, rgba(49,249,158,.10), transparent 32%),
+        linear-gradient(180deg,#052116,#020e09);
+      padding:22px 14px 42px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
     .card{
-      border:1.4px solid var(--line);
-      border-radius:22px;
-      padding:20px 16px;
-      background:linear-gradient(180deg, rgba(4,34,20,.96), rgba(0,18,10,.92));
-      box-shadow:0 18px 38px rgba(0,0,0,.28);
-      margin-bottom:14px;
-      text-align:center;
+      width:min(100%,560px);
+      border:1px solid rgba(32,240,138,.25);
+      border-radius:30px;
+      padding:22px;
+      background:
+        radial-gradient(circle at 88% 0%, rgba(32,240,138,.13), transparent 35%),
+        linear-gradient(180deg,rgba(8,42,27,.94),rgba(3,20,13,.98));
+      box-shadow:0 20px 48px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.06);
     }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 12px;
-      border-radius:999px;
-      background:rgba(0,230,118,.11);
-      border:1px solid rgba(0,230,118,.28);
-      font-size:14px;
-      font-weight:900;
-      margin-bottom:12px;
-    }
-    .shield{
-      width:76px;
-      height:76px;
-      border-radius:24px;
-      margin:0 auto 12px;
+    .top{
       display:flex;
       align-items:center;
-      justify-content:center;
-      background:linear-gradient(145deg,#00ff88,#00b85f);
-      color:#00140b;
-      font-size:38px;
-      box-shadow:0 12px 28px rgba(0,230,118,.22);
+      gap:12px;
+      margin-bottom:20px;
+    }
+    .logo{
+      width:58px;
+      height:58px;
+      border-radius:19px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(180deg,#31f99e,#0ecf72);
+      box-shadow:0 0 28px rgba(32,240,138,.20);
+      font-size:28px;
     }
     h1{
-      margin:0 0 10px;
-      font-size:34px;
+      font-size:25px;
       line-height:1.05;
+      letter-spacing:-.7px;
+    }
+    .sub{
+      margin-top:5px;
+      color:rgba(255,255,255,.58);
+      font-size:13px;
+      font-weight:800;
+    }
+    .hero{
+      border:1px solid rgba(32,240,138,.20);
+      border-radius:26px;
+      padding:20px;
+      background:rgba(0,0,0,.16);
+      margin-bottom:14px;
+    }
+    .kicker{
+      color:#31f99e;
+      font-size:12px;
       font-weight:900;
+      letter-spacing:1.4px;
+      margin-bottom:9px;
     }
-    .muted{
-      color:var(--muted);
-      font-size:16px;
-      line-height:1.4;
-      margin:0 0 12px;
+    .hero h2{
+      font-size:30px;
+      line-height:1.08;
+      letter-spacing:-1px;
+      margin-bottom:10px;
     }
-    .code{
-      display:inline-flex;
-      max-width:100%;
-      padding:8px 10px;
-      border-radius:14px;
-      background:rgba(0,230,118,.10);
-      border:1px solid rgba(0,230,118,.22);
-      color:var(--green2);
-      font-size:20px;
-      line-height:1.12;
-      font-weight:900;
-      word-break:break-word;
-      margin-bottom:2px;
+    .hero h2 span{color:#20f08a}
+    .hero p{
+      color:rgba(255,255,255,.72);
+      font-size:14px;
+      line-height:1.5;
+      font-weight:760;
     }
-    .actions{
-      display:flex;
-      flex-direction:column;
+    .status{
+      border:1px solid rgba(32,240,138,.20);
+      background:rgba(32,240,138,.08);
+      border-radius:20px;
+      padding:15px;
+      margin:12px 0;
+      color:#cffff0;
+      font-size:13px;
+      line-height:1.5;
+      font-weight:800;
+    }
+    .status.warn{
+      color:#ffd166;
+      background:rgba(255,209,102,.10);
+      border-color:rgba(255,209,102,.22);
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
       gap:10px;
+      margin:14px 0;
     }
+    .box{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.18);
+      border-radius:20px;
+      padding:15px;
+    }
+    .box b{
+      display:block;
+      color:rgba(255,255,255,.58);
+      font-size:12px;
+      margin-bottom:6px;
+    }
+    .box span{
+      color:#fff;
+      font-size:18px;
+      font-weight:950;
+    }
+    .box .green{color:#31f99e}
     .btn{
+      width:100%;
+      min-height:54px;
+      border-radius:19px;
       display:flex;
       align-items:center;
       justify-content:center;
-      min-height:56px;
-      border-radius:18px;
-      background:linear-gradient(180deg,#00f083,#00d970);
-      color:#00140b;
       text-decoration:none;
-      font-size:19px;
-      font-weight:900;
+      border:0;
+      color:#03140d;
+      background:linear-gradient(180deg,#31f99e,#12dc7a);
+      font-weight:950;
+      font-size:15px;
+      margin-top:10px;
+      box-shadow:0 12px 30px rgba(32,240,138,.15);
     }
     .btn.secondary{
-      background:rgba(0,230,118,.14);
-      color:#dffff0;
-      border:1px solid rgba(0,230,118,.28);
+      color:#fff;
+      background:rgba(0,0,0,.20);
+      border:1px solid rgba(255,255,255,.13);
+      box-shadow:none;
+    }
+    .copy{
+      text-align:center;
+      color:rgba(255,255,255,.42);
+      font-size:11px;
+      font-weight:750;
+      margin-top:16px;
+      line-height:1.45;
+    }
+    .copy a{
+      color:rgba(32,240,138,.72);
+      text-decoration:none;
+      font-weight:900;
     }
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <section class="card">
-      <div class="badge">✅ SHIELD PRO AKTİF</div>
-      <div class="shield">🛡️</div>
-      <h1>Premium<br>Aktif</h1>
-      <p class="muted">Lisans hesabına bağlandı.</p>
-      <div class="code">{{ license_code or session.get("license_code") or "SPAMSHIELD-PRO" }}</div>
+  <main class="card">
+    <section class="top">
+      <div class="logo">🛡️</div>
+      <div>
+        <h1>SpamShield PRO</h1>
+        <p class="sub">Lisans aktivasyon merkezi</p>
+      </div>
     </section>
 
-    <div class="actions">
-      <a class="btn" href="/u/license">Lisans Merkezine Dön</a>
-      <a class="btn secondary" href="/radial">Radial Menü</a>
+    <section class="hero">
+      <div class="kicker">ÖDEME SONRASI AKTİVASYON</div>
+      <h2>Lisansın <span>kontrol sonrası</span> aktif edilir.</h2>
+      <p>Ödemeni iyzico üzerinden tamamladıysan, aktivasyon talebi oluştur. Ödeme kontrol edildikten sonra hesabın PRO yapılır.</p>
+    </section>
+
+    {% if saved %}
+      <div class="status">
+        ✅ Lisans aktivasyon talebin alındı. Ödeme kontrol edildikten sonra hesabın aktif edilecek.
+      </div>
+    {% else %}
+      <div class="status warn">
+        ⚠️ Bu ekran ödeme onayı değildir. Lisans aktivasyonu için iyzico panelindeki ödeme kaydı kontrol edilir.
+      </div>
+    {% endif %}
+
+    <section class="grid">
+      <div class="box">
+        <b>Kullanıcı</b>
+        <span>{{ username }}</span>
+      </div>
+      <div class="box">
+        <b>Seçilen Paket</b>
+        <span>{{ plan_label }}</span>
+      </div>
+      <div class="box">
+        <b>Ücret</b>
+        <span class="green">{{ plan_price }}</span>
+      </div>
+    </section>
+
+    {% if not saved %}
+      <form method="POST" action="/u/activate-license-request">
+        <input type="hidden" name="plan" value="{{ plan }}">
+        <button class="btn" type="submit">Lisans Aktivasyon Talebi Oluştur</button>
+      </form>
+    {% endif %}
+
+    <a class="btn secondary" href="/u/license">Lisans Merkezine Dön</a>
+    <a class="btn secondary" href="/radial">Güvenlik Merkezine Dön</a>
+
+    <div class="copy">
+      © 2026 SpamShield PRO · Tüm hakları saklıdır. · <a href="/u/legal">Telif ve Yasal Bildirim</a>
     </div>
   </main>
 </body>

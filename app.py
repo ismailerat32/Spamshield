@@ -3706,6 +3706,207 @@ def ss_iyzico_pay():
 # ===== SPAMSHIELD IYZICO PAYMENT ROUTE END =====
 
 
+
+# ===== SPAMSHIELD MANUAL LICENSE ACTIVATION START =====
+def ss_payment_request_store_path():
+    from pathlib import Path
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+    return data_dir / "payment_requests.json"
+
+
+def ss_load_payment_requests():
+    path = ss_payment_request_store_path()
+    if not path.exists():
+        return []
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def ss_save_payment_request(item):
+    data = ss_load_payment_requests()
+    data.append(item)
+    path = ss_payment_request_store_path()
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def ss_current_username():
+    for key in ("username", "user", "logged_in_user"):
+        val = session.get(key)
+        if val:
+            return str(val)
+    return "Giriş yapan kullanıcı"
+
+
+@app.route("/u/payment-success", methods=["GET", "POST"])
+def ss_manual_payment_success():
+    plan = request.values.get("plan", "pro_yearly").strip()
+
+    label = PLAN_LABELS.get(plan, "SpamShield PRO")
+    price = PLAN_PRICES.get(plan, "")
+    username = ss_current_username()
+
+    saved = False
+
+    if request.method == "POST":
+        try:
+            item = {
+                "created_at": datetime.now().isoformat(timespec="seconds"),
+                "username": username,
+                "plan": plan,
+                "plan_label": label,
+                "plan_price": price,
+                "provider": PAYMENT_PROVIDER,
+                "status": "pending_manual_review",
+                "note": "Kullanıcı ödeme sonrası manuel lisans aktivasyon talebi oluşturdu."
+            }
+            ss_save_payment_request(item)
+            saved = True
+        except Exception:
+            saved = False
+
+    return render_template(
+        "payment_success.html",
+        saved=saved,
+        username=username,
+        plan=plan,
+        plan_label=label,
+        plan_price=price
+    )
+# ===== SPAMSHIELD MANUAL LICENSE ACTIVATION END =====
+
+
+
+# ===== SPAMSHIELD PAYMENT REQUEST POST FIX START =====
+@app.route("/u/payment-request", methods=["POST"])
+def ss_payment_request_post():
+    plan = request.form.get("plan", "pro_yearly").strip()
+
+    label = PLAN_LABELS.get(plan, "SpamShield PRO")
+    price = PLAN_PRICES.get(plan, "")
+
+    username = "Giriş yapan kullanıcı"
+    try:
+        for key in ("username", "user", "logged_in_user"):
+            val = session.get(key)
+            if val:
+                username = str(val)
+                break
+    except Exception:
+        pass
+
+    try:
+        from pathlib import Path
+        data_dir = Path("data")
+        data_dir.mkdir(exist_ok=True)
+        path = data_dir / "payment_requests.json"
+
+        if path.exists():
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                if not isinstance(data, list):
+                    data = []
+            except Exception:
+                data = []
+        else:
+            data = []
+
+        data.append({
+            "created_at": datetime.now().isoformat(timespec="seconds"),
+            "username": username,
+            "plan": plan,
+            "plan_label": label,
+            "plan_price": price,
+            "provider": PAYMENT_PROVIDER,
+            "status": "pending_manual_review",
+            "note": "Kullanıcı ödeme sonrası manuel lisans aktivasyon talebi oluşturdu."
+        })
+
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        saved = True
+    except Exception:
+        saved = False
+
+    return render_template(
+        "payment_success.html",
+        saved=saved,
+        username=username,
+        plan=plan,
+        plan_label=label,
+        plan_price=price
+    )
+# ===== SPAMSHIELD PAYMENT REQUEST POST FIX END =====
+
+
+
+# ===== SPAMSHIELD ACTIVATE LICENSE REQUEST START =====
+@app.route("/u/activate-license-request", methods=["POST"])
+def ss_activate_license_request():
+    plan = request.form.get("plan", "pro_yearly").strip()
+
+    label = PLAN_LABELS.get(plan, "SpamShield PRO")
+    price = PLAN_PRICES.get(plan, "")
+
+    username = "Giriş yapan kullanıcı"
+    try:
+        for key in ("username", "user", "logged_in_user"):
+            val = session.get(key)
+            if val:
+                username = str(val)
+                break
+    except Exception:
+        pass
+
+    saved = False
+
+    try:
+        from pathlib import Path
+        data_dir = Path("data")
+        data_dir.mkdir(exist_ok=True)
+        path = data_dir / "payment_requests.json"
+
+        if path.exists():
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                if not isinstance(data, list):
+                    data = []
+            except Exception:
+                data = []
+        else:
+            data = []
+
+        data.append({
+            "created_at": datetime.now().isoformat(timespec="seconds"),
+            "username": username,
+            "plan": plan,
+            "plan_label": label,
+            "plan_price": price,
+            "provider": PAYMENT_PROVIDER,
+            "status": "pending_manual_review",
+            "note": "Kullanıcı ödeme sonrası manuel lisans aktivasyon talebi oluşturdu."
+        })
+
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        saved = True
+    except Exception:
+        saved = False
+
+    return render_template(
+        "payment_success.html",
+        saved=saved,
+        username=username,
+        plan=plan,
+        plan_label=label,
+        plan_price=price
+    )
+# ===== SPAMSHIELD ACTIVATE LICENSE REQUEST END =====
+
+
 if __name__ == "__main__":
     load_users()
     load_settings()
