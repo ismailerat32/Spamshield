@@ -22,7 +22,7 @@ def is_user_pro_and_secure(username):
 def pro_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        from flask import session, redirect, request, render_template
+        from flask import session, redirect, request, render_template, abort
         username = str(session.get("username") or session.get("user") or "").strip()
         if not username:
             return redirect("/login")
@@ -230,6 +230,134 @@ PLAN_PRICES = {
 
 
 app = Flask(__name__)
+
+# ===== SPAMSHIELD SECURITY LEVEL 1 START =====
+import secrets as _ss_secrets
+import time as _ss_time
+from pathlib import Path as _ss_Path
+from functools import wraps as _ss_wraps
+
+_SS_SECRET_FILE = _ss_Path("data/.spamshield_secret_key")
+_SS_SECRET_FILE.parent.mkdir(exist_ok=True)
+
+def _ss_get_or_create_secret_key():
+    env_key = os.environ.get("SECRET_KEY", "").strip()
+    if env_key and env_key != "dev-change-this-now" and len(env_key) >= 32:
+        return env_key
+
+    if _SS_SECRET_FILE.exists():
+        key = _SS_SECRET_FILE.read_text(encoding="utf-8").strip()
+        if key and len(key) >= 32:
+            return key
+
+    key = _ss_secrets.token_urlsafe(64)
+    _SS_SECRET_FILE.write_text(key, encoding="utf-8")
+    try:
+        _SS_SECRET_FILE.chmod(0o600)
+    except Exception:
+        pass
+    return key
+
+# Default/dev SECRET_KEY yerine güçlü kalıcı key
+app.config["SECRET_KEY"] = _ss_get_or_create_secret_key()
+
+# Session güvenliği
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["PERMANENT_SESSION_LIFETIME"] = 60 * 60 * 8
+
+# Lokal HTTP test bozulmasın diye Secure cookie varsayılan kapalı.
+# Yayına HTTPS ile çıkarken env'e SPAMSHIELD_SECURE_COOKIES=1 koy.
+app.config["SESSION_COOKIE_SECURE"] = os.environ.get("SPAMSHIELD_SECURE_COOKIES", "0") == "1"
+
+_SS_LOGIN_ATTEMPTS = {}
+
+def _ss_client_key():
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "local")
+    ip = str(ip).split(",")[0].strip()
+    username = ""
+    try:
+        username = str(request.form.get("username", "")).strip().lower()
+    except Exception:
+        pass
+    return f"{ip}:{username}"
+
+def _ss_too_many_login_attempts():
+    key = _ss_client_key()
+    now = _ss_time.time()
+    bucket = [t for t in _SS_LOGIN_ATTEMPTS.get(key, []) if now - t < 300]
+    _SS_LOGIN_ATTEMPTS[key] = bucket
+    return len(bucket) >= 8
+
+def _ss_record_login_attempt():
+    key = _ss_client_key()
+    now = _ss_time.time()
+    bucket = [t for t in _SS_LOGIN_ATTEMPTS.get(key, []) if now - t < 300]
+    bucket.append(now)
+    _SS_LOGIN_ATTEMPTS[key] = bucket
+
+def _ss_is_logged_in():
+    return bool(session.get("logged_in") or session.get("username") or session.get("user"))
+
+def _ss_is_admin_session():
+    # Mevcut sistem role bilgisini farklı yerlerde tutabiliyor; güvenli tarafta kalıyoruz.
+    if session.get("role") == "admin" or session.get("is_admin"):
+        return True
+    username = str(session.get("username") or session.get("user") or "").strip()
+    if username == "admin":
+        return True
+    return False
+
+@app.before_request
+def ss_security_gatekeeper():
+    path = request.path or ""
+
+    # Gizli/runtime dosyaları web üzerinden engelle
+    blocked_prefixes = (
+        "/.env",
+        "/data/",
+        "/logs/",
+        "/backups/",
+        "/backup",
+        "/emergency_backup/",
+        "/stable_backups/",
+        "/SECURITY_AUDIT_",
+    )
+    if path.startswith(blocked_prefixes) or ".." in path:
+        return "Not Found", 404
+
+    # Login brute-force yavaşlatma
+    if path == "/login" and request.method == "POST":
+        if _ss_too_many_login_attempts():
+            return "Çok fazla giriş denemesi. Lütfen birkaç dakika sonra tekrar deneyin.", 429
+        _ss_record_login_attempt()
+
+    # Admin ve tehlikeli API yolları ekstra koruma
+    protected_prefixes = (
+        "/admin",
+        "/api/admin",
+    )
+    if path.startswith(protected_prefixes):
+        if not _ss_is_logged_in():
+            return redirect("/login")
+        if not _ss_is_admin_session():
+            abort(403)
+
+@app.after_request
+def ss_security_headers(response):
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+
+    # HTTPS yayında açılabilir; lokal HTTP testte sorun çıkarmaması için env kontrollü.
+    if os.environ.get("SPAMSHIELD_HSTS", "0") == "1":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+    return response
+# ===== SPAMSHIELD SECURITY LEVEL 1 END =====
+
+
 
 
 # ============================================================
@@ -503,7 +631,7 @@ def admin_home():
     if not login_required():
         return redirect(url_for("login"))
     return redirect("/radial")
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-this-now")
+# SECURITY_LEVEL1_DISABLED_DEV_SECRET = os.environ.get("SECRET_KEY", "dev-change-this-now")
 app.config["DEBUG"] = os.environ.get("FLASK_DEBUG", "0") == "1"
 
 def apply_runtime_env_overrides():
@@ -524,7 +652,7 @@ def apply_runtime_env_overrides():
             print("ENV_OVERRIDE_ERROR:", e)
 
 apply_runtime_env_overrides()
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-change-this-now")
+# SECURITY_LEVEL1_DISABLED_DEV_SECRET = os.environ.get("SECRET_KEY", "dev-change-this-now")
 
 USERS_FILE = "data/users.json"
 SETTINGS_FILE = "data/settings.json"
