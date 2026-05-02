@@ -4035,6 +4035,85 @@ def ss_activate_license_request():
 # ===== SPAMSHIELD ACTIVATE LICENSE REQUEST END =====
 
 
+
+# ===== SPAMSHIELD SECURITY LEVEL 2 START =====
+_SS_PAYMENT_REQUEST_ATTEMPTS = {}
+
+def _ss_same_origin_post_ok():
+    """
+    Basit CSRF benzeri koruma:
+    Admin/lisans POST istekleri başka domainlerden gelmesin.
+    Mobil/local kullanım bozulmasın diye Origin/Referer yoksa izin veriyoruz.
+    """
+    if request.method != "POST":
+        return True
+
+    origin = request.headers.get("Origin", "")
+    referer = request.headers.get("Referer", "")
+    host = request.host_url.rstrip("/")
+
+    if origin and not origin.startswith(host):
+        return False
+    if referer and not referer.startswith(host):
+        return False
+    return True
+
+
+def _ss_rate_limit_bucket(name, limit=5, window=600):
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "local")
+    ip = str(ip).split(",")[0].strip()
+    key = f"{name}:{ip}"
+    now = _ss_time.time()
+    bucket = [t for t in _SS_PAYMENT_REQUEST_ATTEMPTS.get(key, []) if now - t < window]
+    if len(bucket) >= limit:
+        _SS_PAYMENT_REQUEST_ATTEMPTS[key] = bucket
+        return False
+    bucket.append(now)
+    _SS_PAYMENT_REQUEST_ATTEMPTS[key] = bucket
+    return True
+
+
+@app.before_request
+def ss_security_level2_gatekeeper():
+    path = request.path or ""
+
+    # Demo/test/backdoor gibi davranabilecek yolları admin dışında kapat
+    admin_only_paths = (
+        "/u/activate-pro-now",
+        "/u/test-payment-complete",
+        "/orders",
+        "/bot-orders",
+    )
+
+    if path.startswith(admin_only_paths):
+        if not _ss_is_logged_in():
+            return redirect("/login")
+        if not _ss_is_admin_session():
+            abort(403)
+
+    # Admin ve lisans/ödeme POST işlemleri için same-origin kontrol
+    sensitive_post_prefixes = (
+        "/admin",
+        "/orders",
+        "/bot-orders",
+        "/u/activate-license-request",
+        "/u/payment-request",
+        "/u/redeem",
+        "/u/activate",
+    )
+
+    if request.method == "POST" and path.startswith(sensitive_post_prefixes):
+        if not _ss_same_origin_post_ok():
+            return "Forbidden", 403
+
+    # Kullanıcı aktivasyon talebi spam koruması
+    if path == "/u/activate-license-request" and request.method == "POST":
+        if not _ss_rate_limit_bucket("activate_license_request", limit=5, window=600):
+            return "Çok fazla aktivasyon talebi. Lütfen birkaç dakika sonra tekrar deneyin.", 429
+
+# ===== SPAMSHIELD SECURITY LEVEL 2 END =====
+
+
 if __name__ == "__main__":
     load_users()
     load_settings()
