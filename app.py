@@ -22,7 +22,7 @@ def is_user_pro_and_secure(username):
 def pro_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        from flask import session, redirect
+        from flask import session, redirect, request, render_template
         username = str(session.get("username") or session.get("user") or "").strip()
         if not username:
             return redirect("/login")
@@ -202,6 +202,32 @@ from utils.reset_utils import (
     reset_user_password,
     cleanup_expired_tokens
 )
+
+
+# ===== SPAMSHIELD IYZICO PAYMENT CONFIG START =====
+# iyzico onayı gelince 3 iyzilink ödeme linki buraya yazılacak.
+# Linkler boş/placeholder kaldığı sürece ödeme sayfası "hazırlanıyor" ekranı gösterir.
+PAYMENT_PROVIDER = "iyzico"
+
+PAYMENT_LINKS = {
+    "starter_monthly": "PASTE_STARTER_IYZICO_LINK_HERE",
+    "pro_yearly": "PASTE_YEARLY_IYZICO_LINK_HERE",
+    "lifetime": "PASTE_LIFETIME_IYZICO_LINK_HERE",
+}
+
+PLAN_LABELS = {
+    "starter_monthly": "Starter Shield",
+    "pro_yearly": "Shield Pro+",
+    "lifetime": "Lifetime Shield",
+}
+
+PLAN_PRICES = {
+    "starter_monthly": "150 TL / Ay",
+    "pro_yearly": "1000 TL / Yıl",
+    "lifetime": "2000 TL / Tek Sefer",
+}
+# ===== SPAMSHIELD IYZICO PAYMENT CONFIG END =====
+
 
 app = Flask(__name__)
 
@@ -3652,6 +3678,33 @@ except Exception as e:
 @app.route("/u/legal")
 def ss_legal_notice():
     return render_template("legal_notice.html")
+
+
+# ===== SPAMSHIELD IYZICO PAYMENT ROUTE START =====
+@app.route("/u/pay")
+def ss_iyzico_pay():
+    plan = request.args.get("plan", "pro_yearly").strip()
+    link = PAYMENT_LINKS.get(plan, "")
+    label = PLAN_LABELS.get(plan, "SpamShield PRO")
+    price = PLAN_PRICES.get(plan, "")
+
+    payment_ready = bool(link) and not link.startswith("PASTE_")
+
+    if not payment_ready:
+        return render_template(
+            "checkout.html",
+            plan=plan,
+            plan_label=label,
+            plan_price=price,
+            payment_provider=PAYMENT_PROVIDER,
+            payment_ready=False,
+            payment_link="",
+            message="iyzico ödeme linki onay süreci tamamlanınca aktif edilecek."
+        )
+
+    return redirect(link)
+# ===== SPAMSHIELD IYZICO PAYMENT ROUTE END =====
+
 
 if __name__ == "__main__":
     load_users()
