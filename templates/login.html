@@ -578,6 +578,157 @@
 }
 /* SPAMSHIELD_LOGIN_MOBILE_FIX_END */
 
+
+/* ===== SPAMSHIELD LOGIN FINAL RÖTUŞ ===== */
+body {
+  padding-bottom: calc(34px + env(safe-area-inset-bottom)) !important;
+}
+
+.hero img,
+.hero-logo,
+.logo img,
+.brand-logo,
+.login-logo,
+img[src*="logo"],
+img[src*="icon"],
+img[src*="shield"] {
+  filter: contrast(1.12) saturate(1.12) drop-shadow(0 10px 24px rgba(37, 99, 235, .20)) !important;
+}
+
+.login-card,
+.auth-card,
+form {
+  margin-bottom: 18px !important;
+}
+
+.create-account,
+.signup-box,
+.register-box,
+.auth-secondary,
+.account-create,
+.pro-card {
+  margin-top: 18px !important;
+  padding-top: 18px !important;
+  padding-bottom: 20px !important;
+}
+
+.footer,
+.legal-footer,
+.app-footer,
+footer {
+  margin-top: 22px !important;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom)) !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+
+/* ===== SPAMSHIELD LOGIN FOOTER FINAL FIX ===== */
+.footer,
+.legal-footer,
+.app-footer,
+footer {
+  margin-top: 14px !important;
+  padding-bottom: calc(70px + env(safe-area-inset-bottom)) !important;
+}
+
+body {
+  padding-bottom: calc(78px + env(safe-area-inset-bottom)) !important;
+}
+
+.login-shell,
+.auth-shell,
+.page-shell,
+main {
+  padding-bottom: 32px !important;
+}
+
+
+/* ===== SPAMSHIELD LOGIN FOOTER SAFE AREA FINAL ===== */
+html,
+body {
+  min-height: 100%;
+  overflow-x: hidden !important;
+}
+
+body {
+  padding-bottom: calc(110px + env(safe-area-inset-bottom)) !important;
+}
+
+.footer,
+.legal-footer,
+.app-footer,
+footer {
+  display: block !important;
+  margin-top: 18px !important;
+  margin-bottom: calc(52px + env(safe-area-inset-bottom)) !important;
+  padding-bottom: 0 !important;
+  transform: translateY(-22px) !important;
+  line-height: 1.35 !important;
+}
+
+.login-shell,
+.auth-shell,
+.page-shell,
+main,
+.wrapper,
+.container {
+  padding-bottom: 46px !important;
+}
+
+
+/* ===== APK SAFE LOGIN FOOTER FINAL ===== */
+html,
+body {
+  min-height: 100% !important;
+  overflow-x: hidden !important;
+}
+
+body {
+  padding-bottom: 0 !important;
+}
+
+.footer,
+.legal-footer,
+.app-footer,
+footer {
+  position: static !important;
+  display: block !important;
+  margin-top: 10px !important;
+  margin-bottom: 34px !important;
+  padding: 0 14px 0 !important;
+  transform: none !important;
+  line-height: 1.35 !important;
+  text-align: center !important;
+}
+
+.login-shell,
+.auth-shell,
+.page-shell,
+main,
+.wrapper,
+.container {
+  padding-bottom: 88px !important;
+}
+
+@supports (padding: max(0px)) {
+  .login-shell,
+  .auth-shell,
+  .page-shell,
+  main,
+  .wrapper,
+  .container {
+    padding-bottom: max(88px, calc(88px + env(safe-area-inset-bottom))) !important;
+  }
+
+  .footer,
+  .legal-footer,
+  .app-footer,
+  footer {
+    margin-bottom: max(34px, calc(34px + env(safe-area-inset-bottom))) !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -659,22 +810,232 @@
         <div class="divider">veya</div>
 
         <a class="secondary-btn" href="/register">Hesap oluştur</a>
-
-        <div class="pro-note">🛡️ SpamShield PRO</div>
-
-        <div class="extra">
-          Hesabın yok mu?
-          <a href="/register">Yeni hesap oluştur</a>
+        <div class="pro-note login-pro-legal-final">
+          🛡️ SpamShield PRO · <span>© 2026</span> · <a href="/u/legal">Telif ve Yasal</a>
         </div>
-      </div>
+</div>
     </section>
   </div>
 
-<!-- SPAMSHIELD_COPYRIGHT_BLOCK_START -->
-<div class="ss-copyright">
-  © 2026 SpamShield PRO · Tüm hakları saklıdır. · <a href="/u/legal">Telif ve Yasal Bildirim</a> · <a href="/u/terms">Kullanım Sözleşmesi</a> · <a href="/u/privacy">Gizlilik</a> · <a href="/u/refund">İade</a>
-</div>
-<!-- SPAMSHIELD_COPYRIGHT_BLOCK_END -->
+<style>
+/* ===== LOGIN ALT BLOK TEK SATIR FINAL ===== */
+.login-pro-legal-final {
+  margin: 10px auto 18px auto !important;
+  padding: 0 10px !important;
+  text-align: center !important;
+  font-size: 15px !important;
+  font-weight: 950 !important;
+  line-height: 1.25 !important;
+  color: #1565c0 !important;
+  white-space: nowrap !important;
+}
+
+.login-pro-legal-final span {
+  color: rgba(15, 23, 42, .48) !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+}
+
+.login-pro-legal-final a {
+  color: #22c55e !important;
+  text-decoration: none !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+}
+
+.login-legal-inline,
+.ss-copyright,
+.apk-login-footer-inline,
+.extra {
+  display: none !important;
+}
+
+.secondary-btn {
+  margin-bottom: 8px !important;
+}
+</style>
+
+
+<style>
+/* ===== LOGIN MOBILE EDGE + PASSWORD FIX ===== */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+  background: #f3f4f6 !important;
+}
+
+/* ana sarmalayıcı üstten boşluk bırakmasın */
+body > .page-shell,
+body > .login-shell,
+body > .auth-shell,
+body > .wrapper,
+body > .container,
+body > div:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* üst mavi alan ekrana tam otursun */
+.hero,
+.hero-card,
+.login-hero,
+.auth-hero,
+.top-panel,
+.brand-panel,
+.brand-hero,
+.header-card,
+body > div:first-child > section:first-child,
+body > div:first-child > div:first-child {
+  margin-top: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  overflow: hidden !important;
+}
+
+/* form kartı temiz dursun */
+form,
+.login-card,
+.auth-card,
+.form-card {
+  background: #ffffff !important;
+}
+
+/* password alanındaki beyazlık/parlaklık temizlensin */
+input[type="password"],
+input[name="password"],
+#password {
+  background: #eef2f7 !important;
+  border: 1px solid rgba(15, 23, 42, .08) !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #eef2f7 inset !important;
+  appearance: none !important;
+}
+
+/* Chrome/WebView autofill beyazlığını da ez */
+input[type="password"]:-webkit-autofill,
+input[name="password"]:-webkit-autofill,
+#password:-webkit-autofill {
+  -webkit-text-fill-color: #111827 !important;
+  -webkit-box-shadow: 0 0 0 1000px #eef2f7 inset !important;
+  transition: background-color 9999s ease-out 0s !important;
+}
+</style>
+
+
+<style>
+/* ===== LOGIN ORTA BEYAZLIK FIX ===== */
+
+/* form kartı yekpare görünsün */
+form {
+  background: #f5f7fb !important;
+  border-radius: 28px !important;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, .08) !important;
+}
+
+/* form içindeki beyaz blok hissini kır */
+form > div,
+form > label,
+form > section,
+form > article,
+form .row,
+form .field,
+form .field-row,
+form .input-row,
+form .input-group,
+form .form-group,
+form .remember-row,
+form .remember-wrap,
+form .options,
+form .extra-options,
+form .submit-row,
+form .submit-wrap {
+  background: transparent !important;
+}
+
+/* inputlar aynı dilde kalsın */
+form input[type="text"],
+form input[type="password"],
+form input[type="email"] {
+  background: #eef2f7 !important;
+  border: 1px solid rgba(15, 23, 42, .08) !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #eef2f7 inset !important;
+}
+
+/* checkbox satırı da beyaz leke yapmasın */
+form input[type="checkbox"] {
+  background: #ffffff !important;
+}
+
+/* divider biraz daha yumuşak */
+.divider {
+  color: rgba(15, 23, 42, .35) !important;
+}
+
+.divider::before,
+.divider::after {
+  opacity: .6 !important;
+}
+</style>
 
 </body>
 </html>
+
+<style>
+/* ===== LOGIN HERO TOP EDGE FINAL FIX ===== */
+html,
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+  overflow-x: hidden !important;
+}
+
+.page,
+.page-wrap,
+.login-page,
+.login-shell,
+.auth-shell,
+.wrap,
+.wrapper,
+.container,
+body > div:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+.hero,
+.hero-card,
+.login-hero,
+.auth-hero,
+.brand-hero,
+.brand-panel,
+.top-panel,
+.header-card,
+section:first-child,
+body > div:first-child > section:first-child {
+  margin-top: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-radius: 0 0 0 0 !important;
+}
+
+@media (max-width: 768px) {
+  .hero,
+  .hero-card,
+  .login-hero,
+  .auth-hero,
+  .brand-hero,
+  .brand-panel,
+  .top-panel,
+  .header-card,
+  section:first-child,
+  body > div:first-child > section:first-child {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+  }
+}
+</style>
