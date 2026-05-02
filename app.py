@@ -4287,6 +4287,100 @@ def ss_security_level3_headers(response):
 # ===== SPAMSHIELD SECURITY LEVEL 3 END =====
 
 
+
+# ===== SPAMSHIELD SECURITY LEVEL 4 START =====
+# Level 4: API lockdown + backup/source probing protection.
+
+def _ss_is_local_request():
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "")
+    ip = str(ip).split(",")[0].strip()
+
+    if ip in ("127.0.0.1", "::1", "localhost"):
+        return True
+    if ip.startswith("192.168.") or ip.startswith("10.") or ip.startswith("172."):
+        return True
+    return False
+
+
+@app.before_request
+def ss_security_level4_gatekeeper():
+    path = request.path or ""
+    low = path.lower()
+
+    # Kaynak kod / backup / runtime dosya avcılığını yokmuş gibi göster.
+    blocked_fragments = (
+        ".bak",
+        ".backup",
+        ".broken",
+        ".corrupted",
+        ".save",
+        ".working",
+        ".tar.gz",
+        ".sha256",
+        "__pycache__",
+        "backup",
+        "locked_",
+        "final_lock",
+        "release_lock",
+        "security_audit",
+    )
+
+    blocked_suffixes = (
+        ".py",
+        ".db",
+        ".sqlite",
+        ".json",
+        ".env",
+        ".log",
+        ".pid",
+        ".pkl",
+    )
+
+    if any(x in low for x in blocked_fragments) or low.endswith(blocked_suffixes):
+        # API JSON dosya uzantısı gibi gerçek route yok; dosya avcılığını engeller.
+        if not low.startswith("/api/"):
+            return "Not Found", 404
+
+    # Hassas API endpointleri: admin veya lokal istek dışında kapalı.
+    high_risk_api_prefixes = (
+        "/api/system-resources",
+        "/api/start-scan",
+        "/api/full-scan",
+        "/api/admin-real-stats",
+        "/api/run-sms-scan",
+        "/api/run-full-sms-scan",
+        "/api/client-alert",
+    )
+
+    if path.startswith(high_risk_api_prefixes):
+        if _ss_is_local_request():
+            return None
+        if not _ss_is_logged_in():
+            return redirect("/login")
+        if not _ss_is_admin_session():
+            return "Forbidden", 403
+
+    # API POST isteklerinde dış origin engeli.
+    if path.startswith("/api/") and request.method == "POST":
+        if not _ss_same_origin_post_ok():
+            return "Forbidden", 403
+
+    return None
+
+
+@app.after_request
+def ss_security_level4_headers(response):
+    path = request.path or ""
+
+    if path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+
+    return response
+# ===== SPAMSHIELD SECURITY LEVEL 4 END =====
+
+
 if __name__ == "__main__":
     load_users()
     load_settings()
