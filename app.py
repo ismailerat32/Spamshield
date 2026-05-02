@@ -3398,6 +3398,21 @@ def ss_u_payment_success():
 
 
 # ===== SPAMSHIELD U PREFIX CATCH FIX =====
+
+# ===== SPAMSHIELD LEGAL CONTRACT ROUTES LIVE START =====
+@app.route("/u/terms", endpoint="ss_terms_page_live")
+def ss_terms_page_live():
+    return render_template("terms.html")
+
+@app.route("/u/privacy", endpoint="ss_privacy_page_live")
+def ss_privacy_page_live():
+    return render_template("privacy.html")
+
+@app.route("/u/refund", endpoint="ss_refund_page_live")
+def ss_refund_page_live():
+    return render_template("refund.html")
+# ===== SPAMSHIELD LEGAL CONTRACT ROUTES LIVE END =====
+
 @app.route("/u/<path:slug>")
 def ss_u_prefix_catch(slug):
     # ---- DYNAMIC PREMIUM STATE ----
@@ -4379,6 +4394,22 @@ def ss_security_level4_headers(response):
 
     return response
 # ===== SPAMSHIELD SECURITY LEVEL 4 END =====
+
+
+
+# ===== SPAMSHIELD LEGAL CONTRACT ROUTES START =====
+@app.route("/u/terms")
+def ss_terms_page():
+    return render_template("terms.html")
+
+@app.route("/u/privacy")
+def ss_privacy_page():
+    return render_template("privacy.html")
+
+@app.route("/u/refund")
+def ss_refund_page():
+    return render_template("refund.html")
+# ===== SPAMSHIELD LEGAL CONTRACT ROUTES END =====
 
 
 if __name__ == "__main__":
