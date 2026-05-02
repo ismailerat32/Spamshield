@@ -312,6 +312,18 @@ def _ss_is_admin_session():
 def ss_security_gatekeeper():
     path = request.path or ""
 
+    # Security Level 3 hard block: bu yollar login'e bile yönlenmeden yokmuş gibi davranır.
+    _ss_hard_block_paths = (
+        "/u/activate-pro-now",
+        "/u/test-payment-complete",
+        "/orders",
+        "/bot-orders",
+        "/orders/give-license",
+        "/bot-orders/give-license",
+    )
+    if path.startswith(_ss_hard_block_paths):
+        return "Not Found", 404
+
     # Gizli/runtime dosyaları web üzerinden engelle
     blocked_prefixes = (
         "/.env",
@@ -4112,6 +4124,167 @@ def ss_security_level2_gatekeeper():
             return "Çok fazla aktivasyon talebi. Lütfen birkaç dakika sonra tekrar deneyin.", 429
 
 # ===== SPAMSHIELD SECURITY LEVEL 2 END =====
+
+
+
+# ===== SPAMSHIELD SECURITY LEVEL 3 START =====
+# Level 3: production lockdown, stronger admin validation, duplicate payment request guard.
+
+# Büyük kötü niyetli POST/upload denemelerini sınırlıyoruz.
+# Normal login/form/ödeme talebi için fazlasıyla yeterli.
+app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024
+
+_SS_PRODUCTION_LOCKDOWN = os.environ.get("SPAMSHIELD_PRODUCTION_LOCKDOWN", "1") == "1"
+
+
+def _ss_load_users_for_security():
+    try:
+        path = _ss_Path("data/users.json")
+        if not path.exists():
+            return {}
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+# Level 1/2'deki admin kontrolünü daha sıkı hale getiriyoruz.
+# Artık sadece session'da username=admin demek yetmez; data/users.json içinde role=admin aranır.
+def _ss_is_admin_session():
+    if not _ss_is_logged_in():
+        return False
+
+    username = str(session.get("username") or session.get("user") or "").strip()
+    if not username:
+        return False
+
+    users = _ss_load_users_for_security()
+    user = users.get(username, {}) if isinstance(users, dict) else {}
+
+    role = str(user.get("role", "")).strip().lower()
+    if role == "admin":
+        return True
+
+    # Eski sistem bazı yerlerde session role tutuyor olabilir.
+    # Ama sadece username=admin yetmesin; en azından session role/admin flag de olmalı.
+    if username == "admin" and (session.get("role") == "admin" or session.get("is_admin")):
+        return True
+
+    return False
+
+
+def _ss_duplicate_payment_request_exists(username, plan, window_seconds=3600):
+    try:
+        path = _ss_Path("data/payment_requests.json")
+        if not path.exists():
+            return False
+
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(data, list):
+            return False
+
+        now = _ss_time.time()
+
+        for item in reversed(data[-80:]):
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("username")) != str(username):
+                continue
+            if str(item.get("plan")) != str(plan):
+                continue
+            if str(item.get("status")) not in ("pending_manual_review", "pending"):
+                continue
+
+            created = str(item.get("created_at", ""))
+            try:
+                from datetime import datetime as _ss_dt
+                ts = _ss_dt.fromisoformat(created).timestamp()
+                if now - ts < window_seconds:
+                    return True
+            except Exception:
+                # Tarih okunamazsa güvenli tarafta kal.
+                return True
+
+        return False
+    except Exception:
+        return False
+
+
+@app.before_request
+def ss_security_level3_gatekeeper():
+    path = request.path or ""
+
+    # Üretim modunda eski demo/test/arka-kapı gibi kullanılabilecek yolları tamamen kapat.
+    # Gerekirse sadece lokal geliştirme için:
+    # export SPAMSHIELD_PRODUCTION_LOCKDOWN=0
+    hard_block_paths = (
+        "/u/activate-pro-now",
+        "/u/test-payment-complete",
+        "/orders",
+        "/bot-orders",
+        "/orders/give-license",
+        "/bot-orders/give-license",
+    )
+
+    if _SS_PRODUCTION_LOCKDOWN and path.startswith(hard_block_paths):
+        return "Not Found", 404
+
+    # Hassas admin işlemlerinde admin değilse 403/redirect.
+    high_risk_admin_prefixes = (
+        "/admin/create-paid-license",
+        "/admin/approve-payment",
+        "/admin/generate-license",
+        "/admin/approve-upgrade",
+        "/admin/update-license",
+        "/admin/toggle-ban",
+        "/admin/add-user",
+        "/delete-user",
+        "/manage-license",
+    )
+
+    if path.startswith(high_risk_admin_prefixes):
+        if not _ss_is_logged_in():
+            return redirect("/login")
+        if not _ss_is_admin_session():
+            return "Forbidden", 403
+
+    # Aktivasyon talebi için aynı kullanıcı + aynı paket tekrarını 1 saat engelle.
+    if path == "/u/activate-license-request" and request.method == "POST":
+        try:
+            username = str(session.get("username") or session.get("user") or "Giriş yapan kullanıcı")
+            plan = str(request.form.get("plan", "pro_yearly")).strip()
+            if _ss_duplicate_payment_request_exists(username, plan, window_seconds=3600):
+                return "Bu paket için bekleyen aktivasyon talebiniz zaten var.", 429
+        except Exception:
+            pass
+
+
+@app.after_request
+def ss_security_level3_headers(response):
+    path = request.path or ""
+
+    # Admin, ödeme ve lisans sayfaları tarayıcı/cache içinde tutulmasın.
+    no_store_prefixes = (
+        "/admin",
+        "/u/pay",
+        "/u/payment-success",
+        "/u/activate-license-request",
+        "/u/license",
+        "/u/redeem",
+        "/u/checkout",
+        "/license",
+        "/my-license",
+    )
+
+    if path.startswith(no_store_prefixes):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+
+    # Basit fingerprint azaltma
+    response.headers.pop("Server", None)
+
+    return response
+# ===== SPAMSHIELD SECURITY LEVEL 3 END =====
 
 
 if __name__ == "__main__":
