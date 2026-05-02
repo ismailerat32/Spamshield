@@ -979,6 +979,111 @@ form input[type="checkbox"] {
 }
 </style>
 
+
+<style>
+/* ===== LOGIN RENDER EDGE WHITE FIX ===== */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #f5f7fb !important;
+  overflow-x: hidden !important;
+}
+
+/* Üst boşluk ve radius temizliği */
+body > div:first-child,
+body > main:first-child,
+.page,
+.page-wrap,
+.login-page,
+.login-shell,
+.auth-shell,
+.wrap,
+.wrapper,
+.container {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+.hero,
+.hero-card,
+.login-hero,
+.auth-hero,
+.brand-hero,
+.brand-panel,
+.top-panel,
+.header-card,
+body > div:first-child,
+body > div:first-child > section:first-child,
+body > main:first-child,
+body > main:first-child > section:first-child {
+  margin-top: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Form kartını yekpare yap */
+form,
+.form-card,
+.login-card,
+.auth-card,
+.content-card,
+.login-box,
+.auth-box {
+  background: #f5f7fb !important;
+  border-radius: 28px !important;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, .08) !important;
+}
+
+/* Ortadaki beyaz iç katmanı temizle */
+form > div,
+form > label,
+form > section,
+form > article,
+form .row,
+form .field,
+form .field-row,
+form .input-row,
+form .input-group,
+form .form-group,
+form .remember-row,
+form .remember-wrap,
+form .options,
+form .extra-options,
+form .submit-row,
+form .submit-wrap,
+.login-card > div,
+.auth-card > div,
+.content-card > div {
+  background: transparent !important;
+}
+
+/* Input dilini eşitle */
+form input[type="text"],
+form input[type="password"],
+form input[type="email"] {
+  background: #eef2f7 !important;
+  border: 1px solid rgba(15, 23, 42, .08) !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #eef2f7 inset !important;
+}
+
+/* Checkbox beyaz leke yapmasın */
+form input[type="checkbox"] {
+  background: #ffffff !important;
+}
+
+/* Divider yumuşasın */
+.divider {
+  color: rgba(15, 23, 42, .35) !important;
+}
+
+.divider::before,
+.divider::after {
+  opacity: .6 !important;
+}
+</style>
+
 </body>
 </html>
 
