@@ -856,6 +856,18 @@ def forgot_password_live():
             or ""
         ).strip()
 
+        if not identity:
+            return render_template(
+                "forgot.html",
+                success=False,
+                message=None,
+                reset_link=None,
+                reset_code=None,
+                error="Lütfen kullanıcı adı veya e-posta girin.",
+                t=t,
+                lang=get_lang()
+            )
+
         return render_template(
             "forgot.html",
             success=True,
