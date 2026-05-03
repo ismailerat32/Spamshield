@@ -1241,19 +1241,55 @@ USER_MODULES = {
             {"value": "TR", "label": "Dil"}
         ],
         "cards": [
-            {"title": "Koruma Ayarı", "text": "Spam filtre hassasiyetini kullanıcının tercihine göre ayarlama alanı."},
-            {"title": "Bildirim Tercihleri", "text": "Hangi olaylarda uyarı gösterileceği buradan yönetilebilir."},
-            {"title": "Dil ve Görünüm", "text": "Türkçe/İngilizce ve tema tercihleri için altyapı hazırdır."},
-            {"title": "Hesap Güvenliği", "text": "Şifre değişimi ve oturum kontrolü için yönlendirme alanıdır."}
+            {
+                "title": "Koruma Ayarı",
+                "text": "Spam filtre hassasiyetini kullanıcının tercihine göre ayarlama alanı.",
+                "features": [
+                    {"name": "Koruma ayarları", "value": "Aç", "href": "/u/settings/manage"},
+                    {"name": "Koruma durumu", "value": "Yönet"},
+                    {"name": "Hassasiyet", "value": "Yüksek"},
+                    {"name": "AI koruma modu", "value": "Aktif"}
+                ]
+            },
+            {
+                "title": "Bildirim Tercihleri",
+                "text": "Hangi olaylarda uyarı gösterileceği buradan yönetilebilir.",
+                "features": [
+                    {"name": "Bildirim ayarları", "value": "Aç", "href": "/u/notifications/manage"},
+                    {"name": "Spam alarmı", "value": "Açık"},
+                    {"name": "Sessiz mod", "value": "Yönet"},
+                    {"name": "Uyarı seviyesi", "value": "Orta"}
+                ]
+            },
+            {
+                "title": "Dil ve Görünüm",
+                "text": "Türkçe/İngilizce ve tema tercihleri için altyapı hazırdır.",
+                "features": [
+                    {"name": "Dil seçimi", "value": "Aç", "href": "/u/settings/manage"},
+                    {"name": "Varsayılan dil", "value": "Türkçe"},
+                    {"name": "Tema", "value": "Premium Koyu"},
+                    {"name": "Mobil görünüm", "value": "Aktif"}
+                ]
+            },
+            {
+                "title": "Hesap Güvenliği",
+                "text": "Şifre değişimi ve oturum kontrolü için yönlendirme alanıdır.",
+                "features": [
+                    {"name": "Şifre değiştir", "value": "Aç", "href": "/change-password"},
+                    {"name": "Oturumu kapat", "value": "Çık", "href": "/logout"},
+                    {"name": "Hesap durumu", "value": "Aktif"},
+                    {"name": "Güvenli oturum", "value": "Açık"}
+                ]
+            }
         ],
         "rows": [
-            {"name": "Koruma", "value": "Açık"},
-            {"name": "Bildirim", "value": "Açık"},
-            {"name": "Dil", "value": "Türkçe"},
-            {"name": "Tema", "value": "Premium Koyu"}
+            {"name": "Koruma", "value": "Açık", "detail": "Koruma motoru kullanıcının tercihine göre açık veya kapalı tutulabilir."},
+            {"name": "Bildirim", "value": "Açık", "detail": "Bildirimler güvenlik olayları, spam alarmı ve sistem durumu için kullanılabilir."},
+            {"name": "Dil", "value": "Türkçe", "detail": "Arayüz dili kullanıcı tercihine göre yönetilebilir."},
+            {"name": "Tema", "value": "Premium Koyu", "detail": "SpamShield PRO için koyu premium tema aktif olarak kullanılır."}
         ],
-        "primary_label": "Ayarları Güncelle",
-        "primary_href": "/u/settings"
+        "primary_label": "Ayarları Aç",
+        "primary_href": "/u/settings/manage"
     },
     "community": {
         "icon": "👥",
@@ -1772,3 +1808,66 @@ def user_notifications_manage():
 
     settings = get_user_notification_settings(username)
     return render_template("notifications_manage.html", settings=settings)
+
+
+@app.route("/u/settings/manage", methods=["GET", "POST"])
+def user_settings_manage():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    username = session.get("username", "user")
+    saved = False
+
+    protection_data = load_user_settings_data()
+    notification_data = load_user_notification_settings()
+
+    default_settings = {
+        "protection_enabled": True,
+        "sensitivity": "high",
+        "notifications_enabled": True,
+        "spam_alerts": True,
+        "quiet_mode": False,
+        "language": get_lang(),
+        "theme": "premium_dark"
+    }
+
+    current = {}
+    current.update(default_settings)
+    current.update(protection_data.get(username, {}))
+    current.update(notification_data.get(username, {}))
+
+    if request.method == "POST":
+        current["protection_enabled"] = request.form.get("protection_enabled") == "on"
+        current["sensitivity"] = request.form.get("sensitivity", "high")
+        current["notifications_enabled"] = request.form.get("notifications_enabled") == "on"
+        current["spam_alerts"] = request.form.get("spam_alerts") == "on"
+        current["quiet_mode"] = request.form.get("quiet_mode") == "on"
+        current["language"] = request.form.get("language", "tr")
+        current["theme"] = request.form.get("theme", "premium_dark")
+
+        protection_data[username] = {
+            "protection_enabled": current["protection_enabled"],
+            "sensitivity": current["sensitivity"],
+            "language": current["language"],
+            "theme": current["theme"]
+        }
+
+        notification_data[username] = {
+            "notifications_enabled": current["notifications_enabled"],
+            "spam_alerts": current["spam_alerts"],
+            "quiet_mode": current["quiet_mode"],
+            "min_risk": notification_data.get(username, {}).get("min_risk", "medium")
+        }
+
+        save_user_settings_data(protection_data)
+        save_user_notification_settings(notification_data)
+
+        session["lang"] = current["language"]
+        saved = True
+
+    return render_template(
+        "settings_manage.html",
+        settings=current,
+        username=username,
+        saved=saved
+    )
