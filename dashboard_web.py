@@ -1369,9 +1369,66 @@ def user_notifications():
     return render_user_module_page("notifications")
 
 
-@app.route("/u/license")
+@app.route("/u/license", methods=["GET", "POST"])
 def user_license():
-    return render_user_module_page("license")
+    if not login_required():
+        return redirect(url_for("login"))
+
+    username = session.get("username", "user")
+    users = load_users()
+    user = users.get(username, {}) if isinstance(users, dict) else {}
+
+    message = None
+    error = None
+
+    if request.method == "POST":
+        license_key = (request.form.get("license_key") or "").strip().upper()
+
+        if not license_key:
+            error = "Lütfen lisans kodu girin."
+        elif len(license_key) < 8:
+            error = "Lisans kodu çok kısa görünüyor."
+        else:
+            user["license_key"] = license_key
+            user["license_type"] = "pro"
+            user["plan"] = "pro"
+            user["active"] = True
+            user["expires_at"] = user.get("expires_at") or "2099-12-31"
+            users[username] = user
+            save_users(users)
+            message = "Lisans başarıyla aktifleştirildi."
+
+    license_key = user.get("license_key") or "Yok"
+    plan = user.get("license_type") or user.get("plan") or "trial"
+    expires_at = user.get("expires_at") or "Belirtilmedi"
+    active = user.get("active", True)
+
+    plan_label = "PRO" if str(plan).lower() in ["pro", "premium", "lifetime"] else "Deneme"
+    license_status_label = "AKTİF" if active else "PASİF"
+    premium_access = "Açık" if active else "Kapalı"
+
+    days_left = "∞"
+    if expires_at and expires_at not in ["Belirtilmedi", "2099-12-31", "2099-01-01"]:
+        try:
+            from datetime import datetime
+            exp = datetime.strptime(expires_at[:10], "%Y-%m-%d")
+            days_left = max(0, (exp - datetime.now()).days)
+        except Exception:
+            days_left = "∞"
+
+    return render_template(
+        "license_center.html",
+        username=username,
+        user=user,
+        license_key=license_key,
+        plan_label=plan_label,
+        license_status_label=license_status_label,
+        expires_at=expires_at,
+        premium_access=premium_access,
+        days_left=days_left,
+        message=message,
+        error=error
+    )
 
 
 @app.route("/u/settings")

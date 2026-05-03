@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lisans Merkezi - SpamShield PRO</title>
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Arial,Helvetica,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(34,197,94,.22), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(250,204,21,.15), transparent 36%),
+        linear-gradient(135deg,#03140d,#062216,#020807);
+      color:#ecfff4;
+      padding:16px;
+    }
+    .wrap{max-width:820px;margin:0 auto;padding-bottom:42px}
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin:10px 0 18px;
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{
+      width:52px;height:52px;border-radius:18px;
+      display:grid;place-items:center;
+      background:rgba(250,204,21,.13);
+      border:1px solid rgba(250,204,21,.26);
+      font-size:28px;
+      box-shadow:0 18px 50px rgba(0,0,0,.24);
+    }
+    h1{margin:0;font-size:28px;letter-spacing:-.8px}
+    .sub{margin:5px 0 0;color:rgba(236,255,244,.65);font-weight:800;font-size:13px}
+    .pill{
+      color:#fde68a;
+      border:1px solid rgba(250,204,21,.35);
+      background:rgba(250,204,21,.12);
+      padding:9px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .card{
+      background:rgba(255,255,255,.055);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:26px;
+      padding:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.30);
+      margin-bottom:16px;
+    }
+    .hero{
+      position:relative;
+      overflow:hidden;
+      background:
+        linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025)),
+        rgba(2,12,8,.72);
+    }
+    .hero:after{
+      content:"";
+      position:absolute;
+      right:-38px;top:-38px;
+      width:150px;height:150px;
+      border-radius:999px;
+      background:rgba(250,204,21,.13);
+    }
+    .hero h2{
+      position:relative;
+      margin:0 0 10px;
+      font-size:36px;
+      line-height:1.04;
+      letter-spacing:-1px;
+      z-index:1;
+    }
+    .hero p{
+      position:relative;
+      margin:0;
+      color:rgba(236,255,244,.70);
+      line-height:1.55;
+      font-size:15px;
+      font-weight:700;
+      z-index:1;
+    }
+    .status-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+      margin-top:18px;
+      position:relative;
+      z-index:1;
+    }
+    .stat{
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(0,0,0,.20);
+      border-radius:20px;
+      padding:15px;
+    }
+    .stat strong{
+      display:block;
+      font-size:24px;
+      color:#facc15;
+      margin-bottom:5px;
+    }
+    .stat span{
+      color:rgba(236,255,244,.65);
+      font-size:12px;
+      font-weight:900;
+    }
+    .notice{
+      padding:14px 15px;
+      border-radius:18px;
+      margin-bottom:16px;
+      font-weight:900;
+      line-height:1.45;
+    }
+    .notice.success{
+      color:#dcfce7;
+      background:rgba(34,197,94,.13);
+      border:1px solid rgba(34,197,94,.25);
+    }
+    .notice.error{
+      color:#fecaca;
+      background:rgba(239,68,68,.12);
+      border:1px solid rgba(239,68,68,.24);
+    }
+    label{
+      display:block;
+      margin:14px 0 7px;
+      color:#dfffee;
+      font-weight:900;
+      font-size:14px;
+    }
+    input{
+      width:100%;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.22);
+      color:#ecfff4;
+      border-radius:16px;
+      padding:15px;
+      font-size:16px;
+      outline:none;
+    }
+    input::placeholder{color:rgba(236,255,244,.38)}
+    .actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:16px;
+    }
+    .btn,button{
+      border:0;
+      display:block;
+      width:100%;
+      text-align:center;
+      text-decoration:none;
+      color:#04130a;
+      background:linear-gradient(135deg,#22c55e,#14b8a6);
+      padding:15px 16px;
+      border-radius:18px;
+      font-weight:900;
+      font-size:15px;
+      cursor:pointer;
+    }
+    .btn.gold,button.gold{
+      background:linear-gradient(135deg,#facc15,#22c55e);
+    }
+    .btn.secondary{
+      background:rgba(255,255,255,.07);
+      color:#ecfff4;
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .section-title{
+      margin:24px 0 12px;
+      font-size:14px;
+      letter-spacing:7px;
+      font-weight:900;
+      color:#f8fff9;
+    }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:14px 0;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      font-weight:900;
+    }
+    .row:last-child{border-bottom:0}
+    .row span{color:rgba(236,255,244,.70)}
+    .row b{color:#86efac;text-align:right}
+    .plans{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+    .plan{
+      padding:17px;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.045);
+    }
+    .plan-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:8px;
+    }
+    .plan h3{margin:0;font-size:20px}
+    .price{
+      color:#facc15;
+      font-weight:1000;
+      white-space:nowrap;
+    }
+    .plan p{
+      margin:0;
+      color:rgba(236,255,244,.64);
+      font-weight:800;
+      line-height:1.45;
+      font-size:14px;
+    }
+    .footer{text-align:center;margin:24px 0 4px;color:rgba(236,255,244,.45);font-size:12px}
+    @media(max-width:640px){
+      body{padding:12px}
+      .hero h2{font-size:31px}
+      .status-grid{grid-template-columns:1fr}
+      .actions{grid-template-columns:1fr}
+      .pill{font-size:11px;padding:8px 10px}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <div class="brand">
+        <div class="logo">🔑</div>
+        <div>
+          <h1>Lisans Merkezi</h1>
+          <div class="sub">SpamShield PRO premium erişim</div>
+        </div>
+      </div>
+      <div class="pill">👑 {{ license_status_label }}</div>
+    </header>
+
+    {% if message %}
+      <div class="notice success">{{ message }}</div>
+    {% endif %}
+    {% if error %}
+      <div class="notice error">{{ error }}</div>
+    {% endif %}
+
+    <section class="card hero">
+      <h2>{{ plan_label }}</h2>
+      <p>Hesabının premium erişim, lisans kodu ve koruma yetkilerini buradan yönetebilirsin.</p>
+
+      <div class="status-grid">
+        <div class="stat">
+          <strong>{{ plan_label }}</strong>
+          <span>Plan</span>
+        </div>
+        <div class="stat">
+          <strong>{{ license_status_label }}</strong>
+          <span>Durum</span>
+        </div>
+        <div class="stat">
+          <strong>{{ days_left }}</strong>
+          <span>Kalan gün</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <form method="post" action="/u/license">
+        <label>Lisans kodu gir</label>
+        <input name="license_key" placeholder="Örn: SPAM-PRO-XXXX-XXXX" autocomplete="off">
+
+        <div class="actions">
+          <button class="gold" type="submit">Lisansı Aktifleştir</button>
+          <a class="btn secondary" href="/radial">← Ana ekrana dön</a>
+        </div>
+      </form>
+    </section>
+
+    <div class="section-title">HESAP</div>
+
+    <section class="card">
+      <div class="row"><span>Kullanıcı</span><b>{{ username }}</b></div>
+      <div class="row"><span>Lisans anahtarı</span><b>{{ license_key }}</b></div>
+      <div class="row"><span>Bitiş tarihi</span><b>{{ expires_at }}</b></div>
+      <div class="row"><span>Premium yetki</span><b>{{ premium_access }}</b></div>
+    </section>
+
+    <div class="section-title">PREMIUM YETKİLER</div>
+
+    <section class="card">
+      <div class="row"><span>Koruma Merkezi</span><b>Açık</b></div>
+      <div class="row"><span>AI Analiz</span><b>Açık</b></div>
+      <div class="row"><span>Raporlar</span><b>Açık</b></div>
+      <div class="row"><span>Güvenli Liste</span><b>Açık</b></div>
+      <div class="row"><span>Blok Listesi</span><b>Açık</b></div>
+    </section>
+
+    <div class="section-title">PAKETLER</div>
+
+    <section class="plans">
+      <article class="plan">
+        <div class="plan-head">
+          <h3>Aylık PRO</h3>
+          <div class="price">₺99/ay</div>
+        </div>
+        <p>Temel premium koruma, AI analiz, bildirim ve rapor erişimi.</p>
+      </article>
+
+      <article class="plan">
+        <div class="plan-head">
+          <h3>Yıllık PRO</h3>
+          <div class="price">₺799/yıl</div>
+        </div>
+        <p>Daha avantajlı yıllık kullanım, gelişmiş raporlar ve tam modül erişimi.</p>
+      </article>
+
+      <article class="plan">
+        <div class="plan-head">
+          <h3>Lifetime</h3>
+          <div class="price">₺1499</div>
+        </div>
+        <p>Tek seferlik ödeme ile uzun süreli premium deneyim.</p>
+      </article>
+    </section>
+
+    <div class="actions">
+      <a class="btn gold" href="/u/pricing">Paketleri İncele</a>
+      <a class="btn secondary" href="/u/protection">Koruma Merkezi</a>
+    </div>
+
+    <div class="footer">SpamShield PRO · © 2026 · Tüm hakları saklıdır</div>
+  </main>
+</body>
+</html>
