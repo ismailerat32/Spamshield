@@ -842,3 +842,38 @@ def activate_license(target_username):
 
     return redirect(url_for("users"))
 
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password_live():
+    t = load_locale(get_lang())
+
+    if request.method == "POST":
+        identity = (
+            request.form.get("identity")
+            or request.form.get("email")
+            or request.form.get("username")
+            or ""
+        ).strip()
+
+        return render_template(
+            "forgot.html",
+            success=True,
+            message="Bu bilgi sistemde varsa sıfırlama bilgisi oluşturuldu.",
+            reset_link=None,
+            reset_code=None,
+            error=None,
+            t=t,
+            lang=get_lang()
+        )
+
+    return render_template(
+        "forgot.html",
+        success=False,
+        message=None,
+        reset_link=None,
+        reset_code=None,
+        error=None,
+        t=t,
+        lang=get_lang()
+    )
