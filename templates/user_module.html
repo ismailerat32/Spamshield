@@ -275,12 +275,12 @@
     }
     .accordion-card.open .accordion-head em,
     .status-accordion.open .status-head em{
-      transform:rotate(45deg);
+      transform:none;
       background:rgba(34,197,94,.22);
     }
     .accordion-body{
       display:none;
-      padding:0 18px 18px;
+      padding:0 18px 14px;
       color:rgba(236,255,244,.72);
       line-height:1.55;
       font-size:14px;
@@ -293,7 +293,7 @@
       justify-content:space-between;
       align-items:center;
       gap:14px;
-      padding:12px 0;
+      padding:10px 0;
       border-top:1px solid rgba(255,255,255,.08);
     }
     .feature-row span{
@@ -454,6 +454,22 @@
   </main>
 
 <script>
+  function setAccordionState(box, open){
+    box.classList.toggle("open", open);
+
+    const head = box.querySelector("button");
+    const icon = box.querySelector("em");
+
+    if(head) head.setAttribute("aria-expanded", String(open));
+    if(icon) icon.textContent = open ? "−" : "+";
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    document.querySelectorAll("[data-accordion]").forEach(function(box){
+      setAccordionState(box, false);
+    });
+  });
+
   document.addEventListener("click", function(e){
     const head = e.target.closest("[data-accordion] button");
     if(!head) return;
@@ -461,8 +477,21 @@
     const box = head.closest("[data-accordion]");
     const isOpen = box.classList.contains("open");
 
-    box.classList.toggle("open", !isOpen);
-    head.setAttribute("aria-expanded", String(!isOpen));
+    // DETAY kartlarında tek açık kalsın.
+    if(box.classList.contains("accordion-card")){
+      document.querySelectorAll(".accordion-card.open").forEach(function(other){
+        if(other !== box) setAccordionState(other, false);
+      });
+    }
+
+    // DURUM satırlarında da tek açık kalsın.
+    if(box.classList.contains("status-accordion")){
+      document.querySelectorAll(".status-accordion.open").forEach(function(other){
+        if(other !== box) setAccordionState(other, false);
+      });
+    }
+
+    setAccordionState(box, !isOpen);
   });
 </script>
 
