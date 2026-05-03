@@ -951,10 +951,10 @@ USER_MODULES = {
                 "title": "Güvenli Liste",
                 "text": "Güvendiğin kişiler ve servisler için esnek yönetim alanı hazırlanır.",
                 "features": [
-                    {"name": "Güvenilir kişiler", "value": "Yönetilebilir"},
-                    {"name": "Beyaz liste", "value": "Hazır"},
+                    {"name": "Güvenilir kişiler", "value": "Yönet", "href": "/u/safe-list"},
+                    {"name": "Beyaz liste", "value": "Hazır", "href": "/u/safe-list"},
                     {"name": "Sistem servisleri", "value": "Korunur"},
-                    {"name": "Manuel ekleme", "value": "Yakında"}
+                    {"name": "Manuel ekleme", "value": "Aç", "href": "/u/safe-list"}
                 ]
             }
         ],
@@ -1217,3 +1217,74 @@ def user_community():
 def user_legal():
     return render_user_module_page("legal")
 
+
+
+SAFE_LIST_FILE = "data/safe_list.json"
+
+
+def load_safe_list_data():
+    os.makedirs("data", exist_ok=True)
+    if not os.path.exists(SAFE_LIST_FILE):
+        with open(SAFE_LIST_FILE, "w", encoding="utf-8") as f:
+            json.dump({}, f, ensure_ascii=False, indent=2)
+
+    try:
+        with open(SAFE_LIST_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_safe_list_data(data):
+    os.makedirs("data", exist_ok=True)
+    with open(SAFE_LIST_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+@app.route("/u/safe-list", methods=["GET", "POST"])
+def user_safe_list():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    username = session.get("username", "user")
+    data = load_safe_list_data()
+    items = data.get(username, [])
+
+    if request.method == "POST":
+        name = (request.form.get("name") or "").strip()
+        phone = (request.form.get("phone") or "").strip()
+
+        if name and phone:
+            items.append({
+                "name": name,
+                "phone": phone,
+                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M")
+            })
+            data[username] = items
+            save_safe_list_data(data)
+
+        return redirect(url_for("user_safe_list"))
+
+    return render_template("safe_list.html", items=items)
+
+
+@app.route("/u/safe-list/delete", methods=["POST"])
+def user_safe_list_delete():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    username = session.get("username", "user")
+    data = load_safe_list_data()
+    items = data.get(username, [])
+
+    try:
+        idx = int(request.form.get("idx", "-1"))
+    except Exception:
+        idx = -1
+
+    if 0 <= idx < len(items):
+        items.pop(idx)
+        data[username] = items
+        save_safe_list_data(data)
+
+    return redirect(url_for("user_safe_list"))

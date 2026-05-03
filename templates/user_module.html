@@ -305,6 +305,17 @@
       text-align:right;
       font-size:13px;
     }
+    .feature-link{
+      text-decoration:none;
+      color:inherit;
+      border-radius:14px;
+      margin:0 -4px;
+      padding-left:4px;
+      padding-right:4px;
+    }
+    .feature-link:active{
+      background:rgba(34,197,94,.10);
+    }
     .status-row{
       display:block;
       padding:0;
@@ -421,10 +432,17 @@
         <div class="accordion-body">
           {% if card.features %}
             {% for feature in card.features %}
+            {% if feature.href %}
+            <a class="feature-row feature-link" href="{{ feature.href }}">
+              <span>{{ feature.name }}</span>
+              <b>{{ feature.value }} ›</b>
+            </a>
+            {% else %}
             <div class="feature-row">
               <span>{{ feature.name }}</span>
               <b>{{ feature.value }}</b>
             </div>
+            {% endif %}
             {% endfor %}
           {% else %}
             <p>{{ card.text }}</p>
