@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SMS Analizi - SpamShield PRO</title>
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Arial,Helvetica,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(34,197,94,.20), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(20,184,166,.16), transparent 36%),
+        linear-gradient(135deg,#03140d,#062216,#020807);
+      color:#ecfff4;
+      padding:16px;
+    }
+    .wrap{max-width:780px;margin:0 auto;padding-bottom:42px}
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin:10px 0 18px;
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{
+      width:50px;height:50px;border-radius:17px;
+      display:grid;place-items:center;
+      background:rgba(34,197,94,.13);
+      border:1px solid rgba(34,197,94,.25);
+      font-size:27px;
+    }
+    h1{margin:0;font-size:28px;letter-spacing:-.8px}
+    .sub{margin:5px 0 0;color:rgba(236,255,244,.65);font-weight:800;font-size:13px}
+    .pill{
+      color:#86efac;
+      border:1px solid rgba(34,197,94,.35);
+      background:rgba(34,197,94,.12);
+      padding:9px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .card{
+      background:rgba(255,255,255,.055);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:26px;
+      padding:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.30);
+      margin-bottom:16px;
+    }
+    .hero h2{margin:0 0 10px;font-size:34px;line-height:1.04;letter-spacing:-1px}
+    .hero p{margin:0;color:rgba(236,255,244,.70);line-height:1.55;font-size:15px;font-weight:700}
+    label{display:block;margin:14px 0 7px;color:#dfffee;font-weight:900;font-size:14px}
+    textarea{
+      width:100%;
+      min-height:170px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.22);
+      color:#ecfff4;
+      border-radius:18px;
+      padding:15px;
+      font-size:16px;
+      line-height:1.45;
+      outline:none;
+      resize:vertical;
+    }
+    textarea::placeholder{color:rgba(236,255,244,.38)}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+    .btn,button{
+      border:0;
+      display:block;
+      width:100%;
+      text-align:center;
+      text-decoration:none;
+      color:#04130a;
+      background:linear-gradient(135deg,#22c55e,#14b8a6);
+      padding:15px 16px;
+      border-radius:18px;
+      font-weight:900;
+      font-size:15px;
+      cursor:pointer;
+    }
+    .btn.secondary{
+      background:rgba(255,255,255,.07);
+      color:#ecfff4;
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .score{
+      display:grid;
+      place-items:center;
+      text-align:center;
+      padding:24px;
+      border-radius:24px;
+      background:rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.08);
+      margin-bottom:16px;
+    }
+    .score strong{
+      font-size:58px;
+      color:#22f28d;
+      line-height:1;
+    }
+    .score span{
+      margin-top:8px;
+      color:rgba(236,255,244,.68);
+      font-weight:900;
+    }
+    .risk-high strong{color:#f87171}
+    .risk-mid strong{color:#facc15}
+    .risk-low strong{color:#22f28d}
+    .section-title{margin:24px 0 12px;font-size:14px;letter-spacing:7px;font-weight:900;color:#f8fff9}
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:13px 0;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      font-weight:900;
+    }
+    .row:last-child{border-bottom:0}
+    .row span{color:rgba(236,255,244,.68)}
+    .row b{color:#86efac;text-align:right}
+    .reason{
+      padding:13px 0;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      color:rgba(236,255,244,.72);
+      font-weight:800;
+      line-height:1.45;
+    }
+    .reason:last-child{border-bottom:0}
+    .footer{text-align:center;margin:24px 0 4px;color:rgba(236,255,244,.45);font-size:12px}
+    @media(max-width:640px){
+      body{padding:12px}
+      .hero h2{font-size:30px}
+      .actions{grid-template-columns:1fr}
+      .pill{font-size:11px;padding:8px 10px}
+      .score strong{font-size:50px}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <div class="brand">
+        <div class="logo">🔍</div>
+        <div>
+          <h1>SMS Analizi</h1>
+          <div class="sub">SpamShield PRO AI kontrol</div>
+        </div>
+      </div>
+      <div class="pill">AI AKTİF</div>
+    </header>
+
+    <section class="card hero">
+      <h2>Mesajı analiz et</h2>
+      <p>Şüpheli bir SMS metnini buraya yapıştır. SpamShield risk skorunu, risk nedenlerini ve güvenlik sinyallerini gösterecek.</p>
+    </section>
+
+    <section class="card">
+      <form method="post" action="/u/analysis/check">
+        <label>SMS metni</label>
+        <textarea name="message" placeholder="Örn: Tebrikler! Ödül kazandınız. Hemen linke tıklayın..." required>{{ message or "" }}</textarea>
+
+        <div class="actions">
+          <button type="submit">Analiz Et</button>
+          <a class="btn secondary" href="/u/analysis">← Analize dön</a>
+        </div>
+      </form>
+    </section>
+
+    {% if result %}
+    <div class="section-title">SONUÇ</div>
+
+    <section class="card">
+      <div class="score {{ result.risk_class }}">
+        <strong>{{ result.score }}</strong>
+        <span>{{ result.label }}</span>
+      </div>
+
+      <div class="row">
+        <span>Link kontrolü</span>
+        <b>{{ result.link_status }}</b>
+      </div>
+      <div class="row">
+        <span>Aciliyet baskısı</span>
+        <b>{{ result.urgency }}</b>
+      </div>
+      <div class="row">
+        <span>Ödül / kampanya dili</span>
+        <b>{{ result.reward }}</b>
+      </div>
+      <div class="row">
+        <span>Bilgi isteme riski</span>
+        <b>{{ result.info_request }}</b>
+      </div>
+    </section>
+
+    <div class="section-title">RİSK NEDENLERİ</div>
+
+    <section class="card">
+      {% for reason in result.reasons %}
+      <div class="reason">{{ reason }}</div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    <div class="actions">
+      <a class="btn secondary" href="/radial">← Ana ekrana dön</a>
+      <a class="btn secondary" href="/u/protection">Koruma Merkezi</a>
+    </div>
+
+    <div class="footer">SpamShield PRO · © 2026 · Tüm hakları saklıdır</div>
+  </main>
+</body>
+</html>

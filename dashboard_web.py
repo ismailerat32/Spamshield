@@ -1097,19 +1097,55 @@ USER_MODULES = {
             {"value": "4", "label": "Risk Sinyali"}
         ],
         "cards": [
-            {"title": "Metin Analizi", "text": "SMS içindeki vaat, tehdit, sahte ödül ve aciliyet ifadelerini inceler."},
-            {"title": "Bağlantı Kontrolü", "text": "Şüpheli URL ve yönlendirme işaretlerini yakalamaya hazırlanır."},
-            {"title": "Risk Skoru", "text": "Her mesaja anlaşılır bir güvenlik skoru üretir."},
-            {"title": "AI Geliştirme Alanı", "text": "Gelecekte daha gelişmiş model tabanlı analiz için genişletilebilir yapı sağlar."}
+            {
+                "title": "Metin Analizi",
+                "text": "SMS içindeki vaat, tehdit, sahte ödül ve aciliyet ifadelerini inceler.",
+                "features": [
+                    {"name": "SMS analiz ekranı", "value": "Aç", "href": "/u/analysis/check"},
+                    {"name": "Aciliyet baskısı", "value": "Kontrol"},
+                    {"name": "Sahte ödül dili", "value": "Kontrol"},
+                    {"name": "Bilgi isteme riski", "value": "Kontrol"}
+                ]
+            },
+            {
+                "title": "Bağlantı Kontrolü",
+                "text": "Şüpheli URL ve yönlendirme işaretlerini yakalamaya hazırlanır.",
+                "features": [
+                    {"name": "Link algılama", "value": "Aktif"},
+                    {"name": "Kısa link kontrolü", "value": "Hazır"},
+                    {"name": "Şüpheli domain", "value": "Kontrol"},
+                    {"name": "Analiz ekranı", "value": "Aç", "href": "/u/analysis/check"}
+                ]
+            },
+            {
+                "title": "Risk Skoru",
+                "text": "Her mesaja anlaşılır bir güvenlik skoru üretir.",
+                "features": [
+                    {"name": "0-30", "value": "Güvenli"},
+                    {"name": "31-70", "value": "Şüpheli"},
+                    {"name": "71-100", "value": "Yüksek Risk"},
+                    {"name": "Skor hesaplama", "value": "Aktif"}
+                ]
+            },
+            {
+                "title": "AI Geliştirme Alanı",
+                "text": "Gelecekte daha gelişmiş model tabanlı analiz için genişletilebilir yapı sağlar.",
+                "features": [
+                    {"name": "Risk nedeni açıklama", "value": "Hazır"},
+                    {"name": "Kelime sinyalleri", "value": "Aktif"},
+                    {"name": "Link sinyalleri", "value": "Aktif"},
+                    {"name": "Model tabanlı analiz", "value": "Yakında"}
+                ]
+            }
         ],
         "rows": [
-            {"name": "Analiz Motoru", "value": "Çevrim içi"},
-            {"name": "Hassasiyet", "value": "Yüksek"},
-            {"name": "Son Analiz", "value": "Az önce"},
-            {"name": "Güven Skoru", "value": "92/100"}
+            {"name": "Analiz Motoru", "value": "Çevrim içi", "detail": "SMS metinleri risk kelimeleri, linkler ve dolandırıcılık sinyallerine göre analiz edilir."},
+            {"name": "Hassasiyet", "value": "Yüksek", "detail": "Yüksek hassasiyet modu sahte ödül, aciliyet ve bilgi isteme ifadelerini daha sıkı değerlendirir."},
+            {"name": "Son Analiz", "value": "Hazır", "detail": "Bir SMS metni girerek anlık risk analizi başlatabilirsin."},
+            {"name": "Güven Skoru", "value": "0-100", "detail": "Her analiz sonucunda kullanıcıya anlaşılır bir risk skoru gösterilir."}
         ],
-        "primary_label": "Analizi Aç",
-        "primary_href": "/u/analysis"
+        "primary_label": "SMS Analizi Yap",
+        "primary_href": "/u/analysis/check"
     },
     "notifications": {
         "icon": "🔔",
@@ -1497,3 +1533,92 @@ def user_block_list_delete():
         save_user_block_list_data(data)
 
     return redirect(url_for("user_block_list"))
+
+
+def analyze_sms_text(message):
+    text = (message or "").lower()
+    score = 10
+    reasons = []
+
+    risky_words = [
+        "ödül", "kazandınız", "tebrikler", "hemen", "acil", "tıkla",
+        "link", "şifre", "kart", "iban", "kampanya", "ücretsiz",
+        "onayla", "giriş yap", "hesap", "kargo", "teslimat"
+    ]
+
+    high_risk_words = [
+        "şifrenizi", "kart bilgisi", "kimlik", "banka", "hesabınız askıya",
+        "ödeme başarısız", "para iadesi", "doğrulama kodu"
+    ]
+
+    url_signals = ["http://", "https://", "www.", ".com", ".net", ".xyz", "bit.ly", "tinyurl"]
+
+    hit_count = sum(1 for w in risky_words if w in text)
+    high_count = sum(1 for w in high_risk_words if w in text)
+    has_url = any(u in text for u in url_signals)
+    has_urgency = any(w in text for w in ["hemen", "acil", "son gün", "kaçırma", "bugün"])
+    has_reward = any(w in text for w in ["ödül", "kazandınız", "tebrikler", "hediye", "kampanya"])
+    has_info = any(w in text for w in ["şifre", "kart", "kimlik", "iban", "doğrulama", "giriş yap"])
+
+    score += hit_count * 8
+    score += high_count * 14
+
+    if has_url:
+        score += 18
+        reasons.append("Mesaj içinde bağlantı veya domain benzeri ifade bulundu.")
+
+    if has_urgency:
+        score += 12
+        reasons.append("Mesaj kullanıcıyı hızlı karar vermeye zorlayan aciliyet dili içeriyor.")
+
+    if has_reward:
+        score += 12
+        reasons.append("Mesaj ödül, kampanya veya kazanç vaadi içeriyor.")
+
+    if has_info:
+        score += 18
+        reasons.append("Mesaj kişisel bilgi, şifre, kart veya hesap bilgisi isteme riski taşıyor.")
+
+    if hit_count:
+        reasons.append(f"Mesajda {hit_count} adet riskli kelime/sinyal tespit edildi.")
+
+    if not reasons:
+        reasons.append("Belirgin bir spam sinyali bulunmadı. Yine de bilinmeyen linklere dikkat edilmelidir.")
+
+    score = max(0, min(100, score))
+
+    if score >= 71:
+        label = "Yüksek Risk"
+        risk_class = "risk-high"
+    elif score >= 31:
+        label = "Şüpheli"
+        risk_class = "risk-mid"
+    else:
+        label = "Güvenli Görünüyor"
+        risk_class = "risk-low"
+
+    return {
+        "score": score,
+        "label": label,
+        "risk_class": risk_class,
+        "link_status": "Şüpheli" if has_url else "Link yok",
+        "urgency": "Var" if has_urgency else "Yok",
+        "reward": "Var" if has_reward else "Yok",
+        "info_request": "Riskli" if has_info else "Yok",
+        "reasons": reasons
+    }
+
+
+@app.route("/u/analysis/check", methods=["GET", "POST"])
+def user_analysis_check():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    message = ""
+    result = None
+
+    if request.method == "POST":
+        message = request.form.get("message", "")
+        result = analyze_sms_text(message)
+
+    return render_template("analysis_check.html", message=message, result=result)
