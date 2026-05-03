@@ -977,18 +977,54 @@ USER_MODULES = {
             {"value": "%98.5", "label": "Koruma Oranı"}
         ],
         "cards": [
-            {"title": "Haftalık Özet", "text": "Spam ve güvenli SMS dağılımını tek bakışta gösterir."},
-            {"title": "Risk Eğilimi", "text": "Şüpheli mesaj oranındaki artış veya düşüşleri izler."},
-            {"title": "Engelleme Performansı", "text": "SpamShield motorunun kaç mesajı yakaladığını gösterir."},
-            {"title": "Premium Raporlama", "text": "Gelişmiş rapor alanı için grafik ve dışa aktarma altyapısı hazırlanır."}
+            {
+                "title": "Haftalık Özet",
+                "text": "Spam ve güvenli SMS dağılımını tek bakışta gösterir.",
+                "features": [
+                    {"name": "Toplam SMS", "value": "125"},
+                    {"name": "Güvenli SMS", "value": "101"},
+                    {"name": "Spam SMS", "value": "24"},
+                    {"name": "Koruma oranı", "value": "%98.5"}
+                ]
+            },
+            {
+                "title": "Risk Eğilimi",
+                "text": "Şüpheli mesaj oranındaki artış veya düşüşleri izler.",
+                "features": [
+                    {"name": "Bu haftaki risk", "value": "Orta"},
+                    {"name": "Geçen haftaya göre", "value": "-%7"},
+                    {"name": "Şüpheli bağlantı", "value": "4"},
+                    {"name": "Sahte ödül denemesi", "value": "6"}
+                ]
+            },
+            {
+                "title": "Engelleme Performansı",
+                "text": "SpamShield motorunun kaç mesajı yakaladığını gösterir.",
+                "features": [
+                    {"name": "Engellenen spam", "value": "24"},
+                    {"name": "Şüpheli işaretlenen", "value": "9"},
+                    {"name": "Güvenli geçen", "value": "101"},
+                    {"name": "Yanlış alarm", "value": "0"}
+                ]
+            },
+            {
+                "title": "Premium Raporlama",
+                "text": "Gelişmiş rapor alanı için grafik ve dışa aktarma altyapısı hazırlanır.",
+                "features": [
+                    {"name": "Haftalık rapor", "value": "Hazır"},
+                    {"name": "PDF dışa aktar", "value": "Yakında"},
+                    {"name": "CSV kayıt", "value": "Yakında"},
+                    {"name": "Otomatik özet", "value": "Aktif"}
+                ]
+            }
         ],
         "rows": [
-            {"name": "Güvenli SMS", "value": "%80"},
-            {"name": "Spam SMS", "value": "%20"},
-            {"name": "Rapor Periyodu", "value": "Haftalık"},
-            {"name": "Son Rapor", "value": "1 saat önce"}
+            {"name": "Güvenli SMS", "value": "%80", "detail": "Bu hafta alınan mesajların büyük bölümü güvenli olarak sınıflandırıldı."},
+            {"name": "Spam SMS", "value": "%20", "detail": "SpamShield bu hafta 24 mesajı spam veya riskli içerik olarak işaretledi."},
+            {"name": "Rapor Periyodu", "value": "Haftalık", "detail": "Rapor ekranı haftalık özet mantığıyla çalışır. Günlük ve aylık seçenekler sonradan eklenebilir."},
+            {"name": "Son Rapor", "value": "1 saat önce", "detail": "Son rapor kısa süre önce oluşturuldu ve güvenlik özeti güncellendi."}
         ],
-        "primary_label": "Raporları Yenile",
+        "primary_label": "Haftalık Özeti Gör",
         "primary_href": "/u/reports"
     },
     "blocked": {
