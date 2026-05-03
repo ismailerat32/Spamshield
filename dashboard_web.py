@@ -928,8 +928,8 @@ USER_MODULES = {
             {"name": "Spam Hassasiyeti", "value": "Yüksek"},
             {"name": "Son Kontrol", "value": "Az önce"}
         ],
-        "primary_label": "Korumayı Kontrol Et",
-        "primary_href": "/radial"
+        "primary_label": "Engellenenleri Gör",
+        "primary_href": "/u/blocked"
     },
     "reports": {
         "icon": "📈",
