@@ -917,19 +917,55 @@ USER_MODULES = {
             {"value": "AI", "label": "Analiz Motoru"}
         ],
         "cards": [
-            {"title": "Anlık SMS Taraması", "text": "Gelen mesajlar risk sinyallerine göre değerlendirilir ve şüpheli içerikler işaretlenir."},
-            {"title": "Akıllı Spam Filtresi", "text": "Kampanya, oltalama, sahte ödül ve tehlikeli bağlantı içerikleri ayrıştırılır."},
-            {"title": "Koruma Katmanı", "text": "Kullanıcı deneyimini bozmadan sessiz ve güçlü bir güvenlik katmanı sağlar."},
-            {"title": "Güvenli Liste", "text": "Güvendiğin kişiler ve servisler için esnek yönetim alanı hazırlanır."}
+            {
+                "title": "Anlık SMS Taraması",
+                "text": "Gelen mesajlar risk sinyallerine göre değerlendirilir ve şüpheli içerikler işaretlenir.",
+                "features": [
+                    {"name": "Gerçek zamanlı tarama", "value": "Açık"},
+                    {"name": "Şüpheli içerik işaretleme", "value": "Aktif"},
+                    {"name": "Son tarama", "value": "Az önce"},
+                    {"name": "Tarama modu", "value": "Otomatik"}
+                ]
+            },
+            {
+                "title": "Akıllı Spam Filtresi",
+                "text": "Kampanya, oltalama, sahte ödül ve tehlikeli bağlantı içerikleri ayrıştırılır.",
+                "features": [
+                    {"name": "Oltalama koruması", "value": "Aktif"},
+                    {"name": "Sahte ödül filtresi", "value": "Açık"},
+                    {"name": "Tehlikeli bağlantı kontrolü", "value": "Hazır"},
+                    {"name": "Spam algılama", "value": "Yüksek"}
+                ]
+            },
+            {
+                "title": "Koruma Katmanı",
+                "text": "Kullanıcı deneyimini bozmadan sessiz ve güçlü bir güvenlik katmanı sağlar.",
+                "features": [
+                    {"name": "Sessiz koruma", "value": "Açık"},
+                    {"name": "Arka plan güvenliği", "value": "Aktif"},
+                    {"name": "Risk eşiği", "value": "Yüksek"},
+                    {"name": "AI güvenlik modu", "value": "Hazır"}
+                ]
+            },
+            {
+                "title": "Güvenli Liste",
+                "text": "Güvendiğin kişiler ve servisler için esnek yönetim alanı hazırlanır.",
+                "features": [
+                    {"name": "Güvenilir kişiler", "value": "Yönetilebilir"},
+                    {"name": "Beyaz liste", "value": "Hazır"},
+                    {"name": "Sistem servisleri", "value": "Korunur"},
+                    {"name": "Manuel ekleme", "value": "Yakında"}
+                ]
+            }
         ],
         "rows": [
-            {"name": "Koruma Durumu", "value": "Aktif"},
-            {"name": "AI Motoru", "value": "Hazır"},
-            {"name": "Spam Hassasiyeti", "value": "Yüksek"},
-            {"name": "Son Kontrol", "value": "Az önce"}
+            {"name": "Koruma Durumu", "value": "Aktif", "detail": "SpamShield koruma motoru açık ve kullanıcı hesabı için güvenlik kontrolü aktif."},
+            {"name": "AI Motoru", "value": "Hazır", "detail": "AI analiz katmanı riskli kelime, bağlantı ve dolandırıcılık sinyallerini değerlendirmeye hazır."},
+            {"name": "Spam Hassasiyeti", "value": "Yüksek", "detail": "Yüksek hassasiyet modu şüpheli kampanya, sahte ödül ve oltalama içeriklerini daha sıkı kontrol eder."},
+            {"name": "Son Kontrol", "value": "Az önce", "detail": "Koruma durumu son oturumda kontrol edildi ve aktif görünüyor."}
         ],
-        "primary_label": "Engellenenleri Gör",
-        "primary_href": "/u/blocked"
+        "primary_label": "",
+        "primary_href": ""
     },
     "reports": {
         "icon": "📈",
