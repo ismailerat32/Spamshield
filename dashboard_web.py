@@ -906,83 +906,278 @@ def radial():
     return render_template("radial_menu.html")
 
 
+USER_MODULES = {
+    "protection": {
+        "icon": "🛡️",
+        "title": "Koruma Merkezi",
+        "description": "SMS tarama, spam filtreleme ve gerçek zamanlı güvenlik motoru tek ekranda.",
+        "stats": [
+            {"value": "7/24", "label": "Aktif Koruma"},
+            {"value": "92", "label": "Güven Skoru"},
+            {"value": "AI", "label": "Analiz Motoru"}
+        ],
+        "cards": [
+            {"title": "Anlık SMS Taraması", "text": "Gelen mesajlar risk sinyallerine göre değerlendirilir ve şüpheli içerikler işaretlenir."},
+            {"title": "Akıllı Spam Filtresi", "text": "Kampanya, oltalama, sahte ödül ve tehlikeli bağlantı içerikleri ayrıştırılır."},
+            {"title": "Koruma Katmanı", "text": "Kullanıcı deneyimini bozmadan sessiz ve güçlü bir güvenlik katmanı sağlar."},
+            {"title": "Güvenli Liste", "text": "Güvendiğin kişiler ve servisler için esnek yönetim alanı hazırlanır."}
+        ],
+        "rows": [
+            {"name": "Koruma Durumu", "value": "Aktif"},
+            {"name": "AI Motoru", "value": "Hazır"},
+            {"name": "Spam Hassasiyeti", "value": "Yüksek"},
+            {"name": "Son Kontrol", "value": "Az önce"}
+        ],
+        "primary_label": "Korumayı Kontrol Et",
+        "primary_href": "/radial"
+    },
+    "reports": {
+        "icon": "📈",
+        "title": "Raporlar",
+        "description": "Günlük, haftalık ve aylık güvenlik özetlerini sade grafiklerle takip et.",
+        "stats": [
+            {"value": "125", "label": "Toplam SMS"},
+            {"value": "24", "label": "Engellenen"},
+            {"value": "%98.5", "label": "Koruma Oranı"}
+        ],
+        "cards": [
+            {"title": "Haftalık Özet", "text": "Spam ve güvenli SMS dağılımını tek bakışta gösterir."},
+            {"title": "Risk Eğilimi", "text": "Şüpheli mesaj oranındaki artış veya düşüşleri izler."},
+            {"title": "Engelleme Performansı", "text": "SpamShield motorunun kaç mesajı yakaladığını gösterir."},
+            {"title": "Premium Raporlama", "text": "Gelişmiş rapor alanı için grafik ve dışa aktarma altyapısı hazırlanır."}
+        ],
+        "rows": [
+            {"name": "Güvenli SMS", "value": "%80"},
+            {"name": "Spam SMS", "value": "%20"},
+            {"name": "Rapor Periyodu", "value": "Haftalık"},
+            {"name": "Son Rapor", "value": "1 saat önce"}
+        ],
+        "primary_label": "Raporları Yenile",
+        "primary_href": "/u/reports"
+    },
+    "blocked": {
+        "icon": "⛔",
+        "title": "Engellenenler",
+        "description": "Spam olarak işaretlenen numaraları ve mesajları güvenli şekilde yönet.",
+        "stats": [
+            {"value": "24", "label": "Engellendi"},
+            {"value": "17", "label": "Blok Listesi"},
+            {"value": "5", "label": "Yeni Kayıt"}
+        ],
+        "cards": [
+            {"title": "Blok Listesi", "text": "Engellenen numaralar ve riskli kaynaklar burada toplanır."},
+            {"title": "Son Engellenen SMS", "text": "En güncel spam denemeleri hızlıca görüntülenir."},
+            {"title": "Yanlış Pozitif Kontrol", "text": "Güvenli mesajlar yanlışlıkla engellendiyse geri alma alanı hazırlanır."},
+            {"title": "Kara Liste Yönetimi", "text": "Manuel numara ekleme ve kaldırma modülü için temel hazırdır."}
+        ],
+        "rows": [
+            {"name": "Son Engelleme", "value": "5 dk önce"},
+            {"name": "Risk Seviyesi", "value": "Orta"},
+            {"name": "Liste Durumu", "value": "Aktif"},
+            {"name": "Otomatik Engelleme", "value": "Açık"}
+        ],
+        "primary_label": "Listeyi Gör",
+        "primary_href": "/u/blocked"
+    },
+    "analysis": {
+        "icon": "🔍",
+        "title": "AI Analiz",
+        "description": "Mesaj içeriğini risk, dil, bağlantı ve dolandırıcılık sinyallerine göre analiz eder.",
+        "stats": [
+            {"value": "AI", "label": "Aktif"},
+            {"value": "92", "label": "Skor"},
+            {"value": "4", "label": "Risk Sinyali"}
+        ],
+        "cards": [
+            {"title": "Metin Analizi", "text": "SMS içindeki vaat, tehdit, sahte ödül ve aciliyet ifadelerini inceler."},
+            {"title": "Bağlantı Kontrolü", "text": "Şüpheli URL ve yönlendirme işaretlerini yakalamaya hazırlanır."},
+            {"title": "Risk Skoru", "text": "Her mesaja anlaşılır bir güvenlik skoru üretir."},
+            {"title": "AI Geliştirme Alanı", "text": "Gelecekte daha gelişmiş model tabanlı analiz için genişletilebilir yapı sağlar."}
+        ],
+        "rows": [
+            {"name": "Analiz Motoru", "value": "Çevrim içi"},
+            {"name": "Hassasiyet", "value": "Yüksek"},
+            {"name": "Son Analiz", "value": "Az önce"},
+            {"name": "Güven Skoru", "value": "92/100"}
+        ],
+        "primary_label": "Analizi Aç",
+        "primary_href": "/u/analysis"
+    },
+    "notifications": {
+        "icon": "🔔",
+        "title": "Bildirimler",
+        "description": "Güvenlik uyarıları, spam yakalamaları ve önemli sistem bildirimlerini takip et.",
+        "stats": [
+            {"value": "3", "label": "Bildirim"},
+            {"value": "2", "label": "Yeni"},
+            {"value": "Açık", "label": "Uyarılar"}
+        ],
+        "cards": [
+            {"title": "Anlık Uyarılar", "text": "Önemli güvenlik olayları hızlı şekilde gösterilir."},
+            {"title": "Spam Alarmı", "text": "Riskli SMS yakalandığında kullanıcıyı bilgilendirmek için hazırdır."},
+            {"title": "Sistem Durumu", "text": "Koruma motoru ve lisans durumu bildirimleri buradan izlenir."},
+            {"title": "Sessiz Mod", "text": "Daha sonra kullanıcı tercihine göre bildirim yoğunluğu ayarlanabilir."}
+        ],
+        "rows": [
+            {"name": "Bildirim Durumu", "value": "Açık"},
+            {"name": "Yeni Uyarı", "value": "2 adet"},
+            {"name": "Spam Uyarısı", "value": "Aktif"},
+            {"name": "Son Bildirim", "value": "15 dk önce"}
+        ],
+        "primary_label": "Bildirimleri Gör",
+        "primary_href": "/u/notifications"
+    },
+    "license": {
+        "icon": "🔑",
+        "title": "Lisans Merkezi",
+        "description": "Premium üyelik, lisans durumu ve hesap yetkilerini tek ekranda yönet.",
+        "stats": [
+            {"value": "PRO", "label": "Plan"},
+            {"value": "Aktif", "label": "Durum"},
+            {"value": "2099", "label": "Bitiş"}
+        ],
+        "cards": [
+            {"title": "Premium Durumu", "text": "Hesabın premium özelliklere erişim durumunu gösterir."},
+            {"title": "Lisans Anahtarı", "text": "Kullanıcıya özel lisans bilgisi burada yönetilebilir."},
+            {"title": "Hesap Yetkisi", "text": "Aktif, pasif veya deneme kullanıcı ayrımı için hazırdır."},
+            {"title": "Satın Alma Akışı", "text": "Ödeme ve yükseltme ekranlarına bağlanacak ana merkezdir."}
+        ],
+        "rows": [
+            {"name": "Lisans", "value": "Aktif"},
+            {"name": "Plan", "value": "PRO"},
+            {"name": "Hesap Tipi", "value": "Kullanıcı"},
+            {"name": "Koruma Yetkisi", "value": "Açık"}
+        ],
+        "primary_label": "Lisansı Kontrol Et",
+        "primary_href": "/u/license"
+    },
+    "settings": {
+        "icon": "⚙️",
+        "title": "Ayarlar",
+        "description": "Koruma hassasiyeti, bildirimler ve hesap tercihlerini düzenle.",
+        "stats": [
+            {"value": "Açık", "label": "Koruma"},
+            {"value": "Yüksek", "label": "Hassasiyet"},
+            {"value": "TR", "label": "Dil"}
+        ],
+        "cards": [
+            {"title": "Koruma Ayarı", "text": "Spam filtre hassasiyetini kullanıcının tercihine göre ayarlama alanı."},
+            {"title": "Bildirim Tercihleri", "text": "Hangi olaylarda uyarı gösterileceği buradan yönetilebilir."},
+            {"title": "Dil ve Görünüm", "text": "Türkçe/İngilizce ve tema tercihleri için altyapı hazırdır."},
+            {"title": "Hesap Güvenliği", "text": "Şifre değişimi ve oturum kontrolü için yönlendirme alanıdır."}
+        ],
+        "rows": [
+            {"name": "Koruma", "value": "Açık"},
+            {"name": "Bildirim", "value": "Açık"},
+            {"name": "Dil", "value": "Türkçe"},
+            {"name": "Tema", "value": "Premium Koyu"}
+        ],
+        "primary_label": "Ayarları Güncelle",
+        "primary_href": "/u/settings"
+    },
+    "community": {
+        "icon": "👥",
+        "title": "Topluluk",
+        "description": "Spam kaynakları, güvenli numaralar ve topluluk katkıları için merkez.",
+        "stats": [
+            {"value": "Beta", "label": "Durum"},
+            {"value": "0", "label": "Katkı"},
+            {"value": "Yakında", "label": "Paylaşım"}
+        ],
+        "cards": [
+            {"title": "Topluluk Bildirimi", "text": "Kullanıcıların spam numaraları bildirebileceği alan hazırlanır."},
+            {"title": "Güvenli Kaynaklar", "text": "Güvenilir servis numaralarının listelenmesi için uygundur."},
+            {"title": "Spam Haritası", "text": "Yoğun spam kaynakları için ileride istatistik alanı eklenebilir."},
+            {"title": "Beta Programı", "text": "İlk kullanıcı geri bildirimlerini toplamak için kullanılabilir."}
+        ],
+        "rows": [
+            {"name": "Topluluk Modu", "value": "Beta"},
+            {"name": "Paylaşım", "value": "Kapalı"},
+            {"name": "Geri Bildirim", "value": "Hazır"},
+            {"name": "Durum", "value": "Geliştiriliyor"}
+        ],
+        "primary_label": "Topluluğu Aç",
+        "primary_href": "/u/community"
+    },
+    "legal": {
+        "icon": "⚖️",
+        "title": "Telif ve Yasal Bildirim",
+        "description": "SpamShield PRO kullanım koşulları, telif bildirimi ve yasal bilgilendirme alanı.",
+        "stats": [
+            {"value": "2026", "label": "Telif"},
+            {"value": "PRO", "label": "Ürün"},
+            {"value": "TR", "label": "Bölge"}
+        ],
+        "cards": [
+            {"title": "Telif Hakkı", "text": "SpamShield PRO arayüzü, adı, tasarımı ve yazılım yapısı izinsiz kopyalanamaz."},
+            {"title": "Kullanım Sorumluluğu", "text": "Uygulama güvenlik desteği sağlar; kullanıcı kararlarını tamamen devralmaz."},
+            {"title": "Veri Güvenliği", "text": "Kullanıcı verilerinin korunması için güvenli akışlar hedeflenir."},
+            {"title": "Yasal Bildirim", "text": "Ticari kullanım, dağıtım ve lisanslama sahibinin iznine bağlıdır."}
+        ],
+        "rows": [
+            {"name": "Ürün", "value": "SpamShield PRO"},
+            {"name": "Telif", "value": "Tüm hakları saklıdır"},
+            {"name": "Sürüm", "value": "Beta"},
+            {"name": "Kapsam", "value": "SMS güvenliği"}
+        ],
+        "primary_label": "Ana Ekrana Dön",
+        "primary_href": "/radial"
+    }
+}
+
+
+def render_user_module_page(module_key):
+    if module_key != "legal" and not login_required():
+        return redirect(url_for("login"))
+
+    page = USER_MODULES.get(module_key)
+    if not page:
+        return redirect(url_for("radial"))
+
+    return render_template("user_module.html", page=page)
+
+
 @app.route("/u/protection")
 def user_protection():
-    if not login_required():
-        return redirect(url_for("login"))
-    return render_template("radial_menu.html")
+    return render_user_module_page("protection")
 
 
 @app.route("/u/reports")
 def user_reports():
-    if not login_required():
-        return redirect(url_for("login"))
-    return render_template("radial_menu.html")
+    return render_user_module_page("reports")
 
 
 @app.route("/u/blocked")
 def user_blocked():
-    if not login_required():
-        return redirect(url_for("login"))
-    return render_template("radial_menu.html")
+    return render_user_module_page("blocked")
 
 
 @app.route("/u/analysis")
 def user_analysis():
-    if not login_required():
-        return redirect(url_for("login"))
-    return render_template("radial_menu.html")
+    return render_user_module_page("analysis")
 
 
 @app.route("/u/notifications")
 def user_notifications():
-    if not login_required():
-        return redirect(url_for("login"))
-    return render_template("radial_menu.html")
+    return render_user_module_page("notifications")
 
 
 @app.route("/u/license")
 def user_license():
-    if not login_required():
-        return redirect(url_for("login"))
-    return render_template("radial_menu.html")
+    return render_user_module_page("license")
 
 
 @app.route("/u/settings")
 def user_settings():
-    if not login_required():
-        return redirect(url_for("login"))
-    return render_template("radial_menu.html")
+    return render_user_module_page("settings")
 
 
 @app.route("/u/community")
 def user_community():
-    if not login_required():
-        return redirect(url_for("login"))
-    return render_template("radial_menu.html")
+    return render_user_module_page("community")
 
 
 @app.route("/u/legal")
 def user_legal():
-    return """
-    <!doctype html>
-    <html lang="tr">
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>SpamShield PRO - Telif ve Yasal</title>
-      <style>
-        body{margin:0;background:#07130f;color:#eafff5;font-family:Arial,sans-serif;padding:28px;line-height:1.6}
-        .card{max-width:720px;margin:auto;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:24px}
-        a{color:#22c55e}
-      </style>
-    </head>
-    <body>
-      <div class="card">
-        <h1>Telif ve Yasal Bildirim</h1>
-        <p>SpamShield PRO tüm hakları saklıdır. Bu yazılım izinsiz kopyalanamaz, dağıtılamaz veya ticari amaçla kullanılamaz.</p>
-        <p><a href="/radial">← SpamShield'e dön</a></p>
-      </div>
-    </body>
-    </html>
-    """
+    return render_user_module_page("legal")
+
