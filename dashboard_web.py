@@ -354,7 +354,7 @@ def register():
             session["username"] = username
             session["role"] = "user"
 
-            return redirect(url_for("index"))
+            return redirect(url_for("radial"))
 
     return render_template("register.html", error=error, success=success, t=t, lang=get_lang())
 
@@ -526,7 +526,7 @@ def login():
             session["logged_in"] = True
             session["username"] = username
             session["role"] = user.get("role", "user")
-            return redirect(url_for("index"))
+            return redirect(url_for("radial"))
         else:
             error = "Kullanıcı adı veya şifre yanlış." if get_lang() == "tr" else "Username or password is incorrect."
 
@@ -896,3 +896,11 @@ def forgot_password_live():
         lang=get_lang()
     )
 
+
+
+@app.route("/radial")
+def radial():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    return render_template("radial_menu.html")
