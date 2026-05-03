@@ -1900,3 +1900,15 @@ def user_payment_success():
 
     plan = request.args.get("plan", "pro_monthly")
     return render_template("payment_success.html", plan=plan)
+
+
+@app.route("/u/pay", methods=["GET", "POST"])
+def user_pay():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    plan = request.args.get("plan", "pro_yearly")
+
+    # Şimdilik ödeme ekranına güvenli yönlendir.
+    # Sonra burası iyzico/Stripe gerçek ödeme linkiyle bağlanacak.
+    return redirect(url_for("user_checkout", plan=plan))
