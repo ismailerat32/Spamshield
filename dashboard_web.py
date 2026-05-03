@@ -1871,3 +1871,32 @@ def user_settings_manage():
         username=username,
         saved=saved
     )
+
+
+@app.route("/u/pricing")
+def user_pricing():
+    if not login_required():
+        return redirect(url_for("login"))
+    return render_template("pricing.html")
+
+
+@app.route("/u/checkout", methods=["GET", "POST"])
+def user_checkout():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    plan = request.args.get("plan", "pro_monthly")
+
+    if request.method == "POST":
+        return redirect(url_for("user_payment_success", plan=plan))
+
+    return render_template("checkout.html", plan=plan)
+
+
+@app.route("/u/payment-success", methods=["GET", "POST"])
+def user_payment_success():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    plan = request.args.get("plan", "pro_monthly")
+    return render_template("payment_success.html", plan=plan)
