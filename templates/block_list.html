@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blok Listesi - SpamShield PRO</title>
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Arial,Helvetica,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(34,197,94,.18), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(239,68,68,.12), transparent 36%),
+        linear-gradient(135deg,#03140d,#062216,#020807);
+      color:#ecfff4;
+      padding:16px;
+    }
+    .wrap{max-width:780px;margin:0 auto;padding-bottom:42px}
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin:10px 0 18px;
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{
+      width:50px;height:50px;border-radius:17px;
+      display:grid;place-items:center;
+      background:rgba(239,68,68,.12);
+      border:1px solid rgba(239,68,68,.22);
+      font-size:27px;
+    }
+    h1{margin:0;font-size:28px;letter-spacing:-.8px}
+    .sub{margin:5px 0 0;color:rgba(236,255,244,.65);font-weight:800;font-size:13px}
+    .pill{
+      color:#fecaca;
+      border:1px solid rgba(239,68,68,.35);
+      background:rgba(239,68,68,.12);
+      padding:9px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .card{
+      background:rgba(255,255,255,.055);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:26px;
+      padding:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.30);
+      margin-bottom:16px;
+    }
+    .hero h2{margin:0 0 10px;font-size:34px;line-height:1.04;letter-spacing:-1px}
+    .hero p{margin:0;color:rgba(236,255,244,.70);line-height:1.55;font-size:15px;font-weight:700}
+    label{display:block;margin:14px 0 7px;color:#dfffee;font-weight:900;font-size:14px}
+    input{
+      width:100%;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.22);
+      color:#ecfff4;
+      border-radius:16px;
+      padding:15px;
+      font-size:16px;
+      outline:none;
+    }
+    input::placeholder{color:rgba(236,255,244,.38)}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+    .btn,button{
+      border:0;
+      display:block;
+      width:100%;
+      text-align:center;
+      text-decoration:none;
+      color:#04130a;
+      background:linear-gradient(135deg,#22c55e,#14b8a6);
+      padding:15px 16px;
+      border-radius:18px;
+      font-weight:900;
+      font-size:15px;
+      cursor:pointer;
+    }
+    .btn.danger,button.danger{
+      color:#fff;
+      background:linear-gradient(135deg,#ef4444,#f97316);
+    }
+    .btn.secondary{
+      background:rgba(255,255,255,.07);
+      color:#ecfff4;
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .section-title{margin:24px 0 12px;font-size:14px;letter-spacing:7px;font-weight:900;color:#f8fff9}
+    .item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:15px 0;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .item:last-child{border-bottom:0}
+    .item strong{display:block;font-size:17px}
+    .item span{display:block;margin-top:4px;color:rgba(236,255,244,.62);font-weight:800;font-size:13px}
+    .delete{
+      width:auto;
+      min-width:78px;
+      padding:10px 12px;
+      border-radius:999px;
+      color:#fecaca;
+      background:rgba(239,68,68,.12);
+      border:1px solid rgba(239,68,68,.22);
+      font-size:13px;
+    }
+    .empty{color:rgba(236,255,244,.62);line-height:1.5;font-weight:800}
+    .footer{text-align:center;margin:24px 0 4px;color:rgba(236,255,244,.45);font-size:12px}
+    @media(max-width:640px){
+      body{padding:12px}
+      .hero h2{font-size:30px}
+      .actions{grid-template-columns:1fr}
+      .pill{font-size:11px;padding:8px 10px}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <div class="brand">
+        <div class="logo">⛔</div>
+        <div>
+          <h1>Blok Listesi</h1>
+          <div class="sub">SpamShield PRO engelleme yönetimi</div>
+        </div>
+      </div>
+      <div class="pill">ENGEL AKTİF</div>
+    </header>
+
+    <section class="card hero">
+      <h2>Riskli numaraları yönet</h2>
+      <p>Bu listeye eklediğin numara veya göndericiler SpamShield tarafından riskli kaynak olarak değerlendirilir.</p>
+    </section>
+
+    <section class="card">
+      <form method="post" action="/u/block-list">
+        <label>Ad / Açıklama</label>
+        <input name="name" placeholder="Örn: Sahte kampanya, bilinmeyen numara" required>
+
+        <label>Telefon / Gönderici</label>
+        <input name="phone" placeholder="Örn: +90 555 123 45 67 veya firma adı" required>
+
+        <div class="actions">
+          <button class="danger" type="submit">Blok Listesine Ekle</button>
+          <a class="btn secondary" href="/u/blocked">← Engellenenlere dön</a>
+        </div>
+      </form>
+    </section>
+
+    <div class="section-title">KAYITLAR</div>
+
+    <section class="card">
+      {% if items %}
+        {% for item in items %}
+        <div class="item">
+          <div>
+            <strong>{{ item.name }}</strong>
+            <span>{{ item.phone }}</span>
+          </div>
+          <form method="post" action="/u/block-list/delete">
+            <input type="hidden" name="idx" value="{{ loop.index0 }}">
+            <button class="delete" type="submit">Sil</button>
+          </form>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty">Henüz blok listesine kayıt eklenmedi. İlk riskli kaynağı yukarıdan ekleyebilirsin.</p>
+      {% endif %}
+    </section>
+
+    <div class="actions">
+      <a class="btn secondary" href="/radial">← Ana ekrana dön</a>
+      <a class="btn secondary" href="/u/blocked">Engellenenler</a>
+    </div>
+
+    <div class="footer">SpamShield PRO · © 2026 · Tüm hakları saklıdır</div>
+  </main>
+</body>
+</html>

@@ -1037,19 +1037,55 @@ USER_MODULES = {
             {"value": "5", "label": "Yeni Kayıt"}
         ],
         "cards": [
-            {"title": "Blok Listesi", "text": "Engellenen numaralar ve riskli kaynaklar burada toplanır."},
-            {"title": "Son Engellenen SMS", "text": "En güncel spam denemeleri hızlıca görüntülenir."},
-            {"title": "Yanlış Pozitif Kontrol", "text": "Güvenli mesajlar yanlışlıkla engellendiyse geri alma alanı hazırlanır."},
-            {"title": "Kara Liste Yönetimi", "text": "Manuel numara ekleme ve kaldırma modülü için temel hazırdır."}
+            {
+                "title": "Blok Listesi",
+                "text": "Engellenen numaralar ve riskli kaynaklar burada toplanır.",
+                "features": [
+                    {"name": "Engellenen numaralar", "value": "17", "href": "/u/block-list"},
+                    {"name": "Riskli göndericiler", "value": "5"},
+                    {"name": "Firma adı engelleme", "value": "Hazır"},
+                    {"name": "Listeyi yönet", "value": "Aç", "href": "/u/block-list"}
+                ]
+            },
+            {
+                "title": "Son Engellenen SMS",
+                "text": "En güncel spam denemeleri hızlıca görüntülenir.",
+                "features": [
+                    {"name": "+90 555 123 45 67", "value": "10 dk önce"},
+                    {"name": "Kazandınız kampanyası", "value": "Spam"},
+                    {"name": "+90 532 987 65 43", "value": "25 dk önce"},
+                    {"name": "Ödül kazandınız", "value": "Riskli"}
+                ]
+            },
+            {
+                "title": "Yanlış Pozitif Kontrol",
+                "text": "Güvenli mesajlar yanlışlıkla engellendiyse geri alma alanı hazırlanır.",
+                "features": [
+                    {"name": "Güvenli olarak işaretle", "value": "Hazır"},
+                    {"name": "Güvenli listeye taşı", "value": "Aç", "href": "/u/safe-list"},
+                    {"name": "Yanlış alarm sayısı", "value": "0"},
+                    {"name": "Geri alma modu", "value": "Yakında"}
+                ]
+            },
+            {
+                "title": "Kara Liste Yönetimi",
+                "text": "Manuel numara ekleme ve kaldırma modülü için temel hazırdır.",
+                "features": [
+                    {"name": "Manuel numara ekle", "value": "Aç", "href": "/u/block-list"},
+                    {"name": "Numara kaldır", "value": "Aç", "href": "/u/block-list"},
+                    {"name": "Otomatik kara liste", "value": "Aktif"},
+                    {"name": "Kalıcı engel", "value": "Hazır"}
+                ]
+            }
         ],
         "rows": [
-            {"name": "Son Engelleme", "value": "5 dk önce"},
-            {"name": "Risk Seviyesi", "value": "Orta"},
-            {"name": "Liste Durumu", "value": "Aktif"},
-            {"name": "Otomatik Engelleme", "value": "Açık"}
+            {"name": "Son Engelleme", "value": "5 dk önce", "detail": "SpamShield son engellemeyi kısa süre önce yaptı. Riskli mesaj blok listesine işlendi."},
+            {"name": "Risk Seviyesi", "value": "Orta", "detail": "Son engellenen mesajlarda sahte ödül, kampanya ve şüpheli bağlantı sinyalleri görüldü."},
+            {"name": "Liste Durumu", "value": "Aktif", "detail": "Blok listesi aktif. Eklenen numaralar ve riskli göndericiler koruma motoru tarafından dikkate alınır."},
+            {"name": "Otomatik Engelleme", "value": "Açık", "detail": "Otomatik engelleme açıkken yüksek riskli mesajlar kullanıcıya düşmeden işaretlenir."}
         ],
-        "primary_label": "Listeyi Gör",
-        "primary_href": "/u/blocked"
+        "primary_label": "Blok Listesini Yönet",
+        "primary_href": "/u/block-list"
     },
     "analysis": {
         "icon": "🔍",
@@ -1390,3 +1426,74 @@ def user_protection_toggle():
     save_user_settings_data(data)
 
     return redirect(url_for("user_protection"))
+
+
+USER_BLOCK_LIST_FILE = "data/user_block_list.json"
+
+
+def load_user_block_list_data():
+    os.makedirs("data", exist_ok=True)
+    if not os.path.exists(USER_BLOCK_LIST_FILE):
+        with open(USER_BLOCK_LIST_FILE, "w", encoding="utf-8") as f:
+            json.dump({}, f, ensure_ascii=False, indent=2)
+
+    try:
+        with open(USER_BLOCK_LIST_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_user_block_list_data(data):
+    os.makedirs("data", exist_ok=True)
+    with open(USER_BLOCK_LIST_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+@app.route("/u/block-list", methods=["GET", "POST"])
+def user_block_list():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    username = session.get("username", "user")
+    data = load_user_block_list_data()
+    items = data.get(username, [])
+
+    if request.method == "POST":
+        name = (request.form.get("name") or "").strip()
+        phone = (request.form.get("phone") or "").strip()
+
+        if name and phone:
+            items.append({
+                "name": name,
+                "phone": phone,
+                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M")
+            })
+            data[username] = items
+            save_user_block_list_data(data)
+
+        return redirect(url_for("user_block_list"))
+
+    return render_template("block_list.html", items=items)
+
+
+@app.route("/u/block-list/delete", methods=["POST"])
+def user_block_list_delete():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    username = session.get("username", "user")
+    data = load_user_block_list_data()
+    items = data.get(username, [])
+
+    try:
+        idx = int(request.form.get("idx", "-1"))
+    except Exception:
+        idx = -1
+
+    if 0 <= idx < len(items):
+        items.pop(idx)
+        data[username] = items
+        save_user_block_list_data(data)
+
+    return redirect(url_for("user_block_list"))
