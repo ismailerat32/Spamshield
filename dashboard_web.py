@@ -904,3 +904,85 @@ def radial():
         return redirect(url_for("login"))
 
     return render_template("radial_menu.html")
+
+
+@app.route("/u/protection")
+def user_protection():
+    if not login_required():
+        return redirect(url_for("login"))
+    return render_template("radial_menu.html")
+
+
+@app.route("/u/reports")
+def user_reports():
+    if not login_required():
+        return redirect(url_for("login"))
+    return render_template("radial_menu.html")
+
+
+@app.route("/u/blocked")
+def user_blocked():
+    if not login_required():
+        return redirect(url_for("login"))
+    return render_template("radial_menu.html")
+
+
+@app.route("/u/analysis")
+def user_analysis():
+    if not login_required():
+        return redirect(url_for("login"))
+    return render_template("radial_menu.html")
+
+
+@app.route("/u/notifications")
+def user_notifications():
+    if not login_required():
+        return redirect(url_for("login"))
+    return render_template("radial_menu.html")
+
+
+@app.route("/u/license")
+def user_license():
+    if not login_required():
+        return redirect(url_for("login"))
+    return render_template("radial_menu.html")
+
+
+@app.route("/u/settings")
+def user_settings():
+    if not login_required():
+        return redirect(url_for("login"))
+    return render_template("radial_menu.html")
+
+
+@app.route("/u/community")
+def user_community():
+    if not login_required():
+        return redirect(url_for("login"))
+    return render_template("radial_menu.html")
+
+
+@app.route("/u/legal")
+def user_legal():
+    return """
+    <!doctype html>
+    <html lang="tr">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>SpamShield PRO - Telif ve Yasal</title>
+      <style>
+        body{margin:0;background:#07130f;color:#eafff5;font-family:Arial,sans-serif;padding:28px;line-height:1.6}
+        .card{max-width:720px;margin:auto;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:24px}
+        a{color:#22c55e}
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <h1>Telif ve Yasal Bildirim</h1>
+        <p>SpamShield PRO tüm hakları saklıdır. Bu yazılım izinsiz kopyalanamaz, dağıtılamaz veya ticari amaçla kullanılamaz.</p>
+        <p><a href="/radial">← SpamShield'e dön</a></p>
+      </div>
+    </body>
+    </html>
+    """
