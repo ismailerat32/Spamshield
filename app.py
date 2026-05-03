@@ -945,7 +945,7 @@ def register():
         users = load_users()
         settings = load_settings()
 
-        if not username or not password or not password2:
+        if not username or not email or not password or not password2:
             return render_template("register.html", error="Tüm alanları doldurun.")
 
         if username in users:
@@ -958,10 +958,16 @@ def register():
 
         users[username] = {
             "password_hash": generate_password_hash(password),
+            "email": email,
             "role": "user",
             "license_type": "trial",
             "license_key": "TRIAL",
-            "license_expiry": expiry.strftime("%Y-%m-%d")
+            "license_expiry": expiry.strftime("%Y-%m-%d"),
+            "is_active": True,
+            "active": True,
+            "status": "active",
+            "is_banned": False,
+            "disabled": False
         }
 
         save_users(users)
