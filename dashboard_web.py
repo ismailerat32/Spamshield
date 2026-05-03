@@ -1157,19 +1157,55 @@ USER_MODULES = {
             {"value": "Açık", "label": "Uyarılar"}
         ],
         "cards": [
-            {"title": "Anlık Uyarılar", "text": "Önemli güvenlik olayları hızlı şekilde gösterilir."},
-            {"title": "Spam Alarmı", "text": "Riskli SMS yakalandığında kullanıcıyı bilgilendirmek için hazırdır."},
-            {"title": "Sistem Durumu", "text": "Koruma motoru ve lisans durumu bildirimleri buradan izlenir."},
-            {"title": "Sessiz Mod", "text": "Daha sonra kullanıcı tercihine göre bildirim yoğunluğu ayarlanabilir."}
+            {
+                "title": "Anlık Uyarılar",
+                "text": "Önemli güvenlik olayları hızlı şekilde gösterilir.",
+                "features": [
+                    {"name": "Bildirim merkezi", "value": "Aç", "href": "/u/notifications/manage"},
+                    {"name": "Güvenlik olayı", "value": "Aktif"},
+                    {"name": "Yeni spam alarmı", "value": "Açık"},
+                    {"name": "Lisans uyarısı", "value": "Hazır"}
+                ]
+            },
+            {
+                "title": "Spam Alarmı",
+                "text": "Riskli SMS yakalandığında kullanıcıyı bilgilendirmek için hazırdır.",
+                "features": [
+                    {"name": "Spam yakalanınca uyar", "value": "Açık", "href": "/u/notifications/manage"},
+                    {"name": "Yüksek risk alarmı", "value": "Aktif"},
+                    {"name": "Şüpheli SMS bildirimi", "value": "Açık"},
+                    {"name": "Alarm hassasiyeti", "value": "Yüksek"}
+                ]
+            },
+            {
+                "title": "Sistem Durumu",
+                "text": "Koruma motoru ve lisans durumu bildirimleri buradan izlenir.",
+                "features": [
+                    {"name": "Koruma motoru", "value": "İzleniyor"},
+                    {"name": "Lisans durumu", "value": "Aktif"},
+                    {"name": "AI motoru", "value": "Hazır"},
+                    {"name": "Sistem bildirimi", "value": "Açık"}
+                ]
+            },
+            {
+                "title": "Sessiz Mod",
+                "text": "Kullanıcı tercihine göre bildirim yoğunluğu ayarlanabilir.",
+                "features": [
+                    {"name": "Sessiz mod", "value": "Yönet", "href": "/u/notifications/manage"},
+                    {"name": "Sadece yüksek risk", "value": "Seçilebilir"},
+                    {"name": "Günlük özet", "value": "Hazır"},
+                    {"name": "Bildirim yoğunluğu", "value": "Orta"}
+                ]
+            }
         ],
         "rows": [
-            {"name": "Bildirim Durumu", "value": "Açık"},
-            {"name": "Yeni Uyarı", "value": "2 adet"},
-            {"name": "Spam Uyarısı", "value": "Aktif"},
-            {"name": "Son Bildirim", "value": "15 dk önce"}
+            {"name": "Bildirim Durumu", "value": "Açık", "detail": "Bildirimler açıkken SpamShield önemli güvenlik olaylarını kullanıcıya gösterir."},
+            {"name": "Yeni Uyarı", "value": "2 adet", "detail": "Okunmamış güvenlik uyarıları ve son spam alarmı burada takip edilir."},
+            {"name": "Spam Uyarısı", "value": "Aktif", "detail": "Riskli SMS yakalandığında kullanıcıya anlık uyarı gösterilir."},
+            {"name": "Son Bildirim", "value": "15 dk önce", "detail": "Son bildirim kısa süre önce oluşturuldu. Bildirim geçmişi yönetim sayfasından izlenebilir."}
         ],
-        "primary_label": "Bildirimleri Gör",
-        "primary_href": "/u/notifications"
+        "primary_label": "Bildirimleri Yönet",
+        "primary_href": "/u/notifications/manage"
     },
     "license": {
         "icon": "🔑",
@@ -1622,3 +1658,60 @@ def user_analysis_check():
         result = analyze_sms_text(message)
 
     return render_template("analysis_check.html", message=message, result=result)
+
+
+USER_NOTIFICATION_SETTINGS_FILE = "data/user_notification_settings.json"
+
+
+def load_user_notification_settings():
+    os.makedirs("data", exist_ok=True)
+    if not os.path.exists(USER_NOTIFICATION_SETTINGS_FILE):
+        with open(USER_NOTIFICATION_SETTINGS_FILE, "w", encoding="utf-8") as f:
+            json.dump({}, f, ensure_ascii=False, indent=2)
+
+    try:
+        with open(USER_NOTIFICATION_SETTINGS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_user_notification_settings(data):
+    os.makedirs("data", exist_ok=True)
+    with open(USER_NOTIFICATION_SETTINGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def get_user_notification_settings(username):
+    data = load_user_notification_settings()
+    default_settings = {
+        "notifications_enabled": True,
+        "spam_alerts": True,
+        "quiet_mode": False,
+        "min_risk": "medium"
+    }
+    user_settings = data.get(username, {})
+    default_settings.update(user_settings)
+    return default_settings
+
+
+@app.route("/u/notifications/manage", methods=["GET", "POST"])
+def user_notifications_manage():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    username = session.get("username", "user")
+    data = load_user_notification_settings()
+
+    if request.method == "POST":
+        data[username] = {
+            "notifications_enabled": request.form.get("notifications_enabled") == "on",
+            "spam_alerts": request.form.get("spam_alerts") == "on",
+            "quiet_mode": request.form.get("quiet_mode") == "on",
+            "min_risk": request.form.get("min_risk", "medium")
+        }
+        save_user_notification_settings(data)
+        return redirect(url_for("user_notifications_manage"))
+
+    settings = get_user_notification_settings(username)
+    return render_template("notifications_manage.html", settings=settings)
