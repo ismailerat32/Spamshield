@@ -364,6 +364,30 @@
     .status-accordion.open .status-body{
       display:block;
     }
+    .status-body p{
+      margin:0 0 12px;
+    }
+    .toggle-form{
+      margin-top:12px;
+    }
+    .toggle-btn{
+      width:100%;
+      border:0;
+      border-radius:16px;
+      padding:14px 15px;
+      font-weight:900;
+      font-size:14px;
+      cursor:pointer;
+    }
+    .toggle-btn.on{
+      color:#04130a;
+      background:linear-gradient(135deg,#22c55e,#14b8a6);
+    }
+    .toggle-btn.off{
+      color:#fecaca;
+      background:rgba(239,68,68,.14);
+      border:1px solid rgba(239,68,68,.28);
+    }
     @media(max-width:640px){
       body{padding:12px}
       .topbar{margin-top:6px}
@@ -462,7 +486,20 @@
           <span>{{ row.value }} <em>+</em></span>
         </button>
         <div class="status-body">
-          {{ row.detail or "Bu özellik aktif olarak izleniyor ve SpamShield PRO güvenlik motoru tarafından kontrol ediliyor." }}
+          <p>{{ row.detail or "Bu özellik aktif olarak izleniyor ve SpamShield PRO güvenlik motoru tarafından kontrol ediliyor." }}</p>
+
+          {% if row.control == "protection_toggle" %}
+          <form class="toggle-form" method="post" action="/u/protection/toggle">
+            <input type="hidden" name="protection_enabled" value="{% if row.enabled %}off{% else %}on{% endif %}">
+            <button class="toggle-btn {% if row.enabled %}on{% else %}off{% endif %}" type="submit">
+              {% if row.enabled %}
+                Koruma Açık · Kapat
+              {% else %}
+                Koruma Kapalı · Aç
+              {% endif %}
+            </button>
+          </form>
+          {% endif %}
         </div>
       </div>
       {% endfor %}

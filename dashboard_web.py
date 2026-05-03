@@ -1170,7 +1170,34 @@ def render_user_module_page(module_key):
     if not page:
         return redirect(url_for("radial"))
 
-    return render_template("user_module.html", page=page)
+    user_settings = {}
+    protection_enabled = True
+
+    if module_key == "protection":
+        try:
+            username = session.get("username", "user")
+            all_settings = load_user_settings_data()
+            user_settings = all_settings.get(username, {})
+            protection_enabled = user_settings.get("protection_enabled", True)
+
+            page = dict(page)
+            page["rows"] = [dict(row) for row in page.get("rows", [])]
+
+            for row in page["rows"]:
+                if row.get("name") == "Koruma Durumu":
+                    row["value"] = "Açık" if protection_enabled else "Kapalı"
+                    row["detail"] = "Koruma açıkken SpamShield gelen mesajları aktif olarak değerlendirir. Kapalıyken sadece kayıt ve görüntüleme yapılır."
+                    row["control"] = "protection_toggle"
+                    row["enabled"] = protection_enabled
+        except Exception:
+            protection_enabled = True
+
+    return render_template(
+        "user_module.html",
+        page=page,
+        user_settings=user_settings,
+        protection_enabled=protection_enabled
+    )
 
 
 @app.route("/u/protection")
@@ -1288,3 +1315,42 @@ def user_safe_list_delete():
         save_safe_list_data(data)
 
     return redirect(url_for("user_safe_list"))
+
+
+USER_SETTINGS_FILE = "data/user_settings.json"
+
+
+def load_user_settings_data():
+    os.makedirs("data", exist_ok=True)
+    if not os.path.exists(USER_SETTINGS_FILE):
+        with open(USER_SETTINGS_FILE, "w", encoding="utf-8") as f:
+            json.dump({}, f, ensure_ascii=False, indent=2)
+
+    try:
+        with open(USER_SETTINGS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_user_settings_data(data):
+    os.makedirs("data", exist_ok=True)
+    with open(USER_SETTINGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+@app.route("/u/protection/toggle", methods=["POST"])
+def user_protection_toggle():
+    if not login_required():
+        return redirect(url_for("login"))
+
+    username = session.get("username", "user")
+    enabled = request.form.get("protection_enabled") == "on"
+
+    data = load_user_settings_data()
+    user_settings = data.get(username, {})
+    user_settings["protection_enabled"] = enabled
+    data[username] = user_settings
+    save_user_settings_data(data)
+
+    return redirect(url_for("user_protection"))
