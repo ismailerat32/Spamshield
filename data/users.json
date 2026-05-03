@@ -1,0 +1,18 @@
+{
+  "admin": {
+    "password": "scrypt:32768:8:1$ySSYT5wKBP5Yca3E$2d4c718dd7d0192562316623fd9637c9ca4213f9113865d320bb01322987af9356183bf3dc72c7df7153a079f1cc0d550901504695a5520ba8d4d6df57a51160",
+    "role": "admin",
+    "active": true,
+    "license_key": "ADMIN-SYSTEM",
+    "expires_at": "2099-12-31",
+    "email": "ismail.erat32@gmail.com"
+  },
+  "testuser": {
+    "password": "scrypt:32768:8:1$ix3IcImtUW5r3fXI$80d6ff0609edaf91205febbfb9673a8f7209f58760654e69a7c882325ebad4c5885158520c385b667947f27499ff7b73b4a86fd9a8ed985e746c49a224691ddb",
+    "role": "user",
+    "active": true,
+    "license_key": "TEST-USER",
+    "expires_at": "2099-12-31",
+    "email": "test@example.com"
+  }
+}
