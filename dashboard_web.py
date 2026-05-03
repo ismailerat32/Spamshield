@@ -342,13 +342,19 @@ def register():
             users[username] = {
                 "password": generate_password_hash(password),
                 "role": "user",
-                "active": False,
+                "active": True,
                 "license_key": "NONE",
                 "expires_at": "2099-01-01",
                 "email": email
             }
             save_users(users)
-            success = "Kayıt başarılı, lisans maili bekleyin." if get_lang() == "tr" else "Registration successful, wait for license email."
+
+            # Yeni kayıt olan kullanıcı register ekranında kalmasın;
+            # direkt login olmuş şekilde ana panele girsin.
+            session["username"] = username
+            session["role"] = "user"
+
+            return redirect(url_for("index"))
 
     return render_template("register.html", error=error, success=success, t=t, lang=get_lang())
 
