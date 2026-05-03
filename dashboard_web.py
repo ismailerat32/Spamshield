@@ -877,3 +877,12 @@ def forgot_password_live():
         t=t,
         lang=get_lang()
     )
+
+
+@app.route("/__live-version")
+def live_version():
+    return jsonify({
+        "app": "dashboard_web",
+        "version": "forgot_route_probe_20260503_1038",
+        "forgot_password_route": True
+    })
