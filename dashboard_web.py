@@ -1931,8 +1931,30 @@ def user_payment_success():
     if not login_required():
         return redirect(url_for("login"))
 
-    plan = request.args.get("plan", "pro_monthly")
-    return render_template("payment_success.html", plan=plan)
+    username = session.get("username", "user")
+    plan = request.args.get("plan", "pro_yearly")
+    plan_info = get_plan_info(plan)
+
+    users = load_users()
+    user = users.get(username, {}) if isinstance(users, dict) else {}
+
+    user["active"] = True
+    user["license_key"] = user.get("license_key") or f"SPAM-PRO-{username.upper()}-2026"
+    user["license_type"] = "lifetime" if plan == "lifetime" else "pro"
+    user["plan"] = plan
+    user["expires_at"] = "2099-12-31" if plan == "lifetime" else "2027-12-31"
+
+    users[username] = user
+    save_users(users)
+
+    return render_template(
+        "payment_success.html",
+        plan=plan,
+        plan_label=plan_info["label"],
+        plan_price=plan_info["price"],
+        license_key=user["license_key"],
+        expires_at=user["expires_at"]
+    )
 
 
 @app.route("/u/pay", methods=["GET", "POST"])

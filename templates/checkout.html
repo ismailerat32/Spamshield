@@ -219,7 +219,8 @@
       <div class="ready">Ödeme bağlantısı hazır. Devam ettiğinizde iyzico güvenli ödeme sayfası açılır.</div>
       <a class="btn" href="{{ payment_link }}">iyzico Ödeme Sayfasına Git</a>
     {% else %}
-      <div class="warn">{{ message if message else "iyzico ödeme linki henüz aktif değil." }}</div>
+      <div class="warn">{{ message or "iyzico ödeme linki henüz aktif değil." }}</div>
+      <a class="btn" href="/u/payment-success?plan={{ plan }}">Test Ödemeyi Tamamla</a>
       <a class="btn secondary" href="/u/pricing">Paketlere Dön</a>
     {% endif %}
 
