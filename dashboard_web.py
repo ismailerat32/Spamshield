@@ -1880,17 +1880,50 @@ def user_pricing():
     return render_template("pricing.html")
 
 
+def get_plan_info(plan):
+    plans = {
+        "starter_monthly": {
+            "label": "Starter Shield",
+            "period": "Aylık",
+            "price": "150 TL / ay"
+        },
+        "pro_yearly": {
+            "label": "Shield Pro+",
+            "period": "Yıllık",
+            "price": "1000 TL / yıl"
+        },
+        "lifetime": {
+            "label": "Lifetime Shield",
+            "period": "Tek sefer",
+            "price": "2000 TL"
+        },
+        "pro_monthly": {
+            "label": "Starter Shield",
+            "period": "Aylık",
+            "price": "150 TL / ay"
+        }
+    }
+    return plans.get(plan, plans["pro_yearly"])
+
+
 @app.route("/u/checkout", methods=["GET", "POST"])
 def user_checkout():
     if not login_required():
         return redirect(url_for("login"))
 
-    plan = request.args.get("plan", "pro_monthly")
+    plan = request.args.get("plan", "pro_yearly")
+    plan_info = get_plan_info(plan)
 
     if request.method == "POST":
         return redirect(url_for("user_payment_success", plan=plan))
 
-    return render_template("checkout.html", plan=plan)
+    return render_template(
+        "checkout.html",
+        plan=plan,
+        plan_label=plan_info["label"],
+        plan_period=plan_info["period"],
+        plan_price=plan_info["price"]
+    )
 
 
 @app.route("/u/payment-success", methods=["GET", "POST"])
