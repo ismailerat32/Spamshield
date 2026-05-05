@@ -1967,3 +1967,123 @@ def user_pay():
     # Şimdilik ödeme ekranına güvenli yönlendir.
     # Sonra burası iyzico/Stripe gerçek ödeme linkiyle bağlanacak.
     return redirect(url_for("user_checkout", plan=plan))
+
+# ===== SPAMSHIELD LIVE ADMIN APK ROUTES START =====
+@app.route("/ss-admin-access", methods=["GET", "POST"])
+def ss_live_admin_access():
+    from pathlib import Path
+    import json
+    import os
+    import hashlib
+
+    def _read_users():
+        p = Path("data/users.json")
+        try:
+            if p.exists():
+                data = json.loads(p.read_text(encoding="utf-8"))
+                return data if isinstance(data, dict) else {}
+        except Exception:
+            pass
+        return {}
+
+    def _check_password(raw, stored):
+        raw = str(raw or "")
+        stored = str(stored or "")
+
+        if not stored:
+            return False
+
+        if raw == stored:
+            return True
+
+        try:
+            from werkzeug.security import check_password_hash
+            if stored.startswith(("pbkdf2:", "scrypt:", "sha256:")):
+                return check_password_hash(stored, raw)
+        except Exception:
+            pass
+
+        try:
+            if hashlib.sha256(raw.encode()).hexdigest() == stored:
+                return True
+        except Exception:
+            pass
+
+        return False
+
+    if request.method == "POST":
+        username = (request.form.get("username") or request.form.get("email") or "").strip()
+        password = request.form.get("password") or ""
+
+        users = _read_users()
+        user = users.get(username) or users.get(username.lower()) or {}
+
+        env_admin_pass = os.environ.get("SPAMSHIELD_ADMIN_PASSWORD", "")
+
+        is_admin_name = username.lower() == "admin" or str(user.get("role", "")).lower() == "admin" or user.get("is_admin") is True
+        ok_env = bool(env_admin_pass) and username.lower() == "admin" and password == env_admin_pass
+        ok_user = is_admin_name and _check_password(password, user.get("password") or user.get("password_hash") or "")
+
+        if ok_env or ok_user:
+            session["logged_in"] = True
+            session["username"] = username or "admin"
+            session["role"] = "admin"
+            session["is_admin"] = True
+            return redirect("/admin")
+
+        try:
+            return render_template("admin_login.html", error="Admin girişi başarısız.")
+        except Exception:
+            return "<h2>SpamShield Admin</h2><p>Admin girişi başarısız.</p>", 401
+
+    try:
+        return render_template("admin_login.html", error="")
+    except Exception:
+        return """
+        <html><head><meta charset="UTF-8"><title>SpamShield Admin</title></head>
+        <body style="background:#020806;color:white;font-family:Arial;padding:24px;">
+          <h2>SpamShield ADMIN</h2>
+          <form method="post">
+            <input name="username" placeholder="admin" style="display:block;margin:10px 0;padding:12px;">
+            <input name="password" type="password" placeholder="şifre" style="display:block;margin:10px 0;padding:12px;">
+            <button style="padding:12px 18px;">Giriş</button>
+          </form>
+        </body></html>
+        """
+
+@app.route("/ss-admin-app-start")
+def ss_live_admin_app_start():
+    if session.get("logged_in") and (
+        session.get("is_admin") or session.get("role") == "admin" or session.get("username") == "admin"
+    ):
+        return redirect("/admin")
+    return redirect("/ss-admin-access")
+
+@app.route("/admin")
+@app.route("/admin/")
+def ss_live_admin_home():
+    if not (
+        session.get("logged_in") and (
+            session.get("is_admin") or session.get("role") == "admin" or session.get("username") == "admin"
+        )
+    ):
+        return redirect("/ss-admin-access")
+    return redirect("/admin/dashboard")
+
+@app.route("/admin/dashboard")
+def ss_live_admin_dashboard():
+    if not (
+        session.get("logged_in") and (
+            session.get("is_admin") or session.get("role") == "admin" or session.get("username") == "admin"
+        )
+    ):
+        return redirect("/ss-admin-access")
+    try:
+        return render_template("admin_dashboard.html")
+    except Exception as e:
+        return f"<h2>SpamShield ADMIN</h2><p>Dashboard yüklenemedi: {e}</p>", 500
+
+@app.route("/__spamshield_live_version")
+def ss_live_version_probe():
+    return "SpamShield live: dashboard_web admin routes active 2026-05-05", 200
+# ===== SPAMSHIELD LIVE ADMIN APK ROUTES END =====
