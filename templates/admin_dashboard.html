@@ -1,1299 +1,1240 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SpamShield Pro Admin</title>
-<style>
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:#020b07}
-body{
-  min-height:100vh;
-  font-family:Arial,Helvetica,sans-serif;
-  color:#effff5;
-  background:
-    radial-gradient(circle at 70% 0%, rgba(0,255,136,.12), transparent 35%),
-    linear-gradient(180deg,#06140b,#02130a 55%,#010804);
-  overflow-x:hidden;
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#020806">
+  <title>SpamShield Admin</title>
+
+  <style>
+    :root{
+      --bg:#020806;
+      --green:#31f99e;
+      --lime:#9cff5d;
+      --text:#f3fff8;
+      --muted:rgba(230,255,240,.70);
+      --glass:rgba(4,22,15,.68);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 50% 33%, rgba(49,249,158,.18), transparent 28%),
+        radial-gradient(circle at 15% 20%, rgba(156,255,93,.10), transparent 23%),
+        radial-gradient(circle at 85% 78%, rgba(49,249,158,.10), transparent 23%),
+        linear-gradient(180deg,#010403,#03120d 55%,#010403);
+      overflow:hidden;
+    }
+
+    body:before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,.78) 0 1px, transparent 1.4px),
+        radial-gradient(circle, rgba(49,249,158,.46) 0 1px, transparent 1.8px),
+        radial-gradient(circle, rgba(255,255,255,.18) 0 1px, transparent 1.5px);
+      background-size:72px 72px,118px 118px,43px 43px;
+      background-position:0 0,30px 20px,12px 8px;
+      opacity:.38;
+      pointer-events:none;
+    }
+
+    body:after{
+      content:"";
+      position:fixed;
+      left:-10%;
+      right:-10%;
+      bottom:-26%;
+      height:42%;
+      background:
+        radial-gradient(ellipse at center, rgba(49,249,158,.22), rgba(49,249,158,.05) 25%, transparent 60%);
+      border-top:1px solid rgba(49,249,158,.28);
+      pointer-events:none;
+    }
+
+    .page{
+      position:relative;
+      z-index:1;
+      min-height:100dvh;
+      padding:calc(env(safe-area-inset-top) + 22px) 14px calc(env(safe-area-inset-bottom) + 14px);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:10px;
+    }
+
+    .topbar{
+      width:min(840px,100%);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:2px 10px 0;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:13px;
+      min-width:0;
+    }
+
+    .brand-icon{
+      width:58px;
+      height:58px;
+      border-radius:18px;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(156,255,93,.18), transparent 30%),
+        linear-gradient(180deg, rgba(8,35,23,.94), rgba(0,0,0,.78));
+      border:1px solid rgba(156,255,93,.50);
+      box-shadow:0 0 18px rgba(49,249,158,.34), inset 0 0 22px rgba(49,249,158,.10);
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+    }
+
+    .brand-icon svg{width:39px;height:39px;filter:drop-shadow(0 0 6px rgba(49,249,158,.45))}
+    .brand-title{line-height:1.02}
+    .brand-title strong{
+      display:block;
+      font-size:clamp(27px,7.6vw,40px);
+      letter-spacing:-.055em;
+      white-space:nowrap;
+      text-shadow:0 0 12px rgba(255,255,255,.10);
+    }
+    .brand-title strong span{color:var(--lime)}
+    .brand-title small{
+      display:block;
+      margin-top:5px;
+      color:rgba(238,255,244,.68);
+      font-size:clamp(13px,3.55vw,17px);
+      white-space:nowrap;
+    }
+
+    .admin-pill{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:11px 13px;
+      border-radius:17px;
+      color:var(--lime);
+      border:1px solid rgba(49,249,158,.30);
+      background:linear-gradient(180deg, rgba(9,36,23,.70), rgba(4,18,12,.58));
+      font-weight:850;
+      font-size:13px;
+      white-space:nowrap;
+    }
+
+    .admin-pill i{
+      width:8px;height:8px;border-radius:99px;background:#8cff45;
+      box-shadow:0 0 10px #8cff45;
+    }
+
+    .wheel-wrap{
+      position:relative;
+      width:min(94vw,610px);
+      aspect-ratio:1/1;
+      margin-top:-7px;
+      display:grid;
+      place-items:center;
+    }
+
+    .orbit{
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      border:1px solid rgba(49,249,158,.22);
+      box-shadow:0 0 35px rgba(49,249,158,.08), inset 0 0 55px rgba(49,249,158,.05);
+      opacity:.50;
+    }
+
+    .orbit:before,
+    .orbit:after{
+      content:"";
+      position:absolute;
+      inset:6%;
+      border-radius:50%;
+      border:1px dashed rgba(156,255,93,.15);
+    }
+    .orbit:after{inset:13%;border-style:solid;border-color:rgba(49,249,158,.12)}
+
+    .real-slice-wheel{
+      position:absolute;
+      inset:-8.5%;
+      width:117%;
+      height:117%;
+      z-index:0;
+      pointer-events:none;
+      opacity:.90;
+      filter:none;
+    }
+
+    .real-slice{
+      fill:url(#sliceFill);
+      stroke:#8cff62;
+      stroke-width:2.65;
+      stroke-linejoin:round;
+      opacity:.68;
+      filter:none;
+    }
+
+    .real-ring{
+      fill:none;
+      stroke:rgba(156,255,93,.22);
+      stroke-width:1.4;
+      stroke-dasharray:3 9;
+      opacity:.48;
+    }
+
+    .real-inner-ring{
+      fill:none;
+      stroke:rgba(49,249,158,.26);
+      stroke-width:1.8;
+      opacity:.48;
+    }
+
+    .slices{
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      z-index:2;
+    }
+
+    .slice{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:31.6%;
+      height:31.6%;
+      translate:-50% -50%;
+      transform:rotate(var(--a)) translateY(-105.5%) rotate(calc(-1 * var(--a)));
+      text-decoration:none;
+      color:var(--text);
+      outline:none;
+    }
+
+    .slice-card{
+      width:100%;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:5px;
+      padding:8px 6px 7px;
+      background:transparent;
+      border:none;
+      box-shadow:none;
+    }
+
+    .slice .ico{
+      width:clamp(30px,8.5vw,44px);
+      height:clamp(30px,8.5vw,44px);
+      fill:none;
+      stroke:#b7ff84;
+      stroke-width:2.75;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      filter:
+        drop-shadow(0 0 1px rgba(156,255,93,.28))
+        drop-shadow(0 0 3px rgba(49,249,158,.12));
+    }
+
+    .label{
+      font-size:clamp(11.8px,3.28vw,15px);
+      font-weight:800;
+      letter-spacing:-.035em;
+      text-align:center;
+      line-height:1.05;
+      max-width:105px;
+      text-shadow:0 1px 2px rgba(0,0,0,.96), 0 0 3px rgba(0,0,0,.80);
+    }
+
+    .under{
+      width:32px;
+      height:2px;
+      border-radius:99px;
+      background:linear-gradient(90deg, transparent, #aaff5f, transparent);
+      opacity:.68;
+      box-shadow:0 0 4px rgba(140,255,69,.30);
+    }
+
+    .hub{
+      position:absolute;
+      width:29.2%;
+      aspect-ratio:1/1;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(180,255,99,.28), rgba(4,40,22,.80) 56%, rgba(1,8,5,.96) 76%);
+      border:2px solid rgba(173,255,111,.72);
+      box-shadow:
+        0 0 18px rgba(126,255,71,.48),
+        0 0 54px rgba(49,249,158,.16),
+        inset 0 0 26px rgba(49,249,158,.22);
+      z-index:4;
+    }
+
+    .hub:before{
+      content:"";
+      position:absolute;
+      inset:-16%;
+      border-radius:50%;
+      border:1px solid rgba(49,249,158,.28);
+      background:repeating-conic-gradient(from 0deg, rgba(49,249,158,.26) 0 1deg, transparent 1deg 7deg);
+      mask:radial-gradient(circle, transparent 56%, black 57%);
+      opacity:.72;
+    }
+
+    .hub:after{
+      content:"";
+      position:absolute;
+      inset:-31%;
+      border-radius:50%;
+      border:1px solid rgba(49,249,158,.16);
+    }
+
+    .hub strong{
+      position:relative;
+      z-index:2;
+      font-size:clamp(31px,9.2vw,66px);
+      line-height:1;
+      font-weight:950;
+      letter-spacing:-.06em;
+      color:#f4fff7;
+      text-shadow:0 0 10px rgba(156,255,93,.48), 0 2px 0 rgba(0,0,0,.28);
+    }
+
+    .status-card{
+      width:min(94%,620px);
+      margin-top:2px;
+      border-radius:18px;
+      padding:11px 13px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.06), transparent 20%),
+        linear-gradient(180deg, rgba(5,30,19,.70), rgba(2,12,8,.64));
+      border:1px solid rgba(49,249,158,.26);
+      box-shadow:0 0 22px rgba(49,249,158,.10), inset 0 0 22px rgba(49,249,158,.06);
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .status-icon{
+      width:48px;height:48px;border-radius:16px;
+      display:grid;place-items:center;
+      color:#9cff5d;
+      font-size:27px;
+      background:rgba(49,249,158,.06);
+      border:1px solid rgba(49,249,158,.26);
+      flex:0 0 auto;
+    }
+
+    .status-title{
+      font-size:clamp(18px,5vw,24px);
+      font-weight:900;
+      letter-spacing:-.045em;
+    }
+
+    .status-sub{
+      margin-top:2px;
+      color:#76ff42;
+      font-size:clamp(13px,3.7vw,17px);
+      font-weight:750;
+    }
+
+    @media (max-width:460px){
+      .topbar{
+        padding-left:10px;
+        padding-right:8px;
+      }
+      .admin-pill{display:none}
+      .wheel-wrap{width:min(94vw,610px)}
+    }
+  </style>
+
+<style id="admin-center-flip-style">
+/* ===== ADMIN CENTER FLIP FINAL ===== */
+.admin-center-flip{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  perspective:1200px;
 }
-body:before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  background:
-    linear-gradient(90deg,rgba(0,255,136,.035) 1px,transparent 1px),
-    linear-gradient(rgba(0,255,136,.025) 1px,transparent 1px);
-  background-size:48px 48px;
-  opacity:.35;
-}
-.app{
+
+.admin-flip-stage{
   position:relative;
-  z-index:1;
-  display:grid;
-  grid-template-columns:230px 1fr;
-  min-height:100vh;
-}
-.sidebar{
-  border-right:1px solid rgba(0,255,136,.14);
-  background:rgba(0,10,7,.72);
-  padding:24px 18px;
-  position:sticky;
-  top:0;
-  height:100vh;
-}
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:8px 4px 26px;
-  border-bottom:1px solid rgba(0,255,136,.16);
-  margin-bottom:20px;
-}
-.logo{
-  width:46px;height:46px;border-radius:14px;
-  display:grid;place-items:center;
-  background:rgba(0,255,136,.10);
-  border:1px solid rgba(0,255,136,.35);
-  box-shadow:0 0 22px rgba(0,255,136,.18);
-  font-size:28px;
-}
-.brand b{font-size:19px;line-height:1.05}
-.brand b span{color:#18ff82}
-.nav{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.nav a{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  min-height:52px;
-  padding:0 14px;
-  color:rgba(239,255,245,.88);
-  text-decoration:none;
-  border-radius:14px;
-  font-size:16px;
-  border:1px solid transparent;
-}
-.nav a.active,
-.nav a:active{
-  background:linear-gradient(135deg,rgba(0,255,136,.20),rgba(0,45,20,.35));
-  border-color:rgba(0,255,136,.35);
-  box-shadow:0 0 22px rgba(0,255,136,.14);
-}
-.premium-side{
-  margin-top:24px;
-  padding:18px;
-  border-radius:20px;
-  border:1px solid rgba(255,210,60,.25);
-  background:linear-gradient(145deg,rgba(255,210,60,.08),rgba(0,20,10,.55));
-  text-align:center;
-}
-.crown{font-size:46px;display:block;margin-bottom:8px}
-.premium-side h3{margin:0 0 8px;font-size:23px;color:#ffe66b}
-.premium-side small{color:rgba(239,255,245,.66)}
-.premium-side button{
-  margin-top:16px;
   width:100%;
-  min-height:44px;
-  border:1px solid rgba(0,255,136,.35);
-  border-radius:12px;
-  background:rgba(0,255,136,.10);
-  color:#57ff9d;
-  font-weight:900;
+  height:100%;
+  transform-style:preserve-3d;
+  transition:transform 1.25s cubic-bezier(.22,.61,.36,1);
 }
-.side-foot{
+
+.admin-flip-stage.is-flipped{
+  transform:rotateY(180deg);
+}
+
+.admin-flip-face{
   position:absolute;
-  bottom:22px;
-  left:18px;
-  right:18px;
-  border:1px solid rgba(0,255,136,.12);
-  background:rgba(255,255,255,.025);
-  border-radius:14px;
-  padding:12px;
-  font-size:13px;
-  color:rgba(239,255,245,.75);
-}
-.main{
-  padding:30px;
-  max-width:1180px;
-  width:100%;
-}
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:18px;
-  margin-bottom:24px;
-}
-.topbar h1{
-  margin:0;
-  font-size:27px;
-  line-height:1.15;
-}
-.topbar p{
-  margin:7px 0 0;
-  color:rgba(239,255,245,.72);
-  font-size:16px;
-}
-.profile{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.bell,.userbox{
-  border:1px solid rgba(0,255,136,.14);
-  background:rgba(255,255,255,.035);
-  border-radius:16px;
-  min-height:54px;
+  inset:0;
   display:flex;
   align-items:center;
   justify-content:center;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  border-radius:50%;
 }
-.bell{width:54px;font-size:22px;position:relative}
-.bell:after{
-  content:"3";
-  position:absolute;
-  top:-7px;right:-5px;
-  width:22px;height:22px;border-radius:50%;
-  display:grid;place-items:center;
-  background:#1dff7a;
-  color:#02330f;
-  font-size:12px;
-  font-weight:900;
+
+.admin-flip-front{
+  color:#ffffff;
+  font-weight:1000;
+  letter-spacing:-1px;
+  text-shadow:
+    0 0 10px rgba(255,255,255,.18),
+    0 0 24px rgba(140,255,90,.22);
 }
-.userbox{
-  padding:0 16px;
-  gap:10px;
-  font-weight:800;
-}
-.avatar{
-  width:34px;height:34px;border-radius:50%;
-  background:#d9e0dc;
-  color:#02130a;
-  display:grid;place-items:center;
-}
-.panel,.hero,.stat,.premium-banner{
-  border:1px solid rgba(0,255,136,.20);
-  background:linear-gradient(145deg,rgba(0,34,17,.74),rgba(0,10,7,.78));
-  box-shadow:0 12px 32px rgba(0,0,0,.35), inset 0 0 28px rgba(0,255,136,.035);
-  border-radius:20px;
-}
-.hero{
-  margin-top:12px;
-  padding:14px 12px;
-  border-radius:22px;
-  text-align:center;
-  background:rgba(0,0,0,.20);
-  border:1px solid rgba(0,255,136,.14);
-  box-shadow:0 0 20px rgba(0,255,136,.10), inset 0 0 20px rgba(0,255,136,.035);
-}
-.shield-wrap{
-  display:grid;
-  place-items:center;
-}
-.shield-circle{
-  width:190px;height:190px;border-radius:50%;
-  border:2px solid rgba(75,255,110,.75);
-  display:grid;place-items:center;
-  box-shadow:0 0 34px rgba(0,255,136,.24), inset 0 0 28px rgba(0,255,136,.08);
-}
-.shield{
-  width:108px;height:128px;
-  border-radius:26px 26px 38px 38px;
-  background:linear-gradient(145deg,#11ff86,#00552b);
-  border:2px solid rgba(239,255,245,.55);
-  display:grid;place-items:center;
-  font-size:56px;
-  font-weight:900;
-  color:white;
-  box-shadow:0 0 26px rgba(0,255,136,.35);
-}
-.hero-copy .status{
-  display:flex;align-items:center;gap:10px;
-  color:#effff5;
-  font-weight:900;
-  font-size:18px;
-}
-.dot{width:13px;height:13px;border-radius:50%;background:#00ff7b;box-shadow:0 0 18px rgba(0,255,123,.7)}
-.hero-copy h2{
-  margin:16px 0 10px;
-  font-size:52px;
-  line-height:1;
-  color:#00ff88;
-  letter-spacing:1px;
-  text-shadow:0 0 26px rgba(0,255,136,.42);
-}
-.hero-copy p{
-  max-width:520px;
-  margin:0 0 20px;
-  font-size:20px;
-  line-height:1.35;
-  color:rgba(239,255,245,.80);
-}
-.features{
-  margin-top:14px;
-  padding-top:14px;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  border-top:1px solid rgba(255,255,255,.08);
-}
-.feature{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  font-size:13px;
-  color:rgba(239,255,245,.78);
-}
-.feature i{
-  width:28px;height:28px;border-radius:9px;
-  display:grid;place-items:center;
-  color:#38ff8a;
-  border:1px solid rgba(0,255,136,.25);
-  font-style:normal;
-}
-.stats{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:14px;
-  margin-bottom:18px;
-}
-.stat{
-  padding:18px;
-  min-height:142px;
-}
-.stat small{
+
+.admin-flip-front span{
   display:block;
-  color:rgba(239,255,245,.82);
-  font-size:16px;
-  margin-bottom:14px;
-}
-.stat b{
-  font-size:32px;
+  font-size:clamp(32px, 8vw, 60px);
   line-height:1;
 }
-.stat .delta{
-  display:flex;
-  justify-content:space-between;
-  color:rgba(239,255,245,.72);
-  margin-top:16px;
-  font-size:14px;
+
+.admin-flip-back{
+  transform:rotateY(180deg);
 }
-.stat .delta span{color:#20ff82;font-weight:900}
-.spark{
-  margin-top:12px;height:22px;
-  background:linear-gradient(135deg,transparent 0 18%,rgba(0,255,136,.45) 19% 23%,transparent 24% 38%,rgba(0,255,136,.45) 39% 43%,transparent 44% 58%,rgba(0,255,136,.45) 59% 63%,transparent 64%);
+
+.admin-flip-back img{
+  width:82%;
+  height:82%;
+  object-fit:cover;
+  border-radius:50%;
+  border:2px solid rgba(140,255,90,.45);
+  box-shadow:
+    0 0 0 4px rgba(140,255,90,.08),
+    0 0 28px rgba(80,255,60,.18);
 }
-.grid2{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-  margin-bottom:18px;
-}
-.panel{
-  padding:22px;
-}
-.panel h3{
-  margin:0 0 18px;
-  font-size:20px;
-}
-.layers .row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:13px 0;
-  border-bottom:1px solid rgba(255,255,255,.08);
-  color:rgba(239,255,245,.86);
-}
-.layers .row:last-child{border-bottom:0}
-.ok{color:#1cff7f;font-weight:900}
-.blocked-list .item{
-  display:flex;
-  justify-content:space-between;
-  padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,.06);
-}
-.badge{
-  min-width:42px;
-  text-align:center;
-  border-radius:999px;
-  padding:5px 10px;
-  background:rgba(255,60,60,.14);
-  border:1px solid rgba(255,60,60,.24);
-  color:#ff9b9b;
-  font-weight:900;
-}
-.system-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:14px;
-  text-align:center;
-}
-.ring{
-  --val:0;
-  margin:auto;
-  width:108px;height:108px;border-radius:50%;
-  display:grid;place-items:center;
-  background:conic-gradient(#00ff88 calc(var(--val)*1%),rgba(255,255,255,.10) 0);
-  box-shadow:0 0 22px rgba(0,255,136,.20);
-}
-.ring span{
-  width:70px;height:70px;border-radius:50%;
-  display:grid;place-items:center;
-  background:#021108;
-  color:#effff5;
-  font-size:18px;
-  font-weight:900;
-}
-.ring-label{margin-top:9px;color:rgba(239,255,245,.78);font-weight:900}
-.quick{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:12px;
-}
-.quick a{
-  min-height:58px;
-  border-radius:13px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  color:#effff5;
-  text-decoration:none;
-  font-size:15px;
-  font-weight:800;
-  background:rgba(255,255,255,.035);
-  border:1px solid rgba(0,255,136,.16);
-}
-.quick a:active{
-  background:rgba(0,255,136,.12);
-  border-color:rgba(0,255,136,.35);
-}
-.premium-banner{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:18px;
-  padding:22px 26px;
-  border-color:rgba(255,220,70,.25);
-}
-.diamond{font-size:44px}
-.premium-banner h3{margin:0 0 6px;font-size:21px}
-.premium-banner p{margin:0;color:rgba(239,255,245,.72)}
-.premium-banner a{
-  min-width:210px;
-  min-height:56px;
-  border-radius:13px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#19ff63;
-  color:#05240d;
-  text-decoration:none;
-  font-weight:900;
-}
-#adminToast{
-  position:fixed;
-  left:50%;
-  bottom:92px;
-  transform:translateX(-50%);
-  width:min(330px,80vw);
-  padding:14px 18px;
-  border-radius:16px;
-  background:rgba(0,45,22,.92);
-  border:1px solid rgba(0,255,136,.35);
-  color:#effff5;
-  font-size:18px;
-  font-weight:900;
-  text-align:center;
-  box-shadow:0 0 28px rgba(0,255,136,.20);
-  z-index:9999;
-  display:none;
-}
-.mobile-nav{display:none}
-@media(max-width:820px){
-  .app{display:block}
-  .sidebar{display:none}
-  .main{padding:26px}
-  .topbar{align-items:flex-start}
-  .profile{display:none}
-  .hero{grid-template-columns:1fr;padding:28px 22px;text-align:center}
-  .shield-circle{width:178px;height:178px}
-  .hero-copy .status{justify-content:center}
-  .hero-copy h2{font-size:48px}
-  .features{grid-template-columns:1fr 1fr}
-  .stats{grid-template-columns:1fr 1fr}
-  .grid2{grid-template-columns:1fr}
-  .quick{grid-template-columns:1fr 1fr}
-  .premium-banner{display:block;text-align:center}
-  .premium-banner a{margin:18px auto 0}
-  .mobile-nav{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    position:sticky;
-    bottom:0;
-    z-index:5;
-    background:rgba(0,10,7,.94);
-    border-top:1px solid rgba(0,255,136,.14);
-  }
-  .mobile-nav a{
-    min-height:58px;
-    display:grid;
-    place-items:center;
-    color:rgba(239,255,245,.8);
-    text-decoration:none;
-    font-size:12px;
-  }
-}
-@media(max-width:480px){
-  .main{padding:22px 26px 34px}
-  .topbar h1{font-size:26px}
-  .topbar p{font-size:17px}
-  .hero-copy h2{font-size:44px}
-  .stats{gap:14px}
-  .stat{min-height:132px}
-  .stat b{font-size:34px}
-  .system-grid{gap:10px}
-  .ring{width:92px;height:92px}
-  .ring span{width:60px;height:60px;font-size:16px}
-  .quick a{min-height:82px;font-size:18px}
-}
-/* === MOBILE NAV SPACING FINAL FIX === */
-@media(max-width:820px){
-  body{
-    padding-bottom:92px !important;
-  }
-  .main{
-    padding-bottom:120px !important;
-  }
-  .mobile-nav{
-    position:fixed !important;
-    left:0;
-    right:0;
-    bottom:0;
-    height:76px;
-    background:rgba(0,10,7,.96) !important;
-    backdrop-filter:none !important;
-    -webkit-backdrop-filter:none !important;
-    box-shadow:0 -10px 30px rgba(0,0,0,.45);
-  }
-  .mobile-nav a{
-    min-height:76px !important;
-    font-size:13px !important;
-  }
-}
-/* === FINAL MOBILE UI FIX === */
-@media(max-width:820px){
-  /* Sayfa alt boşluk */
-  body{
-    padding-bottom:110px !important;
-  }
-  /* Ana içerik rahat nefes alsın */
-  .wrap, .main{
-    padding-bottom:140px !important;
-  }
-  /* Alt menü */
-  .mobile-nav{
-    position:fixed;
-    bottom:0;
-    left:0;
-    right:0;
-    height:70px;
-    background:#020c08 !important;
-    border-top:1px solid rgba(0,255,140,.15);
-    backdrop-filter:none !important;
-    -webkit-backdrop-filter:none !important;
-    box-shadow:0 -8px 20px rgba(0,0,0,.5);
-    z-index:9999;
-  }
-  /* Menü item */
-  .mobile-nav a{
-    font-size:12px;
-    opacity:.75;
-  }
-  .mobile-nav a.active{
-    opacity:1;
-    color:#00ff88;
-  }
-  /* Kart spacing fix */
-  .card{
-    margin-bottom:18px;
-  }
-}
-/* === FINAL POLISH === */
-/* Scroll akıcılık */
-html {
-  scroll-behavior: smooth;
-}
-body {
-  -webkit-overflow-scrolling: touch;
-}
-/* Alt menü tam fix */
-.mobile-nav{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  height:65px;
-  background:#020c08;
-  border-top:1px solid rgba(0,255,140,.15);
-  box-shadow:0 -6px 18px rgba(0,0,0,.6);
-  z-index:9999;
-}
-/* İçerik ezilmesin */
-.wrap, .main {
-  padding-bottom:120px !important;
-}
-/* Kart spacing */
-.card{
-  margin-bottom:20px;
-}
-/* Premium buton hissi */
-.quick a:active{
-  transform:scale(.96);
-}
-/* Yazı daha net */
-.card, .hero, .premium{
-  backdrop-filter:none !important;
-  -webkit-backdrop-filter:none !important;
-}
-/* Lag azaltma */
-*{
-  will-change:auto;
-}
-.hero + .stats{
-  margin-top:14px !important;
-}
-/* FORCE BADGE FIX */
-.hero-title{
-  display:inline-block !important;
-  width:auto !important;
-  max-width:max-content !important;
-  margin:8px auto 0 !important;
-  padding:7px 16px !important;
-  font-size:17px !important;
+
+/* Merkez yazı alanı çok büyük font veriyorsa kontrol et */
+.admin-center-flip,
+.admin-center-flip *{
   line-height:1 !important;
-  border-radius:999px !important;
-  background:rgba(0,255,136,.10) !important;
-  border:1px solid rgba(0,255,136,.45) !important;
-  color:#00ff88 !important;
-  letter-spacing:.5px !important;
-  text-shadow:none !important;
-  box-shadow:none !important;
-  white-space:nowrap !important;
 }
-/* ===== HERO FIX ===== */
-.hero-title{
-  display:inline-block !important;
-  margin:8px auto 0 !important;
-  padding:6px 14px !important;
-  font-size:16px !important;
-  border-radius:999px !important;
-  background:rgba(0,255,136,.10) !important;
-  border:1px solid rgba(0,255,136,.45) !important;
-  color:#00ff88 !important;
-  text-shadow:none !important;
-  white-space:nowrap !important;
-}
-/* ===== HERO KÜÇÜLT ===== */
-.hero{
-  padding:18px 14px !important;
-}
-/* ===== ICON KÜÇÜLT ===== */
-.hero-icon{
-  width:70px !important;
-  height:70px !important;
-}
-/* ===== YATAY MOD FIX ===== */
-@media (orientation: landscape){
-  .hero{
-    padding:10px !important;
-  }
-  .hero-icon{
-    width:55px !important;
-    height:55px !important;
-  }
-  .hero-title{
-    font-size:14px !important;
-    padding:5px 12px !important;
-  }
-  .features{
-    display:grid !important;
-    grid-template-columns:1fr 1fr !important;
-    gap:8px !important;
-  }
-}
-/* ===== STATUS BADGE ===== */
-.status-badge{
-  display:inline-block;
-  margin-top:6px;
-  padding:6px 12px;
-  font-size:13px;
-  border-radius:999px;
-  background:rgba(0,255,136,.12);
-  border:1px solid rgba(0,255,136,.45);
-  color:#00ff88;
-  font-weight:600;
-}
-/* ===== HERO KÜÇÜLT ===== */
-.hero{
-  padding:16px 12px !important;
-}
-/* ===== ICON ===== */
-.hero-icon{
-  width:70px !important;
-  height:70px !important;
-}
-/* ===== YATAY FIX ===== */
-@media (orientation: landscape){
-  .hero{
-    padding:10px !important;
-  }
-  .hero-icon{
-    width:55px !important;
-    height:55px !important;
-  }
-  .status-badge{
-    font-size:12px;
-    padding:5px 10px;
-  }
-}
-
-/* ===== HERO SLIM MODE ===== */
-.hero{
-  padding:12px 10px !important;
-  border-radius:18px !important;
-}
-
-/* ICON küçült */
-.hero-icon{
-  width:60px !important;
-  height:60px !important;
-  margin-bottom:6px !important;
-}
-
-/* glow azalt */
-.hero-icon::after{
-  display:none !important;
-}
-
-/* badge hizala */
-.status-badge{
-  margin-top:4px !important;
-}
-
-/* açıklama yazısı küçült */
-.hero p{
-  font-size:14px !important;
-  margin-top:6px !important;
-}
-
-/* ===== LANDSCAPE FIX ===== */
-@media (orientation: landscape){
-  .hero{
-    display:flex !important;
-    flex-direction:row !important;
-    align-items:center !important;
-    justify-content:space-between !important;
-    gap:12px !important;
-  }
-
-  .hero-icon{
-    width:50px !important;
-    height:50px !important;
-  }
-
-  .hero-content{
-    flex:1;
-  }
-}
-
-
-/* ===== HERO REMOVED MODE ===== */
-.hero{
-  display:none !important;
-}
-
-.stats{
-  margin-top:24px !important;
-}
-
-
-/* ===== MINI HERO MODE ===== */
-.hero{
-  display:flex !important;
-  align-items:center !important;
-  gap:14px !important;
-  margin-top:18px !important;
-  padding:14px 16px !important;
-  border-radius:24px !important;
-  text-align:left !important;
-}
-
-.hero-icon{
-  width:58px !important;
-  height:58px !important;
-  min-width:58px !important;
-  margin:0 !important;
-  border-radius:18px !important;
-}
-
-.hero-icon::after{
-  display:none !important;
-}
-
-.status-badge{
-  display:inline-block !important;
-  margin:0 0 6px 0 !important;
-  padding:5px 10px !important;
-  font-size:12px !important;
-}
-
-.hero p{
-  margin:0 !important;
-  font-size:14px !important;
-  line-height:1.25 !important;
-  text-align:left !important;
-}
-
-.features{
-  display:none !important;
-}
-
-.stats{
-  margin-top:18px !important;
-}
-
-
-/* ===== HERO FIT MODE (FINAL) ===== */
-.hero{
-  display:flex !important;
-  align-items:center !important;
-  gap:10px !important;
-  padding:10px 12px !important;
-}
-
-/* ikon küçült */
-.hero-icon{
-  width:70px !important;
-  height:70px !important;
-  min-width:70px !important;
-  border-radius:18px !important;
-  box-shadow:0 0 18px rgba(0,255,120,0.25) !important;
-}
-
-/* glow azalt */
-.hero::before{
-  opacity:0.15 !important;
-  filter:blur(40px) !important;
-}
-
-/* başlık kompakt */
-.hero h2,
-.hero-title{
-  font-size:12px !important;
-  margin-bottom:4px !important;
-}
-
-/* badge küçült */
-.status-badge{
-  font-size:10px !important;
-  padding:4px 8px !important;
-  border-radius:12px !important;
-}
-
-/* açıklama sıkıştır */
-.hero p{
-  font-size:12px !important;
-  line-height:1.2 !important;
-  opacity:0.85 !important;
-}
-
-/* kart yüksekliği azalt */
-.hero-content{
-  gap:4px !important;
-}
-
-
-/* ===== ULTRA CLEAN PRO MODE ===== */
-
-/* ikon biraz daha küçülüyor */
-.hero-icon{
-  width:60px !important;
-  height:60px !important;
-  min-width:60px !important;
-  border-radius:16px !important;
-}
-
-/* dış halka inceliyor */
-.hero-icon::before{
-  transform:scale(1.05) !important;
-  opacity:0.4 !important;
-}
-
-/* glow neredeyse yok */
-.hero::before{
-  opacity:0.08 !important;
-  filter:blur(30px) !important;
-}
-
-/* kart daha flat */
-.hero{
-  box-shadow:0 0 25px rgba(0,255,120,0.08) !important;
-}
-
-/* başlık biraz daha sakin */
-.hero-title{
-  font-weight:600 !important;
-  letter-spacing:0.3px !important;
-}
-
-/* badge minimal */
-.status-badge{
-  background:rgba(0,255,120,0.08) !important;
-  border:1px solid rgba(0,255,120,0.2) !important;
-}
-
-/* açıklama daha soft */
-.hero p{
-  opacity:0.75 !important;
-}
-
-
-/* Premium kart geniş */
-.premium-card{
-  width:100% !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:space-between !important;
-  padding:16px !important;
-}
-
-
-/* ===== MOBILE LAYOUT FIX ===== */
-@media (max-width: 768px) {
-  .grid2 {
-    grid-template-columns: 1fr !important;
-  }
-
-  .stats {
-    grid-template-columns: 1fr 1fr !important;
-  }
-
-  .quick {
-    grid-template-columns: 1fr 1fr !important;
-  }
-
-  .premium-banner {
-    grid-column: 1 / -1 !important;
-    width: 100% !important;
-  }
-}
-
-/* sağ boşluk ve taşma engeli */
-html, body {
-  max-width: 100% !important;
-  overflow-x: hidden !important;
-}
-
-.wrap {
-  max-width: 100% !important;
-  overflow-x: hidden !important;
-}
-
-
-/* ===== FINAL MOBILE FIX ===== */
-@media (max-width: 768px) {
-
-  /* sağdaki boş paneli tamamen kaldır */
-  .premium-side {
-    display: none !important;
-  }
-
-  /* tüm layout tek kolon */
-  .grid2 {
-    grid-template-columns: 1fr !important;
-  }
-
-  .stats {
-    grid-template-columns: 1fr 1fr !important;
-  }
-
-  .quick {
-    grid-template-columns: 1fr 1fr !important;
-  }
-
-  .premium-banner {
-    width: 100% !important;
-    grid-column: 1 / -1 !important;
-  }
-}
-
-/* taşma engelle */
-html, body {
-  overflow-x: hidden !important;
-  max-width: 100% !important;
-}
-
-.wrap {
-  max-width: 100% !important;
-  overflow-x: hidden !important;
-}
-
-
-/* ===== PHONE + LANDSCAPE FINAL FIX ===== */
-@media (max-width: 1200px), (pointer: coarse) {
-  html, body {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-  }
-
-  .wrap, main, .container {
-    width: 100% !important;
-    max-width: 100vw !important;
-    overflow-x: hidden !important;
-  }
-
-  .premium-side {
-    display: none !important;
-  }
-
-  .grid2 {
-    display: block !important;
-    grid-template-columns: 1fr !important;
-    width: 100% !important;
-  }
-
-  .grid2 > * {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-bottom: 16px !important;
-  }
-
-  .premium-banner {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: auto !important;
-  }
-
-  .hero {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-}
-
-
-/* ===== OVERFLOW HARD FIX ===== */
-* {
-  box-sizing: border-box !important;
-}
-
-html, body {
-  width: 100% !important;
-  max-width: 100% !important;
-  overflow-x: hidden !important;
-}
-
-body {
-  margin: 0 !important;
-}
-
-.wrap,
-.container,
-main {
-  width: 100% !important;
-  max-width: 100vw !important;
-  overflow-x: hidden !important;
-}
-
-.hero,
-.panel,
-.stat,
-.premium-banner,
-.premium-side {
-  max-width: 100% !important;
-  min-width: 0 !important;
-}
-
-.grid2 {
-  width: 100% !important;
-  max-width: 100% !important;
-  grid-template-columns: 1fr !important;
-}
-
-.stats {
-  width: 100% !important;
-  max-width: 100% !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-}
-
-.stat {
-  width: 100% !important;
-  min-width: 0 !important;
-}
-
-.quick {
-  width: 100% !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-}
-
-.quick a {
-  min-width: 0 !important;
-  width: 100% !important;
-}
-
-.premium-side {
-  display: none !important;
-}
-
-@media (max-width: 420px) {
-  .wrap {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-  }
-
-  .stats {
-    gap: 14px !important;
-  }
-
-  .stat {
-    padding: 22px !important;
-  }
-}
-
 </style>
+
 </head>
+
 <body>
-<div class="app">
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="logo">🛡️</div>
-      <b>SpamShield<br><span>Pro</span></b>
-    </div>
-    <nav class="nav">
-      <a class="active" href="javascript:void(0)">🏠 Ana Sayfa</a>
-      <a href="javascript:void(0)">🔍 Tarama</a>
-      <a href="javascript:void(0)">🛡️ Koruma</a>
-      <a href="javascript:void(0)">🚫 Engellenenler</a>
-      <a href="javascript:void(0)">📊 İstatistikler</a>
-      <a href="javascript:void(0)">📄 Raporlar</a>
-      <a href="javascript:void(0)">👥 Topluluk</a>
-      <a href="javascript:void(0)">⚙️ Ayarlar</a>
-      <a href="javascript:void(0)">🛠️ Araçlar</a>
-    </nav>
-    <div class="premium-side">
-      <span class="crown">👑</span>
-      <h3>Premium</h3>
-      <small>Aktif<br><br>Bitiş Tarihi<br><b style="color:#30ff86">24 Mayıs 2026</b></small>
-      <button>Yükselt</button>
-    </div>
-    <div class="side-foot">🛡️ SpamShield Pro<br>v2.6.0</div>
-  </aside>
-  <main class="main">
+  <svg width="0" height="0" style="position:absolute;visibility:hidden" aria-hidden="true">
+    <symbol id="i-admin-shield" viewBox="0 0 64 64">
+      <path d="M32 6 52 14v15c0 14-8 24-20 29C20 53 12 43 12 29V14L32 6Z"/>
+      <path d="m23 32 6 6 13-15"/>
+    </symbol>
+    <symbol id="i-users-admin" viewBox="0 0 64 64">
+      <circle cx="32" cy="23" r="8"/>
+      <path d="M18 52c2-10 8-16 14-16s12 6 14 16"/>
+      <circle cx="16" cy="30" r="6"/>
+      <circle cx="48" cy="30" r="6"/>
+      <path d="M7 52c1-7 5-11 10-12M57 52c-1-7-5-11-10-12"/>
+    </symbol>
+    <symbol id="i-license-admin" viewBox="0 0 64 64">
+      <path d="M16 12h28l8 8v32H16V12Z"/>
+      <path d="M44 12v9h8"/>
+      <path d="M23 27h20M23 36h14"/>
+      <circle cx="42" cy="45" r="6"/>
+      <path d="m38 51-3 7 7-3 7 3-3-7"/>
+    </symbol>
+    <symbol id="i-payment-admin" viewBox="0 0 64 64">
+      <rect x="10" y="18" width="44" height="30" rx="5"/>
+      <path d="M10 28h44M18 39h12"/>
+      <path d="M43 38c0-3 5-3 5 0s-5 2-5 5 6 3 6 0"/>
+    </symbol>
+    <symbol id="i-security-admin" viewBox="0 0 64 64">
+      <path d="M32 6 52 14v15c0 14-8 24-20 29C20 53 12 43 12 29V14L32 6Z"/>
+      <path d="M22 35h20M25 35v-8c0-5 3-9 7-9s7 4 7 9v8"/>
+    </symbol>
+    <symbol id="i-report-admin" viewBox="0 0 64 64">
+      <path d="M14 50h36"/>
+      <path d="M20 44V28M32 44V18M44 44V34"/>
+      <path d="M18 20h28"/>
+    </symbol>
+    <symbol id="i-bell-admin" viewBox="0 0 64 64">
+      <path d="M19 45h26l-4-7V27c0-7-4-12-9-12s-9 5-9 12v11l-4 7Z"/>
+      <path d="M28 50c1 4 7 4 8 0"/>
+      <circle cx="47" cy="17" r="7"/>
+    </symbol>
+    <symbol id="i-settings-admin" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="8"/>
+      <path d="M32 8v8M32 48v8M8 32h8M48 32h8M15 15l6 6M43 43l6 6M49 15l-6 6M21 43l-6 6"/>
+      <path d="M32 18a14 14 0 1 0 0 28 14 14 0 0 0 0-28Z"/>
+    </symbol>
+    <symbol id="i-system-admin" viewBox="0 0 64 64">
+      <rect x="13" y="14" width="38" height="28" rx="4"/>
+      <path d="M24 52h16M32 42v10"/>
+      <path d="M22 28h7l4-7 5 14 4-7h5"/>
+    </symbol>
+  </svg>
+
+  <main class="page">
     <header class="topbar">
-      <div>
-        <h1>Merhaba, Admin 👋</h1>
-        <p>Sisteminiz güvende ve tüm korumalar aktif.</p>
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none">
+            <path d="M32 6 52 14v15c0 14-8 24-20 29C20 53 12 43 12 29V14L32 6Z" stroke="#8cff45" stroke-width="3.2"/>
+            <path d="M22 26h20v13H29l-7 6V26Z" stroke="#31f99e" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M25 32h2M31 32h2M37 32h2" stroke="#9cff5d" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="47" cy="47" r="10" fill="#06140d" stroke="#8cff45" stroke-width="3"/>
+            <path d="m42 47 3 3 7-8" stroke="#9cff5d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="brand-title">
+          <strong>SpamShield <span>
+</span></strong>
+          <small>Yönetim merkezi, tam kontrol</small>
+        </div>
       </div>
-      <div class="profile">
-        <div class="bell">🔔</div>
-        <div class="userbox"><span class="avatar">👤</span> Admin ▾</div>
-      </div>
+
+      <div class="admin-pill"><span>⚙️ Admin aktif</span><i></i></div>
     </header>
-    <section class="hero">
-      <div class="shield-wrap">
-        <div class="shield-circle">
-          <div class="shield">✓</div>
-        </div>
+
+    <section class="wheel-wrap" aria-label="SpamShield ADMIN radial menü">
+      <div class="orbit"></div>
+
+      <svg class="real-slice-wheel" viewBox="0 0 1000 1000" aria-hidden="true">
+        <defs>
+          <radialGradient id="sliceFill" cx="50%" cy="35%" r="72%">
+            <stop offset="0%" stop-color="#38ff9b" stop-opacity=".16"/>
+            <stop offset="50%" stop-color="#0c3b25" stop-opacity=".30"/>
+            <stop offset="100%" stop-color="#020806" stop-opacity=".76"/>
+          </radialGradient>
+        </defs>
+        <g>
+          <path class="real-slice" d="M 375.62 128.26 A 392.00 392.00 0 0 1 624.38 128.26 L 553.94 338.78 A 170.00 170.00 0 0 0 446.06 338.78 Z"/>
+          <path class="real-slice" d="M 674.91 149.19 A 392.00 392.00 0 0 1 850.81 325.09 L 652.14 424.15 A 170.00 170.00 0 0 0 575.85 347.86 Z"/>
+          <path class="real-slice" d="M 871.74 375.62 A 392.00 392.00 0 0 1 871.74 624.38 L 661.22 553.94 A 170.00 170.00 0 0 0 661.22 446.06 Z"/>
+          <path class="real-slice" d="M 850.81 674.91 A 392.00 392.00 0 0 1 674.91 850.81 L 575.85 652.14 A 170.00 170.00 0 0 0 652.14 575.85 Z"/>
+          <path class="real-slice" d="M 624.38 871.74 A 392.00 392.00 0 0 1 375.62 871.74 L 446.06 661.22 A 170.00 170.00 0 0 0 553.94 661.22 Z"/>
+          <path class="real-slice" d="M 325.09 850.81 A 392.00 392.00 0 0 1 149.19 674.91 L 347.86 575.85 A 170.00 170.00 0 0 0 424.15 652.14 Z"/>
+          <path class="real-slice" d="M 128.26 624.38 A 392.00 392.00 0 0 1 128.26 375.62 L 338.78 446.06 A 170.00 170.00 0 0 0 338.78 553.94 Z"/>
+          <path class="real-slice" d="M 149.19 325.09 A 392.00 392.00 0 0 1 325.09 149.19 L 424.15 347.86 A 170.00 170.00 0 0 0 347.86 424.15 Z"/>
+        </g>
+        <circle cx="500" cy="500" r="407" class="real-ring"/>
+        <circle cx="500" cy="500" r="246" class="real-inner-ring"/>
+      </svg>
+
+      <nav class="slices">
+        <a class="slice" style="--a:0deg" href="javascript:void(0)" data-href="/admin/panel" aria-label="Kullanıcılar">
+          <span class="slice-card"><svg class="ico"><use href="#i-users-admin"/></svg><span class="label">Kullanıcılar</span><span class="under"></span></span>
+        </a>
+
+        <a class="slice" style="--a:45deg" href="javascript:void(0)" data-href="/admin/licenses" aria-label="Lisanslar">
+          <span class="slice-card"><svg class="ico"><use href="#i-license-admin"/></svg><span class="label">Lisanslar</span><span class="under"></span></span>
+        </a>
+
+        <a class="slice" style="--a:90deg" href="javascript:void(0)" data-href="/admin/payment-requests" aria-label="Ödemeler">
+          <span class="slice-card"><svg class="ico"><use href="#i-payment-admin"/></svg><span class="label">Ödemeler</span><span class="under"></span></span>
+        </a>
+
+        <a class="slice" style="--a:135deg" href="javascript:void(0)" data-href="/admin/spam-logs" aria-label="Güvenlik">
+          <span class="slice-card"><svg class="ico"><use href="#i-security-admin"/></svg><span class="label">Güvenlik</span><span class="under"></span></span>
+        </a>
+
+        <a class="slice" style="--a:180deg" href="javascript:void(0)" data-href="/admin/overview" aria-label="Raporlar">
+          <span class="slice-card"><svg class="ico"><use href="#i-report-admin"/></svg><span class="label">Raporlar</span><span class="under"></span></span>
+        </a>
+
+        <a class="slice" style="--a:225deg" href="javascript:void(0)" data-href="/admin/whitelist" aria-label="Bildirimler">
+          <span class="slice-card"><svg class="ico"><use href="#i-bell-admin"/></svg><span class="label">Bildirimler</span><span class="under"></span></span>
+        </a>
+
+        <a class="slice" style="--a:270deg" href="javascript:void(0)" data-href="/admin/settings" aria-label="Ayarlar">
+          <span class="slice-card"><svg class="ico"><use href="#i-settings-admin"/></svg><span class="label">Ayarlar</span><span class="under"></span></span>
+        </a>
+
+        <a class="slice" style="--a:315deg" href="javascript:void(0)" data-href="/admin/system" aria-label="Sistem">
+          <span class="slice-card"><svg class="ico"><use href="#i-system-admin"/></svg><span class="label">Sistem</span><span class="under"></span></span>
+        </a>
+      </nav>
+
+      <div class="hub" aria-hidden="true">
+  <div class="admin-center-flip">
+    <div class="admin-flip-stage" id="adminFlipStage">
+      <div class="admin-flip-face admin-flip-front">
+        <span>ADMIN</span>
       </div>
-      <div class="hero-copy">
-        <div class="status"><span class="dot"></span> Sistem Durumu</div><div class='status-badge'>KORUMA AKTİF</div>
-        <h2>
-        <p>SpamShield Pro tüm tehditlere karşı cihazınızı koruyor.</p>
-        <div class="features">
-          <div class="feature"><i>🛡️</i> Gerçek Zamanlı Koruma</div>
-          <div class="feature"><i>AI</i> AI Destekli Algılama</div>
-          <div class="feature"><i>↻</i> Otomatik Güncelleme</div>
-          <div class="feature"><i>◎</i> Veritabanı Güncel</div>
-        </div>
+      <div class="admin-flip-face admin-flip-back">
+        <img src="/static/uploads/admin_me.jpg?v=flip_center_2" alt="Admin foto">
       </div>
+    </div>
+  </div>
+</div>
     </section>
-    <section class="stats">
-      <div class="stat">
-        <small>Engellenen Spam</small>
-        <b id="statSpam">0</b>
-        <div class="delta">Bugün <span>+142</span></div>
-        <div class="spark"></div>
+
+    <section class="status-card">
+      <div class="status-icon">
+        <svg class="status-shield" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M32 6 52 14v15c0 14-8 24-20 29C20 53 12 43 12 29V14L32 6Z"/>
+          <path d="m23 32 6 6 13-15"/>
+        </svg>
       </div>
-      <div class="stat">
-        <small>Engellenen Aramalar</small>
-        <b id="statCalls">0</b>
-        <div class="delta">Bugün <span>+28</span></div>
-        <div class="spark"></div>
+      <div>
+        <div class="status-title">Admin merkezi aktif</div>
+        <div class="status-sub">Sistem, lisans ve ödeme kontrolü hazır</div>
       </div>
-      <div class="stat">
-        <small>Tarama Yapıldı</small>
-        <b id="statScans">0</b>
-        <div class="delta">Bugün <span>+96</span></div>
-        <div class="spark"></div>
-      </div>
-      <div class="stat">
-        <small>Tehdit Önlendi</small>
-        <b id="statThreats">0</b>
-        <div class="delta">Bugün <span>+7</span></div>
-        <div class="spark"></div>
-      </div>
-    <section class="grid2">
-      <div class="panel">
-        <h3>Hızlı İşlemler</h3>
-        <div class="quick">
-          <a href="javascript:void(0)" onclick="startScan()">🔍 Hızlı Tarama</a>
-          <a href="javascript:void(0)" onclick="fullScan()">🛡️ Tam Tarama</a>
-          <a href="javascript:void(0)" onclick="updateSystem()">⬇️ Güncelle</a>
-          <a href="javascript:void(0)" onclick="openPermissions()">🔒 İzinleri Yönet</a>
-          <a href="javascript:void(0)" onclick="adminToast('Yedekleme modülü sonraki adımda bağlanacak')">☁️ Yedekle</a>
-        </div>
-      </div>
-      <div class="panel">
-        <h3>Sistem Kaynakları</h3>
-        <div class="system-grid">
-          <div>
-            <div class="ring" id="cpuRing" style="--val:23"><span id="cpuText">23%</span></div>
-            <div class="ring-label">CPU</div>
-          </div>
-          <div>
-            <div class="ring" id="ramRing" style="--val:41"><span id="ramText">41%</span></div>
-            <div class="ring-label">RAM</div>
-          </div>
-          <div>
-            <div class="ring" id="batteryRing" style="--val:67"><span id="batteryText">67%</span></div>
-            <div class="ring-label">Pil</div>
-          </div>
-        </div>
-        <p style="color:rgba(239,255,245,.76);margin:18px 0 0">✅ Sistem sağlığı iyi durumda.</p>
-      </div>
-    </section>
-    <section class="premium-banner">
-      <div style="display:flex;align-items:center;gap:18px">
-        <div class="diamond">💎</div>
-        <div>
-          <h3>
-      <a href="javascript:void(0)">Premium Avantajlar ›</a>
     </section>
   </main>
-</div>
-<nav class="mobile-nav">
-  <a href="javascript:void(0)">🏠<br>Ana</a>
-  <a href="javascript:void(0)">🔍<br>Tarama</a>
-  <a href="javascript:void(0)">🛡️<br>Koruma</a>
-  <a href="javascript:void(0)">⚙️<br>Ayar</a>
-</nav>
-<div id="adminToast"></div>
-<script>
-let AUTO_UPDATE_DISABLED = true;
-function adminToast(msg){
-  const box=document.getElementById("adminToast");
-  box.style.display="none";
-  setTimeout(()=>{
-    box.textContent=msg;
-    box.style.display="block";
-  },50);
-  clearTimeout(window.__toastTimer);
-  window.__toastTimer=setTimeout(()=>{box.style.display="none"},2300);
-}
-function setRing(ringId,textId,value){
-  value=Math.max(0,Math.min(100,Number(value||0)));
-  const ring=document.getElementById(ringId);
-  const text=document.getElementById(textId);
-  if(ring){
-    ring.style.setProperty("--val",value);
-    ring.style.background=`conic-gradient(#00ff88 ${value}%, rgba(255,255,255,.10) 0)`;
+
+<style id="admin-status-card-final-fix">
+  /* ===== ADMIN STATUS CARD FINAL FIX ===== */
+
+  .status-card{
+    margin-top:-6px !important;
+    align-items:center !important;
   }
-  if(text) text.textContent=value+"%";
-}
-async function updateSystemResources(){
-  if(AUTO_UPDATE_DISABLED) return;
-  try{
-    const res=await fetch("/api/system-resources",{cache:"no-store"});
-    if(!res.ok) return;
-    const data=await res.json();
-    setRing("cpuRing","cpuText",data.cpu);
-    setRing("ramRing","ramText",data.ram);
-    setRing("batteryRing","batteryText",data.battery);
-  }catch(e){}
-}
-async function startScan(){
-  try{
-    adminToast("SMS AI taraması başlatıldı...");
-    const res=await fetch("/api/run-sms-scan",{cache:"no-store"});
-    const data=await res.json();
-    adminToast(data.message || "SMS AI taraması tamamlandı");
-    if(typeof loadAdminRealStats === "function"){
-      setTimeout(loadAdminRealStats, 500);
+
+  .status-card > div:last-child{
+    transform:translateY(4px) !important;
+  }
+
+  .status-icon{
+    color:transparent !important;
+    font-size:0 !important;
+  }
+
+  .status-shield{
+    width:31px !important;
+    height:31px !important;
+    fill:none !important;
+    stroke:#9cff5d !important;
+    stroke-width:3.2 !important;
+    stroke-linecap:round !important;
+    stroke-linejoin:round !important;
+    filter:
+      drop-shadow(0 0 2px rgba(156,255,93,.30))
+      drop-shadow(0 0 6px rgba(49,249,158,.16)) !important;
+  }
+
+  body:after{
+    display:none !important;
+  }
+
+  @media (max-width:460px){
+    .status-card > div:last-child{
+      transform:translateY(4px) !important;
     }
-  }catch(e){
-    adminToast("Tarama başlatılamadı");
-  }
-}
-async function fullScan(){
-  try{
-    adminToast("Tam SMS AI taraması başlatıldı...");
-    const res=await fetch("/api/run-full-sms-scan",{cache:"no-store"});
-    const data=await res.json();
-    adminToast(data.message || "Tam SMS AI taraması tamamlandı");
-    if(typeof loadAdminRealStats === "function"){
-      setTimeout(loadAdminRealStats, 500);
+
+    .status-shield{
+      width:30px !important;
+      height:30px !important;
     }
-  }catch(e){
-    adminToast("Tam tarama başlatılamadı");
   }
-}
-function updateSystem(){
-  AUTO_UPDATE_DISABLED=false;
-  updateSystemResources();
-  setTimeout(()=>{AUTO_UPDATE_DISABLED=true},500);
-  adminToast("Sistem kaynakları güncellendi");
-}
-function openPermissions(){
-  adminToast("İzinler modülü sonraki adımda bağlanacak");
-}
+</style>
+
+
+<style id="admin-radial-no-native-link-highlight">
+  .slice,
+  .slice *,
+  .slice-card,
+  .slice-card * {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+  }
+
+  .slice:focus,
+  .slice:active,
+  .slice:hover,
+  .slice:focus-visible,
+  .slice-card:focus,
+  .slice-card:active,
+  .slice-card:hover {
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  .slice::selection,
+  .slice *::selection {
+    background: transparent !important;
+  }
+</style>
+
+<script id="admin-radial-no-native-link-highlight-js">
+(function(){
+  function go(el){
+    var url = el.getAttribute("data-href");
+    if(url && url !== "#" && url !== "javascript:void(0)"){
+      window.location.href = url;
+    }
+  }
+
+  document.querySelectorAll("a.slice").forEach(function(el){
+    el.setAttribute("tabindex", "-1");
+    el.setAttribute("role", "button");
+
+    ["touchstart","pointerdown","mousedown"].forEach(function(ev){
+      el.addEventListener(ev, function(e){
+        try { e.preventDefault(); } catch(_) {}
+        try { el.blur(); } catch(_) {}
+      }, {passive:false});
+    });
+
+    el.addEventListener("click", function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      try { el.blur(); } catch(_) {}
+      go(el);
+    }, true);
+
+    el.addEventListener("touchend", function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      try { el.blur(); } catch(_) {}
+      go(el);
+    }, {passive:false});
+  });
+})();
 </script>
-<script>
-async function loadAdminRealStats(){
-  try{
-    const res = await fetch("/api/admin-real-stats", {cache:"no-store"});
-    if(!res.ok) return;
-    const d = await res.json();
-    const setText = (id, val) => {
-      const el = document.getElementById(id);
-      if(el) el.textContent = Number(val || 0).toLocaleString("tr-TR");
-    };
-    setText("statSpam", d.spam);
-    setText("statCalls", d.calls);
-    setText("statScans", d.scans);
-    setText("statThreats", d.threats);
-    const box = document.getElementById("topBlockedList");
-    if(box){
-      const arr = d.top_numbers || [];
-      if(!arr.length){
-        box.innerHTML = '<div class="item"><span>Henüz spam kaydı yok</span><span class="badge">0</span></div>';
-      }else{
-        box.innerHTML = arr.map(x =>
-          `<div class="item"><span>${x.number}</span><span class="badge">${x.count}</span></div>`
-        ).join("");
-      }
-    }
-  }catch(e){
-    console.log("admin stats error", e);
-  }
-}
-loadAdminRealStats();
-setInterval(loadAdminRealStats, 20000);
+
+
+<script id="admin-center-flip-js">
+document.addEventListener("DOMContentLoaded", function () {
+  const stage = document.getElementById("adminFlipStage");
+  if (!stage) return;
+
+  // Her 60 saniyede bir yüz değiştir
+  setInterval(function () {
+    stage.classList.toggle("is-flipped");
+  }, 60000);
+});
 </script>
+
 </body>
 </html>
+<style id="admin-slice-fill-polish">
+  /* ===== ADMIN SLICE FILL POLISH ===== */
+
+  .wheel-wrap{
+    width:min(96vw,630px) !important;
+    margin-top:-10px !important;
+  }
+
+  .real-slice-wheel{
+    inset:-9.5% !important;
+    width:119% !important;
+    height:119% !important;
+    opacity:.96 !important;
+  }
+
+  .real-slice{
+    fill:rgba(14, 70, 43, .48) !important;
+    stroke:#82ff64 !important;
+    stroke-width:2.85 !important;
+    opacity:.82 !important;
+  }
+
+  .slice{
+    width:31.8% !important;
+    height:31.8% !important;
+    transform:rotate(var(--a)) translateY(-105.5%) rotate(calc(-1 * var(--a))) !important;
+  }
+
+  .slice .ico{
+    stroke:#b9ff85 !important;
+    stroke-width:2.9 !important;
+    filter:
+      drop-shadow(0 0 1px rgba(156,255,93,.34))
+      drop-shadow(0 0 4px rgba(49,249,158,.16)) !important;
+  }
+
+  .label{
+    font-size:clamp(12px,3.35vw,15.5px) !important;
+    font-weight:820 !important;
+  }
+
+  .hub{
+    width:27.2% !important;
+  }
+
+  .hub strong{
+    font-size:clamp(24px,7.8vw,54px) !important;
+    letter-spacing:-.07em !important;
+  }
+
+  .status-card{
+    margin-top:-2px !important;
+  }
+
+  @media (max-width:460px){
+    .wheel-wrap{
+      width:min(96vw,630px) !important;
+      margin-top:-12px !important;
+    }
+
+    .real-slice-wheel{
+      inset:-10.5% !important;
+      width:121% !important;
+      height:121% !important;
+    }
+
+    .hub{
+      width:26.8% !important;
+    }
+
+    .hub strong{
+      font-size:clamp(25px,7.8vw,45px) !important;
+    }
+  }
+</style>
+<style id="admin-soft-slice-icon-focus">
+  /* ===== ADMIN SOFT SLICE / ICON FOCUS ===== */
+
+  .real-slice{
+    fill:rgba(8, 46, 29, .62) !important;
+    stroke:#74ff6a !important;
+    stroke-width:2.25 !important;
+    opacity:.72 !important;
+  }
+
+  .real-slice-wheel{
+    opacity:.88 !important;
+    filter:none !important;
+  }
+
+  .slice .ico{
+    stroke:#a9ff73 !important;
+    stroke-width:2.75 !important;
+    filter:
+      drop-shadow(0 0 1px rgba(156,255,93,.24))
+      drop-shadow(0 0 3px rgba(49,249,158,.10)) !important;
+  }
+
+  .label{
+    text-shadow:
+      0 1px 2px rgba(0,0,0,.98),
+      0 0 4px rgba(0,0,0,.82) !important;
+  }
+
+  .under{
+    opacity:.58 !important;
+    box-shadow:0 0 3px rgba(140,255,69,.25) !important;
+  }
+
+  .hub{
+    width:27% !important;
+    box-shadow:
+      0 0 16px rgba(126,255,71,.42),
+      0 0 48px rgba(49,249,158,.14),
+      inset 0 0 24px rgba(49,249,158,.20) !important;
+  }
+
+  .hub strong{
+    font-size:clamp(24px,7.5vw,48px) !important;
+    text-shadow:
+      0 0 8px rgba(156,255,93,.40),
+      0 2px 0 rgba(0,0,0,.30) !important;
+  }
+
+  .real-ring,
+  .real-inner-ring{
+    opacity:.38 !important;
+  }
+
+  .orbit{
+    opacity:.42 !important;
+  }
+</style>
+<style id="admin-slice-edge-rebalance">
+  /* ===== ADMIN SLICE EDGE REBALANCE ===== */
+
+  .real-slice{
+    fill:rgba(10, 54, 34, .66) !important;
+    stroke:#86ff65 !important;
+    stroke-width:2.75 !important;
+    opacity:.82 !important;
+  }
+
+  .real-slice-wheel{
+    opacity:.94 !important;
+  }
+
+  .slice .ico{
+    stroke:#aaff74 !important;
+    stroke-width:2.65 !important;
+    filter:
+      drop-shadow(0 0 1px rgba(156,255,93,.18))
+      drop-shadow(0 0 2px rgba(49,249,158,.08)) !important;
+  }
+
+  .under{
+    opacity:.64 !important;
+    box-shadow:0 0 4px rgba(140,255,69,.24) !important;
+  }
+
+  .hub{
+    width:27.5% !important;
+  }
+
+  .hub strong{
+    font-size:clamp(24px,7.2vw,48px) !important;
+  }
+
+  .status-card{
+    margin-top:-4px !important;
+  }
+</style>
+<style id="admin-slice-body-boost">
+  /* ===== ADMIN SLICE BODY BOOST ===== */
+
+  .real-slice{
+    fill:rgba(12, 68, 42, .78) !important;
+    stroke:#7fff62 !important;
+    stroke-width:3.05 !important;
+    opacity:.88 !important;
+  }
+
+  .real-slice-wheel{
+    opacity:.98 !important;
+  }
+
+  .real-ring,
+  .real-inner-ring{
+    opacity:.44 !important;
+  }
+
+  .slice .ico{
+    stroke:#b2ff7b !important;
+    stroke-width:2.6 !important;
+    filter:
+      drop-shadow(0 0 1px rgba(156,255,93,.16))
+      drop-shadow(0 0 2px rgba(49,249,158,.07)) !important;
+  }
+
+  .under{
+    opacity:.55 !important;
+  }
+</style>
+<style id="admin-slice-final-soften">
+  /* ===== ADMIN SLICE FINAL SOFTEN ===== */
+
+  .real-slice{
+    fill:rgba(10, 58, 36, .72) !important;
+    stroke:#82ff67 !important;
+    stroke-width:2.55 !important;
+    opacity:.82 !important;
+  }
+
+  .real-slice-wheel{
+    opacity:.94 !important;
+  }
+
+  .slice .ico{
+    stroke:#b8ff86 !important;
+    stroke-width:2.72 !important;
+    filter:
+      drop-shadow(0 0 1px rgba(156,255,93,.18))
+      drop-shadow(0 0 2px rgba(49,249,158,.08)) !important;
+  }
+
+  .label{
+    text-shadow:
+      0 1px 2px rgba(0,0,0,.98),
+      0 0 3px rgba(0,0,0,.78) !important;
+  }
+
+  .hub{
+    box-shadow:
+      0 0 16px rgba(126,255,71,.42),
+      0 0 46px rgba(49,249,158,.13),
+      inset 0 0 24px rgba(49,249,158,.18) !important;
+  }
+</style>
+<style id="admin-true-pizza-slice-final">
+  /* ===== ADMIN TRUE PIZZA SLICE GEOMETRY FINAL ===== */
+
+  .real-slice-wheel{
+    inset:-8.5% !important;
+    width:117% !important;
+    height:117% !important;
+    opacity:.94 !important;
+  }
+
+  .real-slice{
+    fill:rgba(9, 54, 34, .70) !important;
+    stroke:#82ff67 !important;
+    stroke-width:2.45 !important;
+    stroke-linejoin:round !important;
+    opacity:.82 !important;
+  }
+
+  .slice{
+    width:30.8% !important;
+    height:30.8% !important;
+    transform:rotate(var(--a)) translateY(-106.5%) rotate(calc(-1 * var(--a))) !important;
+  }
+
+  .slice-card{
+    padding:7px 5px 6px !important;
+    gap:5px !important;
+  }
+
+  .slice .ico{
+    stroke:#b8ff86 !important;
+    stroke-width:2.65 !important;
+    filter:
+      drop-shadow(0 0 1px rgba(156,255,93,.16))
+      drop-shadow(0 0 2px rgba(49,249,158,.08)) !important;
+  }
+
+  .label{
+    font-size:clamp(11.8px,3.25vw,15px) !important;
+    text-shadow:
+      0 1px 2px rgba(0,0,0,.98),
+      0 0 3px rgba(0,0,0,.78) !important;
+  }
+
+  .hub{
+    width:27.3% !important;
+  }
+
+  .hub strong{
+    font-size:clamp(22px,6.8vw,44px) !important;
+  }
+
+  @media (max-width:460px){
+    .real-slice-wheel{
+      inset:-9% !important;
+      width:118% !important;
+      height:118% !important;
+    }
+
+    .slice{
+      width:31% !important;
+      height:31% !important;
+      transform:rotate(var(--a)) translateY(-106.5%) rotate(calc(-1 * var(--a))) !important;
+    }
+  }
+</style>
+<style id="admin-pizza-inner-170-final">
+  /* ===== ADMIN PIZZA INNER 170 FINAL ===== */
+
+  .slice{
+    width:31.5% !important;
+    height:31.5% !important;
+    transform:rotate(var(--a)) translateY(-104.5%) rotate(calc(-1 * var(--a))) !important;
+  }
+
+  .real-slice{
+    fill:rgba(9, 54, 34, .70) !important;
+    stroke:#82ff67 !important;
+    stroke-width:2.45 !important;
+    opacity:.82 !important;
+  }
+
+  .hub{
+    width:26.5% !important;
+  }
+
+  .hub strong{
+    font-size:clamp(22px,6.5vw,42px) !important;
+  }
+
+  @media (max-width:460px){
+    .slice{
+      width:31.8% !important;
+      height:31.8% !important;
+      transform:rotate(var(--a)) translateY(-104.5%) rotate(calc(-1 * var(--a))) !important;
+    }
+  }
+</style>
+<style id="admin-pizza-hub-fill">
+  /* ===== ADMIN PIZZA HUB FILL ===== */
+
+  .hub{
+    width:29.2% !important;
+    box-shadow:
+      0 0 17px rgba(126,255,71,.42),
+      0 0 50px rgba(49,249,158,.14),
+      inset 0 0 26px rgba(49,249,158,.20) !important;
+  }
+
+  .hub:before{
+    inset:-13% !important;
+    opacity:.62 !important;
+  }
+
+  .hub:after{
+    inset:-22% !important;
+    border-color:rgba(49,249,158,.18) !important;
+  }
+
+  .hub strong{
+    font-size:clamp(23px,6.8vw,44px) !important;
+  }
+
+  .real-inner-ring{
+    opacity:.34 !important;
+  }
+
+  .real-ring{
+    opacity:.40 !important;
+  }
+
+  .slice{
+    transform:rotate(var(--a)) translateY(-104%) rotate(calc(-1 * var(--a))) !important;
+  }
+
+  @media (max-width:460px){
+    .hub{
+      width:29.4% !important;
+    }
+
+    .hub strong{
+      font-size:clamp(23px,6.7vw,42px) !important;
+    }
+
+    .slice{
+      transform:rotate(var(--a)) translateY(-104%) rotate(calc(-1 * var(--a))) !important;
+    }
+  }
+</style>
+<style id="admin-page-down-final">
+  /* ===== ADMIN PAGE DOWN FINAL ===== */
+
+  .page{
+    padding-top:calc(env(safe-area-inset-top) + 38px) !important;
+  }
+
+  @media (max-width:460px){
+    .page{
+      padding-top:calc(env(safe-area-inset-top) + 46px) !important;
+    }
+  }
+</style>
+<style id="admin-page-down-2-final">
+  /* ===== ADMIN PAGE DOWN +1 TIK ===== */
+
+  .page{
+    padding-top:calc(env(safe-area-inset-top) + 48px) !important;
+  }
+
+  @media (max-width:460px){
+    .page{
+      padding-top:calc(env(safe-area-inset-top) + 58px) !important;
+    }
+  }
+</style>
+<style id="admin-page-down-final-tik">
+  /* ===== ADMIN PAGE DOWN FINAL +1 TIK ===== */
+
+  .page{
+    padding-top:calc(env(safe-area-inset-top) + 56px) !important;
+  }
+
+  @media (max-width:460px){
+    .page{
+      padding-top:calc(env(safe-area-inset-top) + 68px) !important;
+    }
+  }
+</style>
+<style id="admin-radial-remove-blue-tap-highlight">
+  /* ===== ADMIN RADIAL BLUE TAP HIGHLIGHT FIX ===== */
+  .admin-radial,
+  .admin-radial *,
+  .slice,
+  .slice *,
+  .slice-card,
+  .slice-card * {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-focus-ring-color: transparent !important;
+    outline: none !important;
+    box-shadow: none;
+  }
+
+  .slice:focus,
+  .slice:active,
+  .slice:focus-visible,
+  .slice-card:focus,
+  .slice-card:active,
+  .slice-card:focus-visible {
+    outline: none !important;
+    background-color: transparent !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  a {
+    -webkit-tap-highlight-color: transparent !important;
+  }
+</style>
+<style id="admin-radial-hard-blue-focus-kill">
+  /* ===== HARD BLUE FOCUS / TAP / ACTIVE KILL ===== */
+
+  a.slice,
+  a.slice:link,
+  a.slice:visited,
+  a.slice:hover,
+  a.slice:active,
+  a.slice:focus,
+  a.slice:focus-visible,
+  a.slice * {
+    -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+    -webkit-focus-ring-color: rgba(0,0,0,0) !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+  }
+
+  a.slice::before,
+  a.slice::after,
+  a.slice:active::before,
+  a.slice:active::after,
+  a.slice:focus::before,
+  a.slice:focus::after,
+  a.slice:hover::before,
+  a.slice:hover::after {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+  }
+
+  .slice-card,
+  .slice-card:hover,
+  .slice-card:active,
+  .slice-card:focus,
+  .slice-card::before,
+  .slice-card::after {
+    -webkit-tap-highlight-color: transparent !important;
+    outline: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  svg,
+  svg:focus,
+  svg:active,
+  use,
+  use:focus,
+  use:active {
+    outline: 0 !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  *::selection {
+    background: transparent !important;
+  }
+</style>

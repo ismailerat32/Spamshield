@@ -143,7 +143,7 @@ def get_current_user():
     return users.get(username, {})
 
 
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, abort
 import json
 import os
 from datetime import datetime
@@ -315,13 +315,16 @@ def ss_security_gatekeeper():
     # Security Level 3 hard block: bu yollar login'e bile yönlenmeden yokmuş gibi davranır.
     _ss_hard_block_paths = (
         "/u/activate-pro-now",
-        "/u/test-payment-complete",
         "/orders",
         "/bot-orders",
         "/orders/give-license",
         "/bot-orders/give-license",
     )
     if path.startswith(_ss_hard_block_paths):
+        return "Not Found", 404
+
+    # Dev-only test payment route: production'da kapalı, FLASK_DEBUG=1 iken test edilebilir.
+    if path.startswith("/u/test-payment-complete") and os.environ.get("FLASK_DEBUG", "0") != "1":
         return "Not Found", 404
 
     # Gizli/runtime dosyaları web üzerinden engelle
@@ -413,11 +416,18 @@ def _make_license_code(username):
     raw = f"{username}-{_license_datetime.now().isoformat()}-SPAMSHIELD"
     return "SPAMSHIELD-PRO-" + hashlib.sha1(raw.encode()).hexdigest()[:6].upper()
 
-def _activate_premium_hardcore(username=None, plan="pro"):
+def _activate_premium_hardcore(username=None, plan="starter_monthly"):
     username = username or _current_username_hardcore()
+    plan = (plan or "starter_monthly").strip()
+    plan_days = {
+        "starter_monthly": 30,
+        "pro_yearly": 365,
+        "lifetime": 3650,
+    }.get(plan, 30)
+
     code = _make_license_code(username)
     now = _license_datetime.now()
-    expires = now + _license_timedelta(days=365)
+    expires = now + _license_timedelta(days=plan_days)
 
     # Session'a yaz
     try:
@@ -443,6 +453,7 @@ def _activate_premium_hardcore(username=None, plan="pro"):
             "plan": plan,
             "premium_started_at": now.isoformat(),
             "premium_expires_at": expires.isoformat(),
+            "premium_days": plan_days,
         })
         users[username] = user_obj
         _license_save_json(_USERS_FILE, users)
@@ -459,6 +470,7 @@ def _activate_premium_hardcore(username=None, plan="pro"):
         "premium": True,
         "created_at": now.isoformat(),
         "expires_at": expires.isoformat(),
+        "days": plan_days,
     }
     _license_save_json(_LICENSES_FILE, licenses)
 
@@ -895,6 +907,9 @@ def login():
         username = request.form.get("username", "").strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "").strip()
+
+        if username.lower() == "admin":
+            return render_template("login.html", error="Admin girişi bu ekrandan yapılamaz.")
 
         users = load_users()
         user = users.get(username)
@@ -2004,6 +2019,31 @@ def pricing():
         return redirect(url_for("login"))
     return render_template("pricing.html")
 
+
+
+# ===== PAYMENT REQUEST LEGACY ALIAS FIX =====
+# Eski route load_payment_requests/save_payment_requests çağırıyor olabilir.
+# Aktif sistemde ss_load_payment_requests varsa ona yönlendiriyoruz.
+try:
+    load_payment_requests
+except NameError:
+    try:
+        load_payment_requests = ss_load_payment_requests
+    except NameError:
+        def load_payment_requests():
+            return []
+
+try:
+    save_payment_requests
+except NameError:
+    try:
+        save_payment_requests = ss_save_payment_requests
+    except NameError:
+        def save_payment_requests(data):
+            return None
+# ===== /PAYMENT REQUEST LEGACY ALIAS FIX =====
+
+
 @app.route("/admin/payment-requests")
 def admin_payment_requests():
     # ---- DYNAMIC PREMIUM STATE ----
@@ -2645,19 +2685,14 @@ def protection_page():
     """
 
 @app.route("/analysis")
-# @pro_required
 def analysis_page():
-    # ---- DYNAMIC PREMIUM STATE ----
-    premium_status = 'trial'
-    days_left = 5
-    return """
-    <html><head><meta charset="UTF-8"><title>Analiz</title></head>
-    <body style="background:#06122b;color:white;font-family:Arial;padding:24px;">
-        <h2>📊 Analiz</h2>
-        <p>Analiz modülü hazırlık aşamasında.</p>
-        <p><a href="/radial" style="color:#7dd3fc;">← Radial'e dön</a></p>
-    </body></html>
-    """
+    # Admin analiz eski placeholder yerine premium admin analiz merkezine gider.
+    try:
+        if session.get("is_admin") or session.get("role") == "admin" or session.get("username") == "admin":
+            return redirect("/admin/overview")
+    except Exception:
+        pass
+    return redirect("/u/analysis")
 
 @app.route("/blocked")
 # @pro_required
@@ -2705,10 +2740,7 @@ def settings_page():
 
 @app.route("/license")
 def license_page():
-    # ---- DYNAMIC PREMIUM STATE ----
-    premium_status = 'trial'
-    days_left = 5
-    return redirect("/activate")
+    return redirect("/u/license")
 
 @app.route("/reports")
 # @pro_required
@@ -3171,8 +3203,8 @@ def client_ui():
 
 
 # ===== RADIAL FINAL ALIAS ROUTES =====
-@app.route("/setting")
-def radial_alias_setting():
+@app.route("/setting-radial-legacy-disabled")
+def radial_alias_setting_legacy_disabled():
     # ---- DYNAMIC PREMIUM STATE ----
     premium_status = 'trial'
     days_left = 5
@@ -3193,10 +3225,10 @@ def radial_alias_analytics():
     days_left = 5
     return redirect("/analysis")
 
-@app.route("/block")
-@app.route("/blocker")
-@app.route("/blocked")
-def radial_alias_blocked():
+@app.route("/block-radial-legacy-disabled")
+@app.route("/blocker-radial-legacy-disabled")
+@app.route("/blocked-radial-legacy-disabled")
+def radial_alias_blocked_legacy_disabled():
     # ---- DYNAMIC PREMIUM STATE ----
     premium_status = 'trial'
     days_left = 5
@@ -3341,13 +3373,13 @@ def ss_u_checkout():
     from datetime import datetime, timedelta
 
     plans = {
-        "pro_monthly": {"name": "Pro Aylık", "price": "99 TL", "days": 30},
-        "pro_yearly": {"name": "Pro Yıllık", "price": "799 TL", "days": 365},
-        "lifetime": {"name": "Lifetime", "price": "1499 TL", "days": 3650},
+        "starter_monthly": {"name": "Starter Shield", "price": "150 TL", "days": 30},
+        "pro_yearly": {"name": "Shield Pro+", "price": "1000 TL", "days": 365},
+        "lifetime": {"name": "Lifetime Shield", "price": "2000 TL", "days": 3650},
     }
 
-    plan_id = request.values.get("plan", "pro_monthly")
-    plan = plans.get(plan_id, plans["pro_monthly"])
+    plan_id = request.values.get("plan", "starter_monthly")
+    plan = plans.get(plan_id, plans["starter_monthly"])
 
     if request.method == "POST":
         Path("data").mkdir(exist_ok=True)
@@ -3392,14 +3424,10 @@ def ss_u_checkout():
 
     return render_template("checkout.html", plan_id=plan_id, plan=plan)
 
-@app.route("/u/payment-success", methods=["GET"])
-def ss_u_payment_success():
-    from flask import request, render_template
-    key = request.args.get("key", "")
-    username = _current_username_hardcore()
-    license_code = _activate_premium_hardcore(username=username, plan=request.args.get("plan", "pro"))
-
-    return render_template("payment_success.html", key=key)
+@app.route("/u/payment-success-legacy-disabled", methods=["GET"])
+def ss_u_payment_success_legacy_disabled():
+    from flask import redirect
+    return redirect("/u/payment-success")
 
 
 
@@ -3624,11 +3652,11 @@ def _ss_license_page_override():
     )
 
 def _ss_payment_success_override():
-    code = _ss_activate(plan=request.args.get("plan", "pro"))
+    code = _ss_activate(plan=request.args.get("plan", "starter_monthly"))
     return render_template("payment_success.html", license_code=code)
 
 def _ss_test_payment_complete_override():
-    _ss_activate(plan=request.args.get("plan", "pro"))
+    _ss_activate(plan=request.args.get("plan", "starter_monthly"))
     return redirect("/u/payment-success")
 
 # Mevcut route endpointlerini URL üzerinden bul ve zorla değiştir
@@ -3637,31 +3665,19 @@ try:
         if str(_rule.rule) == "/u/license":
             app.view_functions[_rule.endpoint] = _ss_license_page_override
 
-        if str(_rule.rule) in ["/u/payment-success", "/u/payment_success", "/u/payment-complete"]:
+        if str(_rule.rule) in ["/u/payment_success", "/u/payment-complete"]:
             app.view_functions[_rule.endpoint] = _ss_payment_success_override
 
-        if str(_rule.rule) == "/u/test-payment-complete":
-            app.view_functions[_rule.endpoint] = _ss_test_payment_complete_override
+        # Disabled: /u/test-payment-complete is owned by user_test_payment_complete_hardcore below.
 except Exception as e:
     print("Premium override route scan error:", e)
 
 # Eksik route varsa ekle
 try:
-    if not any(str(r.rule) == "/u/payment-success" for r in app.url_map.iter_rules()):
-        app.add_url_rule(
-            "/u/payment-success",
-            "ss_payment_success_added",
-            _ss_payment_success_override,
-            methods=["GET", "POST"]
-        )
-
-    if not any(str(r.rule) == "/u/test-payment-complete" for r in app.url_map.iter_rules()):
-        app.add_url_rule(
-            "/u/test-payment-complete",
-            "ss_test_payment_complete_added",
-            _ss_test_payment_complete_override,
-            methods=["GET", "POST"]
-        )
+    # Disabled: /u/payment-success is owned by ss_manual_payment_success below.
+    # Old ss_payment_success_added auto-activation route intentionally not registered.
+    # Disabled: old ss_test_payment_complete_added route intentionally not registered.
+    pass
 except Exception as e:
     print("Premium override add route error:", e)
 # ============================================================
@@ -3844,7 +3860,7 @@ def ss_legal_notice():
 # ===== SPAMSHIELD IYZICO PAYMENT ROUTE START =====
 @app.route("/u/pay")
 def ss_iyzico_pay():
-    plan = request.args.get("plan", "pro_yearly").strip()
+    plan = request.args.get("plan", "starter_monthly").strip()
     link = PAYMENT_LINKS.get(plan, "")
     label = PLAN_LABELS.get(plan, "SpamShield PRO")
     price = PLAN_PRICES.get(plan, "")
@@ -3906,7 +3922,7 @@ def ss_current_username():
 
 @app.route("/u/payment-success", methods=["GET", "POST"])
 def ss_manual_payment_success():
-    plan = request.values.get("plan", "pro_yearly").strip()
+    plan = request.values.get("plan", "starter_monthly").strip()
 
     label = PLAN_LABELS.get(plan, "SpamShield PRO")
     price = PLAN_PRICES.get(plan, "")
@@ -3946,7 +3962,7 @@ def ss_manual_payment_success():
 # ===== SPAMSHIELD PAYMENT REQUEST POST FIX START =====
 @app.route("/u/payment-request", methods=["POST"])
 def ss_payment_request_post():
-    plan = request.form.get("plan", "pro_yearly").strip()
+    plan = request.form.get("plan", "starter_monthly").strip()
 
     label = PLAN_LABELS.get(plan, "SpamShield PRO")
     price = PLAN_PRICES.get(plan, "")
@@ -4008,7 +4024,7 @@ def ss_payment_request_post():
 # ===== SPAMSHIELD ACTIVATE LICENSE REQUEST START =====
 @app.route("/u/activate-license-request", methods=["POST"])
 def ss_activate_license_request():
-    plan = request.form.get("plan", "pro_yearly").strip()
+    plan = request.form.get("plan", "starter_monthly").strip()
 
     label = PLAN_LABELS.get(plan, "SpamShield PRO")
     price = PLAN_PRICES.get(plan, "")
@@ -4113,7 +4129,6 @@ def ss_security_level2_gatekeeper():
     # Demo/test/backdoor gibi davranabilecek yolları admin dışında kapat
     admin_only_paths = (
         "/u/activate-pro-now",
-        "/u/test-payment-complete",
         "/orders",
         "/bot-orders",
     )
@@ -4239,7 +4254,6 @@ def ss_security_level3_gatekeeper():
     # export SPAMSHIELD_PRODUCTION_LOCKDOWN=0
     hard_block_paths = (
         "/u/activate-pro-now",
-        "/u/test-payment-complete",
         "/orders",
         "/bot-orders",
         "/orders/give-license",
@@ -4272,7 +4286,7 @@ def ss_security_level3_gatekeeper():
     if path == "/u/activate-license-request" and request.method == "POST":
         try:
             username = str(session.get("username") or session.get("user") or "Giriş yapan kullanıcı")
-            plan = str(request.form.get("plan", "pro_yearly")).strip()
+            plan = str(request.form.get("plan", "starter_monthly")).strip()
             if _ss_duplicate_payment_request_exists(username, plan, window_seconds=3600):
                 return "Bu paket için bekleyen aktivasyon talebiniz zaten var.", 429
         except Exception:
@@ -4404,31 +4418,20 @@ def ss_security_level4_headers(response):
 
 
 # ===== SPAMSHIELD LEGAL CONTRACT ROUTES START =====
-@app.route("/u/terms")
-def ss_terms_page():
+@app.route("/u/terms-legacy-disabled")
+def ss_terms_page_legacy_disabled():
     return render_template("terms.html")
 
-@app.route("/u/privacy")
-def ss_privacy_page():
+@app.route("/u/privacy-legacy-disabled")
+def ss_privacy_page_legacy_disabled():
     return render_template("privacy.html")
 
-@app.route("/u/refund")
-def ss_refund_page():
+@app.route("/u/refund-legacy-disabled")
+def ss_refund_page_legacy_disabled():
     return render_template("refund.html")
 # ===== SPAMSHIELD LEGAL CONTRACT ROUTES END =====
 
 
-if __name__ == "__main__":
-    load_users()
-    load_settings()
-    if not os.path.exists(LICENSES_FILE):
-        save_licenses({})
-    port = int(os.environ.get("PORT", 5000))
-local_debug = os.environ.get("FLASK_DEBUG", "0") == "1"
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
-
-app.run(host="0.0.0.0", port=8080)
 # -----------------------
 # PASSWORD RESET
 # -----------------------
@@ -4498,12 +4501,9 @@ def admin_whitelist_legacy():
 
 
 
-@app.route("/license")
-def license_page_2():
-    # ---- DYNAMIC PREMIUM STATE ----
-    premium_status = 'trial'
-    days_left = 5
-    return "<h2>License Page (yakında)</h2>"
+@app.route("/license-legacy-disabled")
+def license_page_2_legacy_disabled():
+    return redirect("/u/license")
 
 def protection_page_2_disabled():
     return "<h2>Protection (yakında)</h2>"
@@ -4765,23 +4765,23 @@ def my_license():
 
 
 # ===== RADIAL ALIAS ROUTES =====
-@app.route("/setting")
-def setting_alias():
+@app.route("/setting-alias-legacy-disabled")
+def setting_alias_legacy_disabled():
     # ---- DYNAMIC PREMIUM STATE ----
     premium_status = 'trial'
     days_left = 5
     return redirect("/settings")
 
-@app.route("/alerts")
-def alerts_alias():
+@app.route("/alerts-alias-legacy-disabled")
+def alerts_alias_legacy_disabled():
     # ---- DYNAMIC PREMIUM STATE ----
     premium_status = 'trial'
     days_left = 5
     return redirect("/notifications")
 
-@app.route("/analytic")
-@app.route("/analytics")
-def analytics_alias():
+@app.route("/analytic-alias-legacy-disabled")
+@app.route("/analytics-alias-legacy-disabled")
+def analytics_alias_legacy_disabled():
     # ---- DYNAMIC PREMIUM STATE ----
     premium_status = 'trial'
     days_left = 5
@@ -4801,5 +4801,149 @@ def block_alias():
 @app.route("/u/test-payment-complete", methods=["GET", "POST"])
 def user_test_payment_complete_hardcore():
     username = _current_username_hardcore()
-    _activate_premium_hardcore(username=username, plan=request.args.get("plan", "pro"))
+    _activate_premium_hardcore(username=username, plan=request.args.get("plan", "starter_monthly"))
     return redirect("/u/payment-success")
+
+
+# ===== SPAMSHIELD USER RADIAL PREVIEW DEV ONLY START =====
+@app.route("/dev/radial-user-preview")
+def ss_dev_radial_user_preview():
+    if os.environ.get("FLASK_DEBUG", "0") != "1":
+        return "Not Found", 404
+    return render_template("radial_menu.html")
+# ===== SPAMSHIELD USER RADIAL PREVIEW DEV ONLY END =====
+
+
+# ===== SPAMSHIELD ADMIN RADIAL PREVIEW DEV ONLY START =====
+@app.route("/dev/admin-radial-preview")
+def ss_dev_admin_radial_preview():
+    if os.environ.get("FLASK_DEBUG", "0") != "1":
+        return "Not Found", 404
+    return render_template("admin_dashboard.html")
+# ===== SPAMSHIELD ADMIN RADIAL PREVIEW DEV ONLY END =====
+
+
+# ===== SPAMSHIELD HIDDEN ADMIN LOGIN START =====
+@app.route("/ss-admin-access", methods=["GET", "POST"])
+def ss_hidden_admin_access():
+    try:
+        from werkzeug.security import check_password_hash
+    except Exception:
+        check_password_hash = globals().get("check_password_hash")
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
+
+        users = load_users()
+        user = users.get(username)
+
+        valid = False
+        if username == "admin" and isinstance(user, dict):
+            stored_hash = user.get("password_hash", "")
+            stored_plain = user.get("password", "")
+
+            if stored_hash and check_password_hash:
+                valid = check_password_hash(stored_hash, password)
+            elif stored_plain:
+                valid = stored_plain == password
+
+        if valid:
+            session["logged_in"] = True
+            session["username"] = "admin"
+            session["role"] = "admin"
+            session["is_admin"] = True
+            return redirect("/admin/dashboard")
+
+        return render_template("admin_login.html", error="Yetkisiz admin erişimi reddedildi.")
+
+    return render_template("admin_login.html", error="")
+# ===== SPAMSHIELD HIDDEN ADMIN LOGIN END =====
+
+
+# ===== SPAMSHIELD ADMIN SYSTEM PAGE START =====
+@app.route("/admin/system")
+def ss_admin_system_page():
+    if not _ss_is_admin_session():
+        return redirect("/ss-admin-access")
+
+    import sys
+    from pathlib import Path
+
+    users_state = "VAR" if Path("data/users.json").exists() else "YOK"
+    licenses_state = "VAR" if Path("data/licenses.json").exists() else "YOK"
+    settings_state = "VAR" if Path("data/settings.json").exists() else "RUNTIME"
+
+    mode = "DEBUG" if os.environ.get("FLASK_DEBUG", "0") == "1" else "PRODUCTION"
+    debug_state = "AÇIK" if os.environ.get("FLASK_DEBUG", "0") == "1" else "KAPALI"
+
+    return render_template(
+        "admin_system.html",
+        users_state=users_state,
+        licenses_state=licenses_state,
+        settings_state=settings_state,
+        mode=mode,
+        debug_state=debug_state,
+        python_version=sys.version.split()[0],
+    )
+# ===== SPAMSHIELD ADMIN SYSTEM PAGE END =====
+
+
+
+# ===== SPAMSHIELD MOBILE APP START ROUTES START =====
+@app.route("/app-start")
+def ss_mobile_user_app_start():
+    """
+    Kullanıcı mobil uygulaması giriş köprüsü.
+    Normal kullanıcı APK/AAB bu URL ile başlar.
+    """
+    try:
+        if session.get("logged_in"):
+            return redirect("/radial")
+    except Exception:
+        pass
+    return redirect("/login")
+
+
+@app.route("/admin-app-start")
+def ss_mobile_admin_app_start():
+    """
+    Admin mobil uygulaması giriş köprüsü.
+    Admin APK/AAB bu URL ile başlar.
+    """
+    try:
+        if session.get("logged_in") and (
+            session.get("is_admin") or session.get("role") == "admin" or session.get("username") == "admin"
+        ):
+            return redirect("/admin")
+    except Exception:
+        pass
+    return redirect("/ss-admin-access")
+# ===== SPAMSHIELD MOBILE APP START ROUTES END =====
+
+
+
+# ===== SPAMSHIELD SAFE ADMIN MOBILE APP START ROUTE START =====
+@app.route("/ss-admin-app-start")
+def ss_safe_mobile_admin_app_start():
+    """
+    Admin mobil uygulaması güvenli giriş köprüsü.
+    /admin prefix'i kullanmaz; mevcut admin guard ile çakışmaz.
+    """
+    try:
+        if session.get("logged_in") and (
+            session.get("is_admin") or session.get("role") == "admin" or session.get("username") == "admin"
+        ):
+            return redirect("/admin")
+    except Exception:
+        pass
+    return redirect("/ss-admin-access")
+# ===== SPAMSHIELD SAFE ADMIN MOBILE APP START ROUTE END =====
+
+if __name__ == "__main__":
+    load_users()
+    load_settings()
+    if not os.path.exists(LICENSES_FILE):
+        save_licenses({})
+    local_debug = os.environ.get("FLASK_DEBUG", "0") == "1"
+    app.run(host="0.0.0.0", port=8080, debug=local_debug)
