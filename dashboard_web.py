@@ -2413,3 +2413,33 @@ if "ss_live_admin_all_slice_catchall" in app.view_functions:
 
     app.view_functions["ss_live_admin_all_slice_catchall"] = _ss_fast_admin_catchall
 # ===== SPAMSHIELD FAST ADMIN SLICE PAGES END =====
+
+# ===== SPAMSHIELD FINAL SESSION SECRET LOCK START =====
+try:
+    import os as _ss_final_os
+    from pathlib import Path as _ss_final_Path
+
+    _ss_final_secret_file = _ss_final_Path("data/.spamshield_secret_key")
+    _ss_final_secret_file.parent.mkdir(parents=True, exist_ok=True)
+
+    if not _ss_final_secret_file.exists():
+        _ss_final_secret_file.write_text(
+            "spamshield-final-stable-session-secret-2026-admin-mobile",
+            encoding="utf-8"
+        )
+
+    app.secret_key = (
+        _ss_final_os.environ.get("FLASK_SECRET_KEY")
+        or _ss_final_os.environ.get("SECRET_KEY")
+        or _ss_final_os.environ.get("SPAMSHIELD_SECRET_KEY")
+        or _ss_final_secret_file.read_text(encoding="utf-8").strip()
+        or "spamshield-final-stable-session-secret-2026-admin-mobile"
+    )
+    app.config["SECRET_KEY"] = app.secret_key
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+except Exception:
+    app.secret_key = "spamshield-final-stable-session-secret-2026-admin-mobile"
+    app.config["SECRET_KEY"] = app.secret_key
+# ===== SPAMSHIELD FINAL SESSION SECRET LOCK END =====
+
