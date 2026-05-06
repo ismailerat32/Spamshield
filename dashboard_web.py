@@ -2964,3 +2964,38 @@ try:
 except Exception:
     pass
 # ===== SPAMSHIELD USER SETTINGS OVERRIDE FINAL END =====
+
+# ===== SPAMSHIELD REMOVE USER RADIAL KEEP CARD HOME START =====
+def _ss_user_card_home_locked_response():
+    resp = _ss_user_home_final()
+    try:
+        resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        resp.headers["Pragma"] = "no-cache"
+        resp.headers["Expires"] = "0"
+    except Exception:
+        pass
+    return resp
+
+# User tarafında radial/radial-menu/radial-demo dahil tüm eski kullanıcı ana ekranlarını kartlı ekrana kilitle.
+try:
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule) in [
+            "/radial",
+            "/radial-menu",
+            "/radial-demo",
+            "/dashboard",
+            "/home",
+            "/user",
+            "/main",
+            "/u/home",
+            "/u/dashboard"
+        ]:
+            app.view_functions[_rule.endpoint] = _ss_user_card_home_locked_response
+except Exception:
+    pass
+
+# Bazı route'lar hiç yoksa burada da garanti alias ver.
+@app.route("/u/home-final")
+def ss_user_card_home_final_alias():
+    return _ss_user_card_home_locked_response()
+# ===== SPAMSHIELD REMOVE USER RADIAL KEEP CARD HOME END =====
