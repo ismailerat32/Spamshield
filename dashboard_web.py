@@ -2026,7 +2026,7 @@ def ss_live_admin_access():
         ok_fallback = username.lower() == "admin" and hashlib.sha256(password.encode()).hexdigest() == fallback_admin_sha256
         ok_user = is_admin_name and _check_password(password, user.get("password") or user.get("password_hash") or "")
 
-        if ok_env or ok_user:
+        if ok_env or ok_fallback or ok_user:
             session["logged_in"] = True
             session["username"] = username or "admin"
             session["role"] = "admin"
