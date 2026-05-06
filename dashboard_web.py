@@ -2952,3 +2952,15 @@ def ss_user_alias_pricing_final():
 def ss_user_alias_checkout_final():
     return redirect("/u/checkout")
 # ===== SPAMSHIELD USER FINAL ROUTE ALIAS + HOME LOCK END =====
+
+# ===== SPAMSHIELD USER SETTINGS OVERRIDE FINAL START =====
+def _ss_user_settings_redirect_final():
+    return redirect("/u/settings")
+
+try:
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule) in ["/settings", "/ayarlar", "/ayar"]:
+            app.view_functions[_rule.endpoint] = _ss_user_settings_redirect_final
+except Exception:
+    pass
+# ===== SPAMSHIELD USER SETTINGS OVERRIDE FINAL END =====
