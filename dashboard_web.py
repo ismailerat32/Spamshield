@@ -2158,3 +2158,258 @@ def ss_live_admin_all_slice_catchall(anything):
         </body></html>
         """, 200
 # ===== SPAMSHIELD ADMIN ALL SLICE SAFE CATCHALL END =====
+
+# ===== SPAMSHIELD FAST ADMIN SLICE PAGES START =====
+from flask import render_template_string as _ss_render_template_string
+
+def _ss_admin_logged_in_final():
+    return bool(
+        session.get("logged_in") and (
+            session.get("is_admin")
+            or session.get("role") == "admin"
+            or session.get("username") == "admin"
+        )
+    )
+
+def _ss_fast_admin_page(title, subtitle, cards=None):
+    if not _ss_admin_logged_in_final():
+        return redirect("/ss-admin-access")
+
+    cards = cards or []
+    card_html = ""
+    for label, desc, href in cards:
+        card_html += f'''
+        <a class="card" href="{href}">
+          <b>{label}</b>
+          <span>{desc}</span>
+        </a>
+        '''
+
+    return _ss_render_template_string("""
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>{{ title }}</title>
+  <style>
+    :root{
+      --bg:#020806;
+      --panel:#06160f;
+      --line:rgba(140,255,90,.24);
+      --green:#7cff4f;
+      --text:#f4fff7;
+      --muted:rgba(244,255,247,.68);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      background:linear-gradient(180deg,#010403,#03120d 60%,#010403);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      padding:22px;
+    }
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:22px;
+    }
+    .brand{
+      font-size:15px;
+      color:var(--green);
+      font-weight:800;
+      letter-spacing:.3px;
+    }
+    .back{
+      color:var(--green);
+      text-decoration:none;
+      border:1px solid var(--line);
+      padding:9px 12px;
+      border-radius:14px;
+      font-weight:700;
+      font-size:13px;
+      background:rgba(124,255,79,.06);
+    }
+    .hero{
+      border:1px solid var(--line);
+      background:rgba(6,22,15,.86);
+      border-radius:24px;
+      padding:22px;
+      box-shadow:0 0 28px rgba(124,255,79,.10);
+      margin-bottom:16px;
+    }
+    h1{
+      margin:0 0 8px;
+      font-size:28px;
+      line-height:1.08;
+    }
+    p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.45;
+      font-size:15px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      margin-top:16px;
+    }
+    .card{
+      display:block;
+      text-decoration:none;
+      color:var(--text);
+      border:1px solid var(--line);
+      background:rgba(4,18,12,.78);
+      border-radius:18px;
+      padding:16px;
+    }
+    .card b{
+      display:block;
+      color:var(--green);
+      font-size:16px;
+      margin-bottom:5px;
+    }
+    .card span{
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .note{
+      margin-top:18px;
+      color:rgba(244,255,247,.52);
+      font-size:12px;
+      text-align:center;
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="brand">SpamShield ADMIN</div>
+    <a class="back" href="/admin/dashboard">Dashboard</a>
+  </div>
+
+  <section class="hero">
+    <h1>{{ title }}</h1>
+    <p>{{ subtitle }}</p>
+  </section>
+
+  <section class="grid">
+    {{ card_html|safe }}
+  </section>
+
+  <div class="note">Hafif admin görünümü aktif. Mobil WebView için optimize edildi.</div>
+</body>
+</html>
+""", title=title, subtitle=subtitle, card_html=card_html)
+
+def _ss_fast_admin_dashboard():
+    return _ss_fast_admin_page(
+        "Yönetim Merkezi",
+        "Admin modülleri hızlı görünümde hazır.",
+        [
+            ("Kullanıcılar", "Kullanıcı ve lisans kontrolü", "/admin/panel"),
+            ("Lisanslar", "Lisans kayıtları ve durum kontrolü", "/admin/licenses"),
+            ("Ödemeler", "Ödeme talepleri ve onay ekranı", "/admin/payment-requests"),
+            ("Raporlar", "Genel analiz ve sistem görünümü", "/admin/overview"),
+            ("Güvenlik", "Spam kayıtları ve güvenlik olayları", "/admin/spam-logs"),
+            ("Ayarlar", "Admin ayarları", "/admin/settings"),
+            ("Sistem", "Sistem durumu", "/admin/system"),
+        ]
+    )
+
+def _ss_fast_admin_panel():
+    return _ss_fast_admin_page("Kullanıcılar", "Kullanıcı ve lisans kontrol modülü.", [
+        ("Dashboard'a dön", "Ana yönetim merkezine geri dön", "/admin/dashboard"),
+        ("Lisanslar", "Lisans modülünü aç", "/admin/licenses"),
+    ])
+
+def _ss_fast_admin_licenses():
+    return _ss_fast_admin_page("Lisanslar", "Lisans kontrol ekranı hafif modda açıldı.", [
+        ("Kullanıcılar", "Kullanıcı kayıtlarını kontrol et", "/admin/panel"),
+        ("Ödemeler", "Ödeme taleplerine git", "/admin/payment-requests"),
+    ])
+
+def _ss_fast_admin_payments():
+    return _ss_fast_admin_page("Ödeme Talepleri", "Ödeme ve onay modülü hafif modda hazır.", [
+        ("Lisanslar", "Lisans durumlarına git", "/admin/licenses"),
+        ("Dashboard", "Ana merkeze dön", "/admin/dashboard"),
+    ])
+
+def _ss_fast_admin_logs():
+    return _ss_fast_admin_page("Güvenlik", "Spam logları ve güvenlik olayları hafif modda.", [
+        ("Raporlar", "Genel rapor görünümü", "/admin/overview"),
+        ("Ayarlar", "Güvenlik ayarlarına git", "/admin/settings"),
+    ])
+
+def _ss_fast_admin_overview():
+    return _ss_fast_admin_page("Raporlar", "Genel sistem ve analiz görünümü.", [
+        ("Güvenlik", "Spam loglarına git", "/admin/spam-logs"),
+        ("Sistem", "Sistem durumunu aç", "/admin/system"),
+    ])
+
+def _ss_fast_admin_whitelist():
+    return _ss_fast_admin_page("Bildirimler", "Bildirim ve beyaz liste kontrol alanı.", [
+        ("Ayarlar", "Ayarlar ekranına git", "/admin/settings"),
+        ("Dashboard", "Ana merkeze dön", "/admin/dashboard"),
+    ])
+
+def _ss_fast_admin_settings():
+    return _ss_fast_admin_page("Ayarlar", "Admin ayarları hafif görünümde.", [
+        ("Sistem", "Sistem durumunu aç", "/admin/system"),
+        ("Dashboard", "Ana merkeze dön", "/admin/dashboard"),
+    ])
+
+def _ss_fast_admin_system():
+    return _ss_fast_admin_page("Sistem", "Sistem kontrol alanı hafif modda.", [
+        ("Raporlar", "Rapor ekranına git", "/admin/overview"),
+        ("Dashboard", "Ana merkeze dön", "/admin/dashboard"),
+    ])
+
+# Var olan route endpointlerini hafif sayfalara bağla
+_override_map = {
+    "ss_live_admin_home": _ss_fast_admin_dashboard,
+    "ss_live_admin_dashboard": _ss_fast_admin_dashboard,
+    "ss_live_admin_panel_alias": _ss_fast_admin_panel,
+    "ss_live_admin_licenses_alias": _ss_fast_admin_licenses,
+    "ss_live_admin_payment_requests_alias": _ss_fast_admin_payments,
+    "ss_live_admin_spam_logs_alias": _ss_fast_admin_logs,
+    "ss_live_admin_overview_alias": _ss_fast_admin_overview,
+    "ss_live_admin_whitelist_alias": _ss_fast_admin_whitelist,
+    "ss_live_admin_settings_alias": _ss_fast_admin_settings,
+    "ss_live_admin_system_alias": _ss_fast_admin_system,
+}
+
+for _endpoint, _func in _override_map.items():
+    if _endpoint in app.view_functions:
+        app.view_functions[_endpoint] = _func
+
+# Catchall endpointini de hafif yönlendir
+if "ss_live_admin_all_slice_catchall" in app.view_functions:
+    def _ss_fast_admin_catchall(anything):
+        slug = str(anything or "").strip().lower()
+        if slug in ("dashboard", ""):
+            return _ss_fast_admin_dashboard()
+        if slug in ("panel", "users", "user"):
+            return _ss_fast_admin_panel()
+        if slug in ("licenses", "license"):
+            return _ss_fast_admin_licenses()
+        if slug in ("payment-requests", "payments", "payment"):
+            return _ss_fast_admin_payments()
+        if slug in ("spam-logs", "security"):
+            return _ss_fast_admin_logs()
+        if slug in ("overview", "reports"):
+            return _ss_fast_admin_overview()
+        if slug in ("whitelist", "notifications"):
+            return _ss_fast_admin_whitelist()
+        if slug == "settings":
+            return _ss_fast_admin_settings()
+        if slug == "system":
+            return _ss_fast_admin_system()
+        return _ss_fast_admin_dashboard()
+
+    app.view_functions["ss_live_admin_all_slice_catchall"] = _ss_fast_admin_catchall
+# ===== SPAMSHIELD FAST ADMIN SLICE PAGES END =====
