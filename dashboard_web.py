@@ -2588,3 +2588,367 @@ def _ss_admin_access_cookie_override():
 if "ss_live_admin_access" in app.view_functions:
     app.view_functions["ss_live_admin_access"] = _ss_admin_access_cookie_override
 # ===== SPAMSHIELD ADMIN SIGNED COOKIE FALLBACK END =====
+
+# ===== SPAMSHIELD USER FINAL ROUTE ALIAS + HOME LOCK START =====
+from flask import render_template_string as _ss_user_render_template_string
+
+def _ss_user_logged_in_final():
+    return bool(session.get("logged_in") and session.get("username"))
+
+def _ss_user_require_login_redirect():
+    if not _ss_user_logged_in_final():
+        return redirect("/login")
+    return None
+
+def _ss_user_home_final():
+    need = _ss_user_require_login_redirect()
+    if need:
+        return need
+
+    username = session.get("username", "kullanıcı")
+
+    return _ss_user_render_template_string("""
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>SpamShield PRO</title>
+  <style>
+    :root{
+      --bg:#020806;
+      --panel:#06170f;
+      --panel2:#092519;
+      --line:rgba(35,255,137,.24);
+      --green:#20ff88;
+      --green2:#8cff5a;
+      --text:#f5fff8;
+      --muted:rgba(245,255,248,.68);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 50% 10%,rgba(32,255,136,.18),transparent 30%),
+        radial-gradient(circle at 80% 80%,rgba(140,255,90,.12),transparent 28%),
+        linear-gradient(180deg,#010403,#03150d 55%,#010403);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      padding:22px;
+      overflow-x:hidden;
+    }
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:18px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .logo{
+      width:68px;
+      height:68px;
+      border-radius:24px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(145deg,rgba(32,255,136,.2),rgba(32,255,136,.04));
+      border:1px solid var(--line);
+      box-shadow:0 0 24px rgba(32,255,136,.16);
+      font-size:35px;
+    }
+    h1{
+      margin:0;
+      font-size:36px;
+      line-height:1;
+      letter-spacing:-1px;
+    }
+    h1 span{color:var(--green2)}
+    .sub{
+      margin-top:6px;
+      color:var(--muted);
+      font-weight:700;
+      font-size:15px;
+    }
+    .badge{
+      color:var(--green);
+      border:1px solid var(--line);
+      background:rgba(32,255,136,.08);
+      border-radius:999px;
+      padding:12px 15px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .hero{
+      border:1px solid var(--line);
+      background:linear-gradient(145deg,rgba(7,31,20,.94),rgba(3,14,9,.88));
+      border-radius:30px;
+      padding:26px;
+      box-shadow:0 20px 50px rgba(0,0,0,.35), inset 0 0 45px rgba(32,255,136,.04);
+      margin-bottom:22px;
+    }
+    .hero h2{
+      margin:0 0 14px;
+      font-size:38px;
+      line-height:1.08;
+      letter-spacing:-1px;
+    }
+    .hero h2 span{color:var(--green)}
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      font-size:18px;
+      line-height:1.45;
+      font-weight:700;
+    }
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+      margin-top:22px;
+    }
+    .stat{
+      border:1px solid rgba(32,255,136,.16);
+      background:rgba(0,0,0,.18);
+      border-radius:22px;
+      padding:16px 10px;
+      text-align:center;
+    }
+    .stat b{
+      color:var(--green);
+      display:block;
+      font-size:28px;
+      line-height:1;
+    }
+    .stat span{
+      color:var(--muted);
+      display:block;
+      margin-top:9px;
+      font-weight:800;
+      font-size:13px;
+    }
+    .section{
+      margin:24px 0 14px;
+      letter-spacing:10px;
+      font-weight:1000;
+      font-size:23px;
+    }
+    .bar{
+      width:126px;
+      height:8px;
+      border-radius:999px;
+      background:linear-gradient(90deg,var(--green),var(--green2));
+      margin-bottom:18px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+    }
+    .card{
+      min-height:150px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      text-decoration:none;
+      color:var(--text);
+      border:1px solid var(--line);
+      background:linear-gradient(145deg,rgba(8,35,23,.96),rgba(2,13,8,.9));
+      border-radius:26px;
+      padding:18px;
+      box-shadow:0 14px 34px rgba(0,0,0,.25);
+    }
+    .icon{
+      width:58px;
+      height:58px;
+      border-radius:18px;
+      display:grid;
+      place-items:center;
+      background:rgba(32,255,136,.10);
+      border:1px solid rgba(32,255,136,.18);
+      font-size:31px;
+    }
+    .pill{
+      align-self:flex-end;
+      margin-top:-58px;
+      color:#8affb1;
+      border:1px solid rgba(32,255,136,.24);
+      background:rgba(32,255,136,.10);
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:13px;
+      font-weight:900;
+    }
+    .card h3{
+      margin:18px 0 4px;
+      font-size:25px;
+      line-height:1.05;
+    }
+    .card p{
+      margin:0;
+      color:var(--muted);
+      font-weight:800;
+      font-size:14px;
+      line-height:1.35;
+    }
+    .foot{
+      text-align:center;
+      color:rgba(245,255,248,.42);
+      font-weight:700;
+      padding:28px 0 10px;
+      font-size:13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="brand">
+      <div class="logo">🛡️</div>
+      <div>
+        <h1>Spam<span>Shield</span></h1>
+        <div class="sub">Pro güvenlik merkezi</div>
+      </div>
+    </div>
+    <div class="badge">👑 PRO AKTİF</div>
+  </div>
+
+  <section class="hero">
+    <h2>Kontrol sende,<br><span>koruma aktif.</span></h2>
+    <p>AI spam analizi, lisans, raporlar ve güvenlik modülleri tek ekranda.</p>
+    <div class="stats">
+      <div class="stat"><b>8</b><span>Modül</span></div>
+      <div class="stat"><b>92</b><span>Skor</span></div>
+      <div class="stat"><b>AI</b><span>Aktif</span></div>
+    </div>
+  </section>
+
+  <div class="section">MODÜLLER</div>
+  <div class="bar"></div>
+
+  <main class="grid">
+    <a class="card" href="/u/protection">
+      <div class="icon">🛡️</div><div class="pill">Aktif</div>
+      <h3>Koruma</h3><p>SMS tarama ve güvenlik motoru</p>
+    </a>
+
+    <a class="card" href="/u/reports">
+      <div class="icon">📈</div><div class="pill">Hazır</div>
+      <h3>Rapor</h3><p>Günlük ve haftalık özetler</p>
+    </a>
+
+    <a class="card" href="/u/blocked">
+      <div class="icon">⛔</div><div class="pill">17</div>
+      <h3>Engel</h3><p>Spam kayıtları ve blok listesi</p>
+    </a>
+
+    <a class="card" href="/u/analysis">
+      <div class="icon">🔍</div><div class="pill">AI</div>
+      <h3>Analiz</h3><p>Risk ve mesaj analizi</p>
+    </a>
+
+    <a class="card" href="/u/notifications">
+      <div class="icon">🔔</div><div class="pill">Açık</div>
+      <h3>Bildirim</h3><p>Güvenlik uyarıları</p>
+    </a>
+
+    <a class="card" href="/u/license">
+      <div class="icon">🔑</div><div class="pill">Pro</div>
+      <h3>Lisans</h3><p>Premium hesap durumu</p>
+    </a>
+
+    <a class="card" href="/u/settings">
+      <div class="icon">⚙️</div><div class="pill">Ayar</div>
+      <h3>Ayarlar</h3><p>Koruma ve tercih yönetimi</p>
+    </a>
+
+    <a class="card" href="/u/community">
+      <div class="icon">👥</div><div class="pill">Beta</div>
+      <h3>Topluluk</h3><p>Geri bildirim ve paylaşım</p>
+    </a>
+  </main>
+
+  <div class="foot">SpamShield PRO · {{ username }} · © 2026</div>
+</body>
+</html>
+""", username=username)
+
+# /radial endpointini temiz kartlı kullanıcı ana ekranına kilitle
+try:
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule) == "/radial":
+            app.view_functions[_rule.endpoint] = _ss_user_home_final
+except Exception:
+    pass
+
+# Eski / çıplak kullanıcı yolları doğru /u/... sayfalarına yönlendir
+@app.route("/dashboard")
+@app.route("/home")
+@app.route("/user")
+@app.route("/main")
+def ss_user_alias_home_final():
+    return _ss_user_home_final()
+
+@app.route("/protection")
+@app.route("/koruma")
+def ss_user_alias_protection_final():
+    return redirect("/u/protection")
+
+@app.route("/reports")
+@app.route("/report")
+@app.route("/rapor")
+@app.route("/raporlar")
+def ss_user_alias_reports_final():
+    return redirect("/u/reports")
+
+@app.route("/blocked")
+@app.route("/block")
+@app.route("/engel")
+@app.route("/engellenenler")
+def ss_user_alias_blocked_final():
+    return redirect("/u/blocked")
+
+@app.route("/analysis")
+@app.route("/analyze")
+@app.route("/analiz")
+def ss_user_alias_analysis_final():
+    return redirect("/u/analysis")
+
+@app.route("/notifications")
+@app.route("/notification")
+@app.route("/bildirim")
+@app.route("/bildirimler")
+def ss_user_alias_notifications_final():
+    return redirect("/u/notifications")
+
+@app.route("/settings")
+@app.route("/ayarlar")
+@app.route("/ayar")
+def ss_user_alias_settings_final():
+    return redirect("/u/settings")
+
+@app.route("/community")
+@app.route("/topluluk")
+def ss_user_alias_community_final():
+    return redirect("/u/community")
+
+@app.route("/license")
+@app.route("/lisans")
+def ss_user_alias_license_final():
+    return redirect("/u/license")
+
+@app.route("/pricing")
+@app.route("/packages")
+@app.route("/paketler")
+def ss_user_alias_pricing_final():
+    return redirect("/u/pricing")
+
+@app.route("/checkout")
+@app.route("/payment")
+@app.route("/odeme")
+def ss_user_alias_checkout_final():
+    return redirect("/u/checkout")
+# ===== SPAMSHIELD USER FINAL ROUTE ALIAS + HOME LOCK END =====
