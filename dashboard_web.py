@@ -2109,3 +2109,52 @@ def ss_live_admin_dashboard():
 def ss_live_version_probe():
     return "SpamShield live: dashboard_web admin routes active 2026-05-05", 200
 # ===== SPAMSHIELD LIVE ADMIN APK ROUTES END =====
+
+# ===== SPAMSHIELD ADMIN ALL SLICE SAFE CATCHALL START =====
+@app.route("/admin/<path:anything>", methods=["GET", "POST"])
+def ss_live_admin_all_slice_catchall(anything):
+    # Admin session yoksa admin girişe dön
+    if not (
+        session.get("logged_in") and (
+            session.get("is_admin")
+            or session.get("role") == "admin"
+            or session.get("username") == "admin"
+        )
+    ):
+        return redirect("/ss-admin-access")
+
+    slug = str(anything or "").strip().lower()
+
+    template_map = {
+        "dashboard": ("admin_dashboard.html", {}),
+        "panel": ("admin_panel.html", {"users": [], "upgrade_requests": []}),
+        "users": ("admin_panel.html", {"users": [], "upgrade_requests": []}),
+        "licenses": ("admin_licenses.html", {}),
+        "license": ("admin_licenses.html", {}),
+        "payment-requests": ("admin_payment_requests.html", {"requests": []}),
+        "payments": ("admin_payment_requests.html", {"requests": []}),
+        "spam-logs": ("admin_spam_logs.html", {"spam_logs": []}),
+        "security": ("admin_spam_logs.html", {"spam_logs": []}),
+        "overview": ("admin_overview.html", {"stats": {}, "recent_logs": []}),
+        "reports": ("admin_overview.html", {"stats": {}, "recent_logs": []}),
+        "whitelist": ("whitelist.html", {"whitelist": []}),
+        "notifications": ("whitelist.html", {"whitelist": []}),
+        "settings": ("admin_settings.html", {"settings": {}}),
+        "system": ("admin_system.html", {}),
+    }
+
+    tpl, ctx = template_map.get(slug, ("admin_dashboard.html", {}))
+
+    try:
+        return render_template(tpl, **ctx)
+    except Exception as e:
+        return f"""
+        <html><head><meta charset="UTF-8"><title>SpamShield ADMIN</title></head>
+        <body style="background:#020806;color:white;font-family:Arial;padding:24px;">
+          <h2>SpamShield ADMIN</h2>
+          <p>Bu admin bölümü hazırlanıyor: <b>{slug}</b></p>
+          <p style="opacity:.7">Detay: {e}</p>
+          <p><a style="color:#8cff5a" href="/admin/dashboard">Admin Dashboard'a dön</a></p>
+        </body></html>
+        """, 200
+# ===== SPAMSHIELD ADMIN ALL SLICE SAFE CATCHALL END =====
