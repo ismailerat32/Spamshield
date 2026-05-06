@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+
+<style>
+body{
+  margin:0;
+  font-family:sans-serif;
+  color:#eafff4;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(0,255,120,.15), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(0,255,120,.1), transparent 40%),
+    #02140a;
+}
+
+/* HEADER */
+.header{padding:20px;}
+.header h1{margin:0;font-size:26px;}
+.header p{opacity:.7;margin-top:6px;}
+
+/* HERO */
+.hero{
+  margin:15px;
+  padding:20px;
+  border-radius:20px;
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(145deg, rgba(10,40,20,.85), rgba(0,0,0,.35));
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 0 30px rgba(0,255,120,.15), inset 0 0 20px rgba(0,255,120,.08);
+}
+.hero::before{
+  content:"";
+  position:absolute;
+  inset:-50%;
+  background:radial-gradient(circle, rgba(0,255,120,.2), transparent 70%);
+  animation: glowMove 6s linear infinite;
+}
+@keyframes glowMove{
+  0%{transform:translateX(-20%)}
+  50%{transform:translateX(20%)}
+  100%{transform:translateX(-20%)}
+}
+
+.hero-icon{
+  width:160px;height:160px;border-radius:50%;
+  margin:auto;display:flex;align-items:center;justify-content:center;
+  border:3px solid #59ff52;font-size:70px;
+  box-shadow:0 0 40px rgba(0,255,120,.6), inset 0 0 30px rgba(0,255,120,.2);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 30px rgba(0,255,120,.4)}
+  50%{box-shadow:0 0 70px rgba(0,255,120,.9)}
+  100%{box-shadow:0 0 30px rgba(0,255,120,.4)}
+}
+
+.hero-title{
+  text-align:center;font-size:40px;margin-top:15px;color:#00ff88;
+  text-shadow:0 0 10px #00ff88,0 0 25px #00ff88,0 0 45px rgba(0,255,120,.6);
+}
+.hero-sub{text-align:center;opacity:.7;margin-top:8px;}
+
+/* STATS */
+.stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  padding:15px;
+}
+.stat{
+  padding:16px;border-radius:18px;
+  background:linear-gradient(145deg, rgba(0,255,120,.08), rgba(0,0,0,.3));
+  border:1px solid rgba(0,255,120,.2);
+  backdrop-filter: blur(12px);
+  transition:.25s;
+}
+.stat:hover{transform:translateY(-4px);box-shadow:0 0 25px rgba(0,255,120,.25);}
+.stat h3{margin:0;font-size:14px;opacity:.7;}
+.stat strong{display:block;font-size:26px;margin-top:6px;}
+
+/* CARD */
+.card{
+  margin:15px;padding:16px;border-radius:20px;
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(145deg, rgba(10,40,20,.85), rgba(0,0,0,.35));
+  box-shadow:0 0 30px rgba(0,255,120,.08), inset 0 0 20px rgba(0,255,120,.06);
+  transition:.3s;
+}
+.card:hover{transform:translateY(-6px);box-shadow:0 0 35px rgba(0,255,120,.25);}
+
+/* LIST */
+.list div{
+  display:flex;justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+/* RINGS */
+.rings{
+  display:flex;
+  justify-content:space-around;
+  margin-top:15px;
+}
+.ring{
+  width:90px;height:90px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(#00ff88 var(--p), rgba(255,255,255,.12) 0);
+  animation:ringGlow 3s infinite alternate;
+}
+@keyframes ringGlow{
+  from{box-shadow:0 0 10px rgba(0,255,120,.3)}
+  to{box-shadow:0 0 35px rgba(0,255,120,.7)}
+}
+
+/* QUICK */
+.quick{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.quick a{
+  text-decoration:none;color:#eafff4;text-align:center;
+  padding:18px;border-radius:18px;
+  background:linear-gradient(145deg, rgba(0,255,120,.08), rgba(0,0,0,.25));
+  border:1px solid rgba(0,255,120,.25);
+  font-weight:600;transition:.25s;
+}
+.quick a:hover{
+  transform:translateY(-5px) scale(1.02);
+  background:rgba(0,255,120,.2);
+  box-shadow:0 0 25px rgba(0,255,120,.35);
+}
+
+/* FOOTER */
+.footer{
+  margin:20px;padding:15px;border-radius:18px;text-align:center;
+  font-weight:600;
+  background:rgba(0,255,120,.08);
+  box-shadow:0 0 20px rgba(0,255,120,.2);
+}
+
+
+
+
+
+/* 🔥 ULTRA PREMIUM STAT FINAL */
+
+.stat{
+  position:relative;
+  overflow:hidden;
+  transition:all .25s ease;
+}
+
+/* hafif neon glow */
+.stat::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:radial-gradient(circle at 50% 0%, rgba(0,255,120,.15), transparent 70%);
+  opacity:.6;
+}
+
+/* ultra subtle scan */
+.stat::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:60%;
+  height:100%;
+  background:linear-gradient(
+    120deg,
+    transparent,
+    rgba(0,255,120,.12),
+    transparent
+  );
+  transition:.6s;
+}
+
+.stat:hover::after{
+  left:120%;
+}
+
+.stat:hover{
+  transform:translateY(-5px) scale(1.02);
+  box-shadow:0 0 25px rgba(0,255,120,.25);
+}
+
+/* sayı glow */
+.stat strong{
+  text-shadow:0 0 10px rgba(0,255,120,.45);
+}
+
+
+/* 🔥 PREMIUM BUTTON SYSTEM */
+
+.actions button{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(0,255,120,.25);
+  background:linear-gradient(145deg, rgba(0,30,15,.7), rgba(0,0,0,.8));
+  color:#aaffcc;
+  border-radius:14px;
+  transition:.25s;
+}
+
+/* glow layer */
+.actions button::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:radial-gradient(circle at top, rgba(0,255,120,.25), transparent 70%);
+  opacity:.4;
+}
+
+/* scan effect */
+.actions button::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:60%;
+  height:100%;
+  background:linear-gradient(120deg, transparent, rgba(0,255,120,.25), transparent);
+  transition:.5s;
+}
+
+.actions button:hover::after{
+  left:120%;
+}
+
+.actions button:hover{
+  transform:translateY(-4px) scale(1.03);
+  box-shadow:0 0 25px rgba(0,255,120,.45);
+  color:#ffffff;
+}
+
+
+/* 🔥 CPU / RAM / PIL ANIMASYON */
+
+.circle{
+  animation: rotateGlow 6s linear infinite;
+}
+
+@keyframes rotateGlow{
+  0%{filter: drop-shadow(0 0 10px #00ff88)}
+  50%{filter: drop-shadow(0 0 25px #00ff88)}
+  100%{filter: drop-shadow(0 0 10px #00ff88)}
+}
+
+/* dolum animasyonu */
+.circle-fill{
+  transition: all 1s ease;
+}
+
+
+/* 🔥 PRO RING SYSTEM */
+
+.ring{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  position:relative;
+  background:conic-gradient(#00ff88 var(--val), rgba(255,255,255,0.08) 0);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  animation: ringGlow 3s infinite alternate;
+}
+
+.ring::before{
+  content:"";
+  position:absolute;
+  width:85px;
+  height:85px;
+  border-radius:50%;
+  background:#061b10;
+}
+
+.ring span{
+  position:relative;
+  font-weight:bold;
+  color:#00ff88;
+}
+
+@keyframes ringGlow{
+  from{box-shadow:0 0 10px #00ff88}
+  to{box-shadow:0 0 30px #00ff88}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>Merhaba, Admin 👋</h1>
+  <p>Sisteminiz güvende ve tüm korumalar aktif.</p>
+</div>
+
+<div class="hero">
+  <div class="hero-icon">✔️</div>
+  <div class="hero-title">KORUMA AKTİF</div>
+  <div class="hero-sub">SpamShield Pro tüm tehditlere karşı cihazınızı koruyor.</div>
+</div>
+
+<div class="stats">
+  <div class="stat"><h3>Engellenen Spam</h3><strong>2452</strong></div>
+  <div class="stat"><h3>Aramalar</h3><strong>312</strong></div>
+  <div class="stat"><h3>Tarama</h3><strong>1845</strong></div>
+  <div class="stat"><h3>Tehdit</h3><strong>98</strong></div>
+</div>
+
+<div class="card">
+  <h3>Koruma Katmanları</h3>
+  <div class="list">
+    <div><span>Reklam Engelleyici</span><span>✔</span></div>
+    <div><span>Kimlik Koruma</span><span>✔</span></div>
+    <div><span>Malware</span><span>✔</span></div>
+    <div><span>Arama</span><span>✔</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Sistem Kaynakları</h3>
+  <div class="rings">
+    <div class="ring" style="--p:23%;"><div class="ring" style="--val:23%"><span>23%</span></div><div style="margin-top:10px">CPU</div>
+    <div class="ring" style="--p:41%;"><div class="ring" style="--val:41%"><span>41%</span></div><div style="margin-top:10px">RAM</div>
+    <div class="ring" style="--p:67%;"><div class="ring" style="--val:67%"><span>67%</span></div><div style="margin-top:10px">PİL</div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Hızlı İşlemler</h3>
+  <div class="quick">
+    <a href="#">Tarama</a>
+    <a href="#">Tam Tarama</a>
+    <a href="#">Güncelle</a>
+    <a href="#">İzinler</a>
+  </div>
+</div>
+
+<div class="footer">
+  Premium ile farkı hissedin 🚀
+</div>
+
+</body>
+</html>

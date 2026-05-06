@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF•8">
+    <meta name="viewport" content="width=device•width, initial•scale=1.0">
+    <title>SpamShield Pro • Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font•awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font•family: 'Inter', sans•serif; }
+        .glass•card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop•filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .premium•gradient {
+            background: linear•gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .user•card {
+            transition: all 0.3s cubic•bezier(0.4, 0, 0.2, 1);
+        }
+        .user•card:hover { transform: translateY(•8px) scale(1.02); box•shadow: 0 20px 40px rgba(102,126,234,0.2);
+            transform: translateY(•8px);
+            box•shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .status•badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .user•card {
+            animation: fadeInUp 0.6s ease•out;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    
+        .stat•card {
+            transition: all 0.3s ease;
+        }
+        .stat•card:hover {
+            transform: translateY(•5px);
+        }
+        .btn•gradient {
+            background: linear•gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .btn•gradient:hover {
+            background: linear•gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        /* İstatistik kartlarını koruma */
+        .stat•card {
+            cursor: default !important;
+            user•select: none !important;
+            •webkit•user•select: none !important;
+            •moz•user•select: none !important;
+            •ms•user•select: none !important;
+            pointer•events: none !important;
+        }
+        
+        /* Kart içindeki butonları da koru */
+        .stat•card * {
+            pointer•events: none !important;
+        }
+        
+        /* Sadece hover efekti kalır */
+        .stat•card:hover {
+            transform: translateY(•5px) !important;
+        }
+
+        /* Tüm kartları koruma altına al */
+        .user-card, .stat-card, .glass-card {
+            cursor: default !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+        }
+        
+        /* Butonlar hariç her şeyi koru */
+        .user-card *:not(button):not(a) {
+            user-select: none !important;
+            pointer-events: none !important;
+        }
+        
+        /* Sadece butonlar tıklanabilir */
+        button, a {
+            cursor: pointer !important;
+            user-select: auto !important;
+            pointer-events: auto !important;
+        }
+        
+        /* Sayfa seçimini engelle */
+        body {
+            user-select: none !important;
+            -webkit-user-select: none !important;
+        }
+        
+        /* Input alanları hariç */
+        input, textarea {
+            user-select: auto !important;
+        }
+
+        /* Daha temiz görünüm */
+        .container {
+            max-width: 1280px;
+        }
+        
+        .user-card {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        /* Scrollbar özelleştirme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+    
+        /* Tam koruma */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        .stat-card, .user-card {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            pointer-events: none;
+        }
+        
+        button, a, input, textarea {
+            pointer-events: auto !important;
+        }
+
+    </style>
+</head>
+<body class="bg•gradient•to•br from•gray•50 via•gray•100 to•gray•200 min•h•screen">
+    
+            <!•• Header ••>
+    <div class="premium•gradient shadow•2xl">
+        <div class="container mx•auto px•6 py•4">
+            <div class="flex justify•between items•center">
+                <div class="flex items•center space•x•4">
+                    <div class="w•12 h•12 bg•white/20 rounded•xl flex items•center justify•center backdrop•blur•sm">
+                        <i class="fas fa•shield•alt text•2xl text•white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text•2xl font•bold text•white tracking•tight">
+                            SpamShield <span class="text•yellow•300">Pro</span>
+                        </h1>
+                        <p class="text•purple•100 text•xs">Yapay Zeka Destekli Koruma Sistemi</p>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="bg•white/10 backdrop•blur•sm rounded•xl px•4 py•2 cursor•pointer hover:bg•white/20 transition•all duration•300" onclick="toggleDropdown()">
+                        <div class="flex items•center space•x•3">
+                            <div class="w•8 h•8 bg•gradient•to•r from•yellow•400 to•yellow•500 rounded•full flex items•center justify•center">
+                                <i class="fas fa•user text•white text•sm"></i>
+                            </div>
+                            <div class="text•right">
+                                <p class="text•white font•semibold text•sm">{{ session.get('username', 'Admin') }}</p>
+                                <p class="text•purple•200 text•xs">Administrator</p>
+                            </div>
+                            <i class="fas fa•chevron•down text•white text•xs"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><div class="container mx•auto px•6 py•8">
+            <div class="flex justify•between items•center">
+                <div>
+                    <h1 class="text•3xl font•bold text•white mb•2">
+                        <i class="fas fa•shield•alt mr•3"></i>SpamShield Pro
+                    </h1>
+                    <p class="text•purple•100">Yapay Zeka Destekli Spam Koruma Sistemi</p>
+                </div>
+                <div class="text•right">
+                    <div class="bg•white/20 rounded•lg px•4 py•2">
+                        <i class="fas fa•user•circle text•white text•2xl"></i>
+                        <p class="text•white font•semibold mt•1">{{ session.get('username', 'Admin') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx•auto px•6 py•8">
+
+        <!•• Stats Cards • SABİT ve BELİRGİN ••>
+        <div class="grid grid•cols•1 md:grid•cols•2 lg:grid•cols•4 gap•6 mb•8">
+            <div class="stat•card bg•gradient•to•br from•purple•500 to•purple•700 rounded•2xl p•6 shadow•xl hover:shadow•2xl transition•all duration•300 cursor•default">
+                <div class="flex items•center justify•between">
+                    <div>
+                        <p class="text•purple•100 text•sm font•medium mb•1">Toplam Kullanıcı</p>
+                        <p class="text•4xl font•bold text•white mb•2">{{ users|length }}</p>
+                        <div class="flex items•center text•purple•200 text•xs">
+                            <i class="fas fa•chart•line mr•1"></i>
+                            <span>Sistemdeki tüm kullanıcılar</span>
+                        </div>
+                    </div>
+                    <div class="w•16 h•16 bg•white/20 rounded•2xl flex items•center justify•center backdrop•blur•sm">
+                        <i class="fas fa•users text•3xl text•white"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat•card bg•gradient•to•br from•green•500 to•green•700 rounded•2xl p•6 shadow•xl hover:shadow•2xl transition•all duration•300 cursor•default">
+                <div class="flex items•center justify•between">
+                    <div>
+                        <p class="text•green•100 text•sm font•medium mb•1">Aktif Kullanıcılar</p>
+                        <p class="text•4xl font•bold text•white mb•2">
+                            {{ users|selectattr('status', 'equalto', 'active')|list|length }}
+                        </p>
+                        <div class="flex items•center text•green•200 text•xs">
+                            <i class="fas fa•check•circle mr•1"></i>
+                            <span>Aktif durumdaki hesaplar</span>
+                        </div>
+                    </div>
+                    <div class="w•16 h•16 bg•white/20 rounded•2xl flex items•center justify•center backdrop•blur•sm">
+                        <i class="fas fa•user•check text•3xl text•white"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat•card bg•gradient•to•br from•orange•500 to•orange•700 rounded•2xl p•6 shadow•xl hover:shadow•2xl transition•all duration•300 cursor•default">
+                <div class="flex items•center justify•between">
+                    <div>
+                        <p class="text•orange•100 text•sm font•medium mb•1">Yöneticiler</p>
+                        <p class="text•4xl font•bold text•white mb•2">
+                            {{ users|selectattr('role', 'equalto', 'admin')|list|length }}
+                        </p>
+                        <div class="flex items•center text•orange•200 text•xs">
+                            <i class="fas fa•shield•alt mr•1"></i>
+                            <span>Admin yetkili kullanıcılar</span>
+                        </div>
+                    </div>
+                    <div class="w•16 h•16 bg•white/20 rounded•2xl flex items•center justify•center backdrop•blur•sm">
+                        <i class="fas fa•user•shield text•3xl text•white"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat•card bg•gradient•to•br from•red•500 to•red•700 rounded•2xl p•6 shadow•xl hover:shadow•2xl transition•all duration•300 cursor•default">
+                <div class="flex items•center justify•between">
+                    <div>
+                        <p class="text•red•100 text•sm font•medium mb•1">Pasif Kullanıcılar</p>
+                        <p class="text•4xl font•bold text•white mb•2">
+                            {{ users|selectattr('status', 'equalto', 'inactive')|list|length }}
+                        </p>
+                        <div class="flex items•center text•red•200 text•xs">
+                            <i class="fas fa•user•slash mr•1"></i>
+                            <span>Pasif durumdaki hesaplar</span>
+                        </div>
+                    </div>
+                    <div class="w•16 h•16 bg•white/20 rounded•2xl flex items•center justify•center backdrop•blur•sm">
+                        <i class="fas fa•user•clock text•3xl text•white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+            .stat•card {
+                cursor: default;
+                user•select: none;
+                pointer•events: none;
+                transform: translateY(0);
+            }
+            .stat•card:hover {
+                transform: translateY(•5px);
+            }
+        
+        /* İstatistik kartlarını koruma */
+        .stat•card {
+            cursor: default !important;
+            user•select: none !important;
+            •webkit•user•select: none !important;
+            •moz•user•select: none !important;
+            •ms•user•select: none !important;
+            pointer•events: none !important;
+        }
+        
+        /* Kart içindeki butonları da koru */
+        .stat•card * {
+            pointer•events: none !important;
+        }
+        
+        /* Sadece hover efekti kalır */
+        .stat•card:hover {
+            transform: translateY(•5px) !important;
+        }
+
+        /* Tüm kartları koruma altına al */
+        .user-card, .stat-card, .glass-card {
+            cursor: default !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+        }
+        
+        /* Butonlar hariç her şeyi koru */
+        .user-card *:not(button):not(a) {
+            user-select: none !important;
+            pointer-events: none !important;
+        }
+        
+        /* Sadece butonlar tıklanabilir */
+        button, a {
+            cursor: pointer !important;
+            user-select: auto !important;
+            pointer-events: auto !important;
+        }
+        
+        /* Sayfa seçimini engelle */
+        body {
+            user-select: none !important;
+            -webkit-user-select: none !important;
+        }
+        
+        /* Input alanları hariç */
+        input, textarea {
+            user-select: auto !important;
+        }
+
+        /* Daha temiz görünüm */
+        .container {
+            max-width: 1280px;
+        }
+        
+        .user-card {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        /* Scrollbar özelleştirme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+    
+        /* Tam koruma */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        .stat-card, .user-card {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            pointer-events: none;
+        }
+        
+        button, a, input, textarea {
+            pointer-events: auto !important;
+        }
+
+    </style>
+<!•• Users Section ••>
+        <div class="glass•card rounded•2xl shadow•xl overflow•hidden">
+            <div class="premium•gradient px•6 py•4">
+                
+            <div class="flex justify•between items•center mb•6">
+                <div>
+                    <h2 class="text•xl font•bold text•gray•800">
+                        <i class="fas fa•users mr•2 text•purple•600"></i>Kullanıcı Yönetimi
+                    </h2>
+                    
+                </div>
+                <button onclick="addUser()" class="premium•gradient text•white px•6 py•2 rounded•xl hover:shadow•lg transition•all">
+                    <i class="fas fa•plus mr•2"></i>Yeni Kullanıcı
+                </button>
+            </div>
+<div class="flex justify•between items•center"><h2 class="text•xl font•bold text•white"><i class="fas fa•users mr•2"></i>Kullanıcı Yönetimi</h2></div><div style="display:none">
+                    <i class="fas fa•users mr•2"></i>Kullanıcı Yönetimi
+                </h2>
+                <p class="text•purple•100 text•sm"></p>
+            </div>
+            
+            <div class="p•6">
+                <div class="grid grid•cols•1 md:grid•cols•2 lg:grid•cols•3 gap•6">
+                    {% if users %}
+                        {% for user in users %}
+                        
+                            <div class="user•card bg•white rounded•2xl shadow•md overflow•hidden hover:shadow•2xl transition•all duration•300">
+                                <div class="relative">
+                                    <div class="premium•gradient h•24"></div>
+                                    <div class="absolute •bottom•8 left•4">
+                                        <div class="w•16 h•16 rounded•full border•4 border•white shadow•lg flex items•center justify•center text•2xl font•bold text•white premium•gradient">
+                                            {{ user.username[0].upper() }}
+                                        </div>
+                                    </div>
+                                    <div class="absolute top•2 right•2">
+                                        <span class="status•badge px•2 py•1 text•xs rounded•full font•semibold
+                                            {% if user.status == 'active' %}
+                                                bg•green•500 text•white
+                                            {% else %}
+                                                bg•red•500 text•white
+                                            {% endif %}">
+                                            <i class="fas fa•circle text•xs mr•1"></i>
+                                            {{ user.status }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="pt•10 pb•4 px•4">
+                                    <div class="mb•3">
+                                        <h3 class="font•bold text•xl text•gray•800">{{ user.username }}</h3>
+                                        <div class="flex items•center mt•1">
+                                            <i class="fas fa•tag text•xs text•purple•500 mr•1"></i>
+                                            <span class="text•sm text•purple•600 font•medium">{{ user.role|upper }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="space•y•2 text•sm mt•4">
+                                        <div class="flex items•center text•gray•600 bg•gray•50 p•2 rounded•lg">
+                                            <i class="fas fa•envelope w•5 text•purple•500"></i>
+                                            <span class="ml•2 text•xs">{{ user.email }}</span>
+                                        </div>
+                                        <div class="flex items•center text•gray•600 bg•gray•50 p•2 rounded•lg">
+                                            <i class="fas fa•calendar•alt w•5 text•purple•500"></i>
+                                            <span class="ml•2 text•xs">{{ user.created_at[:10] if user.created_at else 'Bilinmiyor' }}</span>
+                                        </div>
+                                        <div class="flex items•center text•gray•600 bg•gray•50 p•2 rounded•lg">
+                                            <i class="fas fa•clock w•5 text•purple•500"></i>
+                                            <span class="ml•2 text•xs">{{ user.last_login[:10] if user.last_login and user.last_login != 'Hiç' else 'Hiç giriş yapmadı' }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt•4 pt•3 border•t border•gray•100 flex gap•2">
+                                        <button onclick="editUser('{{ user.username }}')" 
+                                            class="flex•1 bg•gradient•to•r from•blue•500 to•blue•600 hover:from•blue•600 hover:to•blue•700 text•white px•3 py•2 rounded•xl text•sm font•medium transition•all duration•200">
+                                            <i class="fas fa•edit mr•1"></i> Düzenle
+                                        </button>
+                                        <button onclick="deleteUser('{{ user.username }}')" 
+                                            class="flex•1 bg•gradient•to•r from•red•500 to•red•600 hover:from•red•600 hover:to•red•700 text•white px•3 py•2 rounded•xl text•sm font•medium transition•all duration•200">
+                                            <i class="fas fa•trash mr•1"></i> Sil
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+<div class="mt•4 pt•3 border•t border•gray•100 flex gap•2">
+                                    <button class="bg•blue•500 hover:bg•blue•600 text•white px•4 py•2 rounded•lg transition•all duration•200" onclick="editUser('{{ user.username }}')" 
+                                        class="flex•1 bg•gradient•to•r from•blue•500 to•blue•600 hover:from•blue•600 hover:to•blue•700 text•white px•3 py•2 rounded•xl text•sm font•medium transition•all duration•200">
+                                        <i class="fas fa•edit mr•1"></i> Düzenle
+                                    </button>
+                                    <button class="bg•red•500 hover:bg•red•600 text•white px•4 py•2 rounded•lg transition•all duration•200" onclick="deleteUser('{{ user.username }}')" 
+                                        class="flex•1 bg•gradient•to•r from•red•500 to•red•600 hover:from•red•600 hover:to•red•700 text•white px•3 py•2 rounded•xl text•sm font•medium transition•all duration•200">
+                                        <i class="fas fa•trash mr•1"></i> Sil
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col•span•full text•center py•12">
+                            <i class="fas fa•inbox text•6xl text•gray•300 mb•4"></i>
+                            <p class="text•gray•400 text•lg">Henüz kullanıcı bulunmuyor</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!•• Son adminler ••>
+        <div class="bg•white rounded•2xl shadow•xl overflow•hidden mt•8">
+            <div class="bg•gradient•to•r from•purple•600 to•purple•700 px•6 py•4">
+                <h2 class="text•xl font•bold text•white">
+                    <i class="fas fa•history mr•2"></i>Son adminler
+                </h2>
+                <p class="text•purple•200 text•sm">Son 5 kullanıcı aktivitesi</p>
+            </div>
+            <div class="p•6">
+                <div class="space•y•3">
+                    <div class="flex items•center justify•between p•3 bg•gray•50 rounded•lg hover:bg•gray•100 transition">
+                        <div class="flex items•center">
+                            <div class="w•10 h•10 bg•green•100 rounded•full flex items•center justify•center">
+                                <i class="fas fa•user•plus text•green•600"></i>
+                            </div>
+                            <div class="ml•3">
+                                <p class="text•sm font•semibold text•gray•800">Yeni kullanıcı eklendi</p>
+                                <p class="text•xs text•gray•500">admin tarafından</p>
+                            </div>
+                        </div>
+                        <span class="text•xs text•gray•400"><i class="far fa•clock"></i> Az önce</span>
+                    </div>
+                    <div class="flex items•center justify•between p•3 bg•gray•50 rounded•lg hover:bg•gray•100 transition">
+                        <div class="flex items•center">
+                            <div class="w•10 h•10 bg•blue•100 rounded•full flex items•center justify•center">
+                                <i class="fas fa•sign•in•alt text•blue•600"></i>
+                            </div>
+                            <div class="ml•3">
+                                <p class="text•sm font•semibold text•gray•800">Giriş yapıldı</p>
+                                <p class="text•xs text•gray•500">admin hesabından</p>
+                            </div>
+                        </div>
+                        <span class="text•xs text•gray•400"><i class="far fa•clock"></i> 5 dakika önce</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!•• Footer ••>
+        <div class="mt•12 text•center">
+            <div class="flex justify•center space•x•6 mb•4">
+                <a href="#" class="text•gray•400 hover:text•purple•600 transition•colors text•sm">
+                    <i class="fab fa•twitter mr•1"></i> Twitter
+                </a>
+                <a href="#" class="text•gray•400 hover:text•purple•600 transition•colors text•sm">
+                    <i class="fab fa•github mr•1"></i> GitHub
+                </a>
+                <a href="#" class="text•gray•400 hover:text•purple•600 transition•colors text•sm">
+                    <i class="fas fa•envelope mr•1"></i> İletişim
+                </a>
+            </div>
+            <p class="text•xs text•gray•400">
+                © 2024 SpamShield Pro • Tüm hakları saklıdır. 
+                <span class="text•purple•500">v3.0.0</span>
+            </p>
+        </div>
+        <div class="mt•8 text•center">
+            <a href="/logout" class="inline•flex items•center text•gray•600 hover:text•red•600 transition•colors">
+                <i class="fas fa•sign•out•alt mr•2"></i>
+                Çıkış Yap
+            </a>
+            <p class="text•xs text•gray•400 mt•4"></p>
+        </div>
+    </div>
+
+    <script>
+        function editUser(username) {
+            if(confirm(username + ' kullanıcısını düzenlemek istiyor musunuz?')) {
+                window.location.href = '/admin/edit/' + username;
+            }
+        }
+        
+        function deleteUser(username) {
+            if(confirm(username + ' kullanıcısını silmek istediğinizden emin misiniz?')) {
+                fetch('/admin/delete/' + username, {method: 'POST'})
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.success) location.reload();
+                        else alert('Silme hatası: ' + data.error);
+                    });
+            }
+        }
+        
+        function addUser() {
+            let username = prompt('Yeni kullanıcı adı:');
+            if(username) {
+                let password = prompt('Şifre:');
+                if(password) {
+                    fetch('/admin/add', {
+                        method: 'POST',
+                        headers: {'Content•Type': 'application/json'},
+                        body: JSON.stringify({username: username, password: password})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.success) location.reload();
+                        else alert('Hata: ' + data.error);
+                    });
+                }
+            }
+        }
+    </script>
+
+    <div id="loadingSpinner" class="fixed inset•0 bg•black/50 hidden items•center justify•center z•50">
+        <div class="bg•white rounded•xl p•6 flex flex•col items•center">
+            <div class="animate•spin rounded•full h•12 w•12 border•b•2 border•purple•600"></div>
+            <p class="mt•3 text•gray•600">İşleniyor...</p>
+        </div>
+    </div>
+
+    <script>
+        function showLoading() {
+            document.getElementById('loadingSpinner').classList.remove('hidden');
+            document.getElementById('loadingSpinner').classList.add('flex');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingSpinner').classList.add('hidden');
+            document.getElementById('loadingSpinner').classList.remove('flex');
+        }
+        
+        // Original functions with loading
+        const originalEditUser = editUser;
+        editUser = function(username) {
+            showLoading();
+            setTimeout(() => {
+                originalEditUser(username);
+                hideLoading();
+            }, 500);
+        }
+    </script>
+
+    <script>
+        // Sağ tıklamayı engelle (isteğe bağlı)
+        document.addEventListener('contextmenu', function(e) {
+            if(!e.target.closest('button') && !e.target.closest('a')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Kopyalamayı kısmen engelle
+        document.addEventListener('copy', function(e) {
+            if(!e.target.closest('button') && !e.target.closest('a')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Kartlar üzerinde seçim yapılmasını engelle
+        document.querySelectorAll('.stat-card, .user-card').forEach(card => {
+            card.addEventListener('selectstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+        });
+        
+        console.log('✅ Panel koruma aktif');
+    </script>
+
+    <script>
+        // Sayfa yüklendiğinde korumayı aktif et
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tüm stat kartlarını koru
+            document.querySelectorAll('.stat-card, .user-card').forEach(card => {
+                card.setAttribute('draggable', 'false');
+                card.ondragstart = function() { return false; };
+            });
+            
+            // Klavye kısayollarını engelle (Ctrl+C, Ctrl+V vb.)
+            document.addEventListener('keydown', function(e) {
+                if((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'v' || e.key === 'x')) {
+                    if(!e.target.closest('button') && !e.target.closest('input')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpamShield ADMIN Bildirim Merkezi</title>
+<style>
+:root{
+  --bg:#020806;
+  --panel:#062414;
+  --panel2:#03140d;
+  --green:#8cff5a;
+  --green2:#26d018;
+  --muted:rgba(255,255,255,.62);
+  --line:rgba(140,255,90,.18);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top left, rgba(60,255,90,.16), transparent 34%),
+    linear-gradient(180deg,#020806,#03140d 55%,#010403);
+  color:#fff;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.22;
+  background-image:
+    linear-gradient(rgba(140,255,90,.13) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140,255,90,.13) 1px, transparent 1px);
+  background-size:48px 48px;
+}
+.wrap{
+  position:relative;
+  max-width:720px;
+  margin:0 auto;
+  padding:34px 22px 42px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  margin:18px 0 28px;
+}
+.logo{
+  width:82px;
+  height:82px;
+  border-radius:28px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,rgba(140,255,90,.18),rgba(0,0,0,.45));
+  border:1px solid var(--line);
+  box-shadow:0 0 34px rgba(70,255,45,.18);
+  font-size:40px;
+}
+.brand h1{
+  margin:0;
+  font-size:38px;
+  line-height:1;
+  letter-spacing:-1.8px;
+}
+.brand h1 span{color:var(--green)}
+.brand p{
+  margin:8px 0 0;
+  color:var(--muted);
+  font-weight:800;
+  font-size:18px;
+}
+.panel{
+  border:1px solid var(--line);
+  border-radius:30px;
+  background:linear-gradient(180deg,rgba(12,65,31,.9),rgba(2,18,11,.92));
+  box-shadow:0 24px 80px rgba(0,0,0,.45), inset 0 0 40px rgba(140,255,90,.05);
+  overflow:hidden;
+}
+.hero{
+  padding:28px 26px 22px;
+  display:flex;
+  gap:18px;
+  align-items:center;
+  border-bottom:1px solid var(--line);
+}
+.hero-ico{
+  width:72px;
+  height:72px;
+  border-radius:24px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,rgba(140,255,90,.16),rgba(0,0,0,.42));
+  border:1px solid var(--line);
+  font-size:36px;
+}
+.hero h2{
+  margin:0;
+  font-size:34px;
+  line-height:1.05;
+  letter-spacing:-1.2px;
+}
+.hero h2 span{color:var(--green)}
+.hero p{
+  margin:8px 0 0;
+  color:var(--muted);
+  font-weight:800;
+  font-size:17px;
+  line-height:1.35;
+}
+.content{padding:22px}
+.summary{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:18px;
+}
+.stat{
+  background:rgba(0,0,0,.42);
+  border:1px solid rgba(140,255,90,.12);
+  border-radius:18px;
+  padding:16px;
+}
+.stat b{
+  display:block;
+  color:var(--green);
+  font-size:30px;
+  line-height:1;
+}
+.stat span{
+  display:block;
+  margin-top:7px;
+  color:var(--muted);
+  font-weight:800;
+  font-size:13px;
+}
+.card{
+  border:1px solid rgba(140,255,90,.14);
+  border-radius:24px;
+  background:rgba(0,0,0,.34);
+  padding:18px;
+  margin-bottom:16px;
+}
+.card h3{
+  margin:0 0 8px;
+  font-size:27px;
+  letter-spacing:-.8px;
+}
+.card p{
+  margin:0 0 16px;
+  color:var(--muted);
+  font-weight:800;
+  line-height:1.35;
+}
+label{
+  display:block;
+  color:rgba(255,255,255,.7);
+  font-size:14px;
+  font-weight:950;
+  margin:12px 0 8px;
+}
+input{
+  width:100%;
+  min-height:58px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(0,0,0,.48);
+  color:white;
+  padding:0 16px;
+  font-size:18px;
+  outline:none;
+}
+input:focus{
+  border-color:rgba(140,255,90,.55);
+  box-shadow:0 0 0 4px rgba(140,255,90,.08);
+}
+button{
+  width:100%;
+  min-height:58px;
+  border:0;
+  border-radius:18px;
+  margin-top:14px;
+  background:linear-gradient(180deg,#6dff38,#20c914);
+  color:white;
+  font-size:19px;
+  font-weight:950;
+  box-shadow:0 0 30px rgba(80,255,45,.22);
+}
+.list{
+  display:grid;
+  gap:10px;
+}
+.item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border:1px solid rgba(140,255,90,.12);
+  border-radius:18px;
+  background:rgba(0,0,0,.28);
+  padding:14px;
+}
+.item-name{
+  min-width:0;
+}
+.item-name b{
+  display:block;
+  font-size:18px;
+  word-break:break-word;
+}
+.item-name span{
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  font-weight:800;
+  font-size:12px;
+}
+.badge{
+  flex:0 0 auto;
+  border:1px solid rgba(140,255,90,.30);
+  color:var(--green);
+  border-radius:999px;
+  padding:7px 11px;
+  font-weight:950;
+  font-size:12px;
+  background:rgba(140,255,90,.08);
+}
+.empty{
+  padding:30px 18px;
+  text-align:center;
+  border:1px dashed rgba(140,255,90,.22);
+  border-radius:20px;
+  color:var(--muted);
+  font-weight:850;
+}
+.note{
+  margin:14px 4px 0;
+  color:rgba(255,255,255,.55);
+  font-weight:850;
+  font-size:13px;
+}
+.nav{
+  display:grid;
+  gap:12px;
+  margin-top:20px;
+}
+.nav a{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:58px;
+  border-radius:18px;
+  text-decoration:none;
+  color:white;
+  font-size:19px;
+  font-weight:950;
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.28);
+}
+.nav a.primary{
+  background:linear-gradient(180deg,#6dff38,#20c914);
+  box-shadow:0 0 30px rgba(80,255,45,.25);
+}
+@media(max-width:560px){
+  .wrap{padding:28px 20px 36px}
+  .brand h1{font-size:32px}
+  .brand p{font-size:15px}
+  .logo{width:70px;height:70px;border-radius:24px}
+  .hero{padding:24px 22px}
+  .hero h2{font-size:29px}
+  .content{padding:18px}
+  .card h3{font-size:25px}
+  .summary{gap:10px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="brand">
+    <div class="logo">🔔</div>
+    <div>
+      <h1>SpamShield <span>ADMIN</span></h1>
+      <p>Bildirim ve güvenli liste merkezi</p>
+    </div>
+  </header>
+
+  <main class="panel">
+    <section class="hero">
+      <div class="hero-ico">📣</div>
+      <div>
+        <h2>Admin <span>Bildirim Merkezi</span></h2>
+        <p>Güvenli gönderenleri, bildirim izinlerini ve manuel istisnaları buradan yönet.</p>
+      </div>
+    </section>
+
+    <section class="content">
+      {% set total = whitelist|length %}
+      <div class="summary">
+        <div class="stat"><b>{{ total }}</b><span>Güvenli kayıt</span></div>
+        <div class="stat"><b>AKTİF</b><span>Bildirim modu</span></div>
+      </div>
+
+      <section class="card">
+        <h3>➕ Güvenli Gönderen Ekle</h3>
+        <p>Spam filtresinden muaf tutulacak numara veya gönderen adını ekle.</p>
+
+        <form method="POST">
+          <label>Gönderen / Numara</label>
+          <input type="text" name="number" placeholder="ör: 0850..., BANKA, KARGO" required>
+          <button type="submit">✅ Listeye Ekle</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h3>📋 Güvenli Liste</h3>
+        <p>Kayıtlı güvenli gönderenler aşağıda kompakt şekilde gösterilir.</p>
+
+        <div class="list">
+          {% for number in whitelist[:8] %}
+          <div class="item">
+            <div class="item-name">
+              <b>{{ number }}</b>
+              <span>Bildirim ve spam filtresi istisnası</span>
+            </div>
+            <div class="badge">GÜVENLİ</div>
+          </div>
+          {% else %}
+          <div class="empty">Henüz güvenli gönderen yok.</div>
+          {% endfor %}
+        </div>
+
+        {% if whitelist|length > 8 %}
+        <div class="note">Liste sade tutuldu: ilk 8 kayıt gösteriliyor.</div>
+        {% endif %}
+      </section>
+
+      <nav class="nav">
+        <a class="primary" href="/admin/dashboard">← Admin Dashboard</a>
+        <a href="/admin/settings">⚙️ Ayarlar</a>
+        <a href="/admin/overview">📊 Analiz</a>
+      </nav>
+    </section>
+  </main>
+</div>
+</body>
+</html>
+<style id="admin-notifications-diet-final">
+  /* ===== ADMIN NOTIFICATIONS DIET FINAL ===== */
+
+  .wrap{
+    max-width:640px !important;
+    padding:22px 18px 34px !important;
+  }
+
+  .brand{
+    gap:13px !important;
+    margin:10px 0 18px !important;
+  }
+
+  .logo{
+    width:58px !important;
+    height:58px !important;
+    border-radius:20px !important;
+    font-size:30px !important;
+  }
+
+  .brand h1{
+    font-size:29px !important;
+    letter-spacing:-1.2px !important;
+  }
+
+  .brand p{
+    margin-top:5px !important;
+    font-size:13px !important;
+  }
+
+  .panel{
+    border-radius:24px !important;
+  }
+
+  .hero{
+    padding:18px 18px 16px !important;
+    gap:13px !important;
+  }
+
+  .hero-ico{
+    width:54px !important;
+    height:54px !important;
+    border-radius:18px !important;
+    font-size:27px !important;
+  }
+
+  .hero h2{
+    font-size:25px !important;
+    letter-spacing:-.8px !important;
+  }
+
+  .hero p{
+    margin-top:5px !important;
+    font-size:13px !important;
+    line-height:1.28 !important;
+  }
+
+  .content{
+    padding:14px !important;
+  }
+
+  /* İstatistik alanı bu sayfayı şişiriyor */
+  .summary{
+    display:none !important;
+  }
+
+  .card{
+    padding:14px !important;
+    border-radius:18px !important;
+    margin-bottom:12px !important;
+  }
+
+  .card h3{
+    font-size:21px !important;
+    margin-bottom:5px !important;
+    letter-spacing:-.5px !important;
+  }
+
+  .card p{
+    font-size:13px !important;
+    margin-bottom:11px !important;
+    line-height:1.28 !important;
+  }
+
+  label{
+    font-size:12px !important;
+    margin:8px 0 6px !important;
+  }
+
+  input{
+    min-height:46px !important;
+    border-radius:14px !important;
+    font-size:15px !important;
+    padding:0 13px !important;
+  }
+
+  button{
+    min-height:46px !important;
+    border-radius:14px !important;
+    font-size:15px !important;
+    margin-top:10px !important;
+  }
+
+  /* İlk kartı akordiyon gibi incelt */
+  .card:first-of-type{
+    padding:0 !important;
+    overflow:hidden !important;
+  }
+
+  .card:first-of-type h3{
+    margin:0 !important;
+    min-height:54px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    color:var(--green) !important;
+    border-bottom:1px solid rgba(140,255,90,.12) !important;
+  }
+
+  .card:first-of-type p,
+  .card:first-of-type form{
+    padding:0 14px 14px !important;
+  }
+
+  .card:first-of-type p{
+    margin-top:12px !important;
+  }
+
+  .list{
+    gap:8px !important;
+  }
+
+  .item{
+    padding:11px 12px !important;
+    border-radius:15px !important;
+  }
+
+  .item-name b{
+    font-size:15px !important;
+  }
+
+  .item-name span{
+    display:none !important;
+  }
+
+  .badge{
+    padding:6px 9px !important;
+    font-size:10.5px !important;
+  }
+
+  .empty{
+    padding:20px 14px !important;
+    border-radius:16px !important;
+    font-size:13px !important;
+  }
+
+  .note{
+    margin-top:10px !important;
+    font-size:12px !important;
+  }
+
+  .nav{
+    grid-template-columns:1fr 1fr !important;
+    gap:9px !important;
+    margin-top:14px !important;
+  }
+
+  .nav a{
+    min-height:46px !important;
+    border-radius:14px !important;
+    font-size:14px !important;
+  }
+
+  .nav a.primary{
+    grid-column:1 / -1 !important;
+  }
+
+  @media(max-width:560px){
+    .wrap{
+      padding:20px 16px 30px !important;
+    }
+
+    .brand h1{
+      font-size:27px !important;
+    }
+
+    .hero h2{
+      font-size:23px !important;
+    }
+
+    .hero p{
+      font-size:12.5px !important;
+    }
+
+    .card h3{
+      font-size:20px !important;
+    }
+  }
+</style>
+<style id="admin-notifications-diet-v2-final">
+  /* ===== ADMIN NOTIFICATIONS DIET V2 FINAL ===== */
+
+  .wrap{
+    max-width:600px !important;
+    padding:18px 14px 26px !important;
+  }
+
+  .brand{
+    margin:6px 0 14px !important;
+  }
+
+  .logo{
+    width:50px !important;
+    height:50px !important;
+    border-radius:17px !important;
+    font-size:25px !important;
+  }
+
+  .brand h1{
+    font-size:25px !important;
+  }
+
+  .brand p{
+    font-size:12px !important;
+  }
+
+  .panel{
+    border-radius:20px !important;
+  }
+
+  .hero{
+    padding:14px !important;
+    min-height:0 !important;
+  }
+
+  .hero-ico{
+    width:46px !important;
+    height:46px !important;
+    border-radius:15px !important;
+    font-size:23px !important;
+  }
+
+  .hero h2{
+    font-size:22px !important;
+  }
+
+  .hero p{
+    font-size:12px !important;
+    line-height:1.22 !important;
+  }
+
+  .content{
+    padding:11px !important;
+  }
+
+  .card{
+    padding:11px !important;
+    border-radius:15px !important;
+    margin-bottom:9px !important;
+  }
+
+  .card h3{
+    font-size:18px !important;
+    margin-bottom:4px !important;
+  }
+
+  .card p{
+    font-size:12px !important;
+    margin:4px 0 8px !important;
+  }
+
+  /* Form kısmını iyice incelt */
+  .card:first-of-type h3{
+    min-height:46px !important;
+    font-size:17px !important;
+  }
+
+  .card:first-of-type p{
+    display:none !important;
+  }
+
+  label{
+    font-size:11px !important;
+    margin:6px 0 4px !important;
+  }
+
+  input{
+    min-height:40px !important;
+    border-radius:12px !important;
+    font-size:14px !important;
+    padding:0 11px !important;
+  }
+
+  button{
+    min-height:40px !important;
+    border-radius:12px !important;
+    font-size:14px !important;
+    margin-top:8px !important;
+  }
+
+  /* Listeyi kart değil satır gibi göster */
+  .list{
+    gap:7px !important;
+  }
+
+  .item{
+    min-height:48px !important;
+    padding:9px 10px !important;
+    border-radius:13px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:8px !important;
+  }
+
+  .item-name{
+    min-width:0 !important;
+  }
+
+  .item-name b{
+    font-size:14px !important;
+    line-height:1.1 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    display:block !important;
+    max-width:220px !important;
+  }
+
+  .badge{
+    flex:0 0 auto !important;
+    padding:5px 8px !important;
+    font-size:10px !important;
+  }
+
+  .empty{
+    padding:16px 12px !important;
+    border-radius:14px !important;
+    font-size:12px !important;
+  }
+
+  .note{
+    display:none !important;
+  }
+
+  .nav{
+    margin-top:10px !important;
+    gap:7px !important;
+  }
+
+  .nav a{
+    min-height:40px !important;
+    border-radius:12px !important;
+    font-size:13px !important;
+  }
+
+  @media(max-width:560px){
+    .wrap{
+      padding:16px 12px 24px !important;
+    }
+
+    .brand{
+      gap:10px !important;
+    }
+
+    .brand h1{
+      font-size:23px !important;
+    }
+
+    .hero{
+      gap:10px !important;
+    }
+
+    .hero h2{
+      font-size:20px !important;
+    }
+
+    .hero p{
+      display:none !important;
+    }
+
+    .item-name b{
+      max-width:180px !important;
+    }
+  }
+</style>
+<style id="admin-notifications-final-slim-touch">
+  /* ===== ADMIN NOTIFICATIONS FINAL SLIM TOUCH ===== */
+
+  .panel{
+    max-width:640px !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+  }
+
+  .hero{
+    padding-top:12px !important;
+    padding-bottom:12px !important;
+  }
+
+  .content{
+    padding-top:10px !important;
+  }
+
+  .card{
+    margin-bottom:10px !important;
+  }
+
+  .card h3{
+    letter-spacing:-.5px !important;
+  }
+
+  /* Güvenli Liste açıklamasını diyete sok */
+  .card p{
+    font-size:11.5px !important;
+    line-height:1.25 !important;
+    opacity:.72 !important;
+  }
+
+  .list .item,
+  .item{
+    box-shadow:none !important;
+  }
+
+  .nav a{
+    min-height:38px !important;
+  }
+
+  @media(max-width:560px){
+    .wrap{
+      padding-top:14px !important;
+    }
+
+    .panel{
+      border-radius:19px !important;
+    }
+
+    .hero{
+      padding:11px 13px !important;
+    }
+
+    .content{
+      padding:10px !important;
+    }
+
+    .card{
+      border-radius:14px !important;
+    }
+
+    .card p{
+      display:none !important;
+    }
+  }
+</style>
