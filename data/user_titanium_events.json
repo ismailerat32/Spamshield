@@ -28,5 +28,15 @@
       "status": "riskli",
       "auto_quarantine": true
     }
+  },
+  {
+    "created_at": "2026-05-09T16:47:44",
+    "username": "playtest32",
+    "event_type": "protection_page_scan",
+    "payload": {
+      "score": 100,
+      "status": "riskli",
+      "auto_quarantine": true
+    }
   }
 ]
