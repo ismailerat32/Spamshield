@@ -63,3 +63,37 @@ LOCKED_*/
 AKTIF_DOSYALAR.txt
 radial_menu.html
 index.html
+
+# ===== SPAMSHIELD LOCAL / BUILD / ARCHIVE IGNORE START =====
+APK_OUTPUTS/
+SATURDAY_SAFE_ARCHIVE_*/
+SATURDAY_FINAL_CLEANUP_*/
+CUMARTESI_TEMIZLIK_HAZIRLIK_*.txt
+LIVE_BUTTON_AUDIT_*.txt
+
+android_user_app_build/.gradle/
+android_user_app_build/build/
+android_admin_app_build/.gradle/
+android_admin_app_build/build/
+android_webview_wrapper/.gradle/
+android_webview_wrapper/build/
+android_webview_wrapper/app/build/
+
+*.bak
+*.backup
+*.LOCKED*
+*.FINAL*
+*.moved
+
+cookies.txt
+probe_live.html
+radial_live.html
+pricing_live.html
+login_after_post.html
+forgot_live.html
+u_protection.html
+u_protection_auth.html
+
+data/.spamshield_secret_key
+static/uploads/
+# ===== SPAMSHIELD LOCAL / BUILD / ARCHIVE IGNORE END =====
