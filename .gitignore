@@ -97,3 +97,39 @@ u_protection_auth.html
 data/.spamshield_secret_key
 static/uploads/
 # ===== SPAMSHIELD LOCAL / BUILD / ARCHIVE IGNORE END =====
+
+# ===== SPAMSHIELD EXTRA LOCAL UNTRACKED IGNORE START =====
+.env.example
+.git_remove_bad_files.txt
+
+_stage1_archive_sms/
+android_user_app/
+android_admin_app/
+android_user_app_build/
+android_admin_app_build/
+
+android_webview_wrapper/app/src/main/res/mipmap-*/
+android_webview_wrapper/gradle.properties
+android_webview_wrapper/keystore/
+
+assets/
+windows_icon/
+
+data/*.LOCKED*
+data/*.ADMIN_*
+data/*.ACTIVATION_*
+data/safe_list.json
+data/user_block_list.json
+data/user_notification_settings.json
+data/user_settings.json
+
+sms_ai_reader_FINAL_*.py
+sms_alert_test.py
+spam_ai_FINAL_*.py
+spamshield_daemon_FINAL_LOCK.py
+spamshield_original.html
+
+test_all_buttons_live.py
+test_radial.py
+test_server.py
+# ===== SPAMSHIELD EXTRA LOCAL UNTRACKED IGNORE END =====
