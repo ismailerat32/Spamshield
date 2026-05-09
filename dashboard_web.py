@@ -4760,3 +4760,196 @@ try:
 except Exception as e:
     print("Analysis titanium scanner page override skipped:", e)
 # ===== SPAMSHIELD USER ANALYSIS TITANIUM SCANNER UI END =====
+
+# ===== SPAMSHIELD USER BLOCKED TITANIUM QUARANTINE UI START =====
+from flask import make_response as _ss_blocked_titanium_make_response
+from flask import session as _ss_blocked_titanium_session
+import html as _ss_blocked_titanium_html_escape
+
+def _ss_blocked_titanium_safe(v):
+    try:
+        return _ss_blocked_titanium_html_escape.escape(str(v or ""))
+    except Exception:
+        return ""
+
+def _ss_blocked_titanium_source_label(src):
+    src = str(src or "").strip()
+    if src == "protection_page_scan":
+        return "Koruma"
+    if src == "analysis_page_scan":
+        return "AI Analiz"
+    if src == "auto_high_risk":
+        return "Otomatik"
+    return "Tarama"
+
+try:
+    def _ss_user_blocked_titanium_quarantine_page_final():
+        resp = _ss_user_blocked_compact_final()
+
+        try:
+            html = resp.get_data(as_text=True)
+        except Exception:
+            return resp
+
+        username = str(session.get("username") or "kullanıcı")
+        quarantine = _ss_titanium_read_json(_SS_QUARANTINE_FILE, [])
+        items = [x for x in quarantine if x.get("username") == username]
+        items = list(reversed(items[-8:]))
+
+        total_count = len([x for x in quarantine if x.get("username") == username])
+        high_count = sum(1 for x in quarantine if x.get("username") == username and int(x.get("score") or 0) >= 70)
+
+        cards = ""
+        if items:
+            for item in items:
+                text = _ss_blocked_titanium_safe(item.get("text", ""))
+                if len(text) > 120:
+                    text = text[:120] + "..."
+
+                score = _ss_blocked_titanium_safe(item.get("score", 0))
+                label = _ss_blocked_titanium_safe(item.get("label", "Riskli"))
+                source = _ss_blocked_titanium_safe(_ss_blocked_titanium_source_label(item.get("source")))
+                created = _ss_blocked_titanium_safe(item.get("created_at", ""))
+
+                signal_text = ""
+                for sig in (item.get("signals") or [])[:3]:
+                    signal_text += f'<span class="q-chip">{_ss_blocked_titanium_safe(sig)}</span>'
+
+                cards += f'''
+  <article class="q-card">
+    <div class="q-top">
+      <div>
+        <h3>{label} Mesaj</h3>
+        <p>{text}</p>
+      </div>
+      <div class="q-score">{score}</div>
+    </div>
+
+    <div class="q-meta">
+      <span>Kaynak: {source}</span>
+      <span>{created}</span>
+    </div>
+
+    <div class="q-signals">
+      {signal_text}
+    </div>
+  </article>
+'''
+        else:
+            cards = '''
+  <article class="q-empty">
+    <h3>Karantina temiz</h3>
+    <p>Henüz karantinaya alınmış riskli mesaj yok. Koruma veya AI Analiz sayfasından tarama yaptığında riskli mesajlar burada görünür.</p>
+  </article>
+'''
+
+        quarantine_html = f'''
+  <style>
+    .q-grid{{display:grid;gap:10px;margin-bottom:16px}}
+    .q-card{{
+      border:1px solid rgba(35,255,137,.22);
+      background:linear-gradient(145deg,rgba(8,35,23,.92),rgba(2,13,8,.9));
+      border-radius:19px;
+      padding:14px;
+      box-shadow:0 14px 34px rgba(0,0,0,.22);
+    }}
+    .q-top{{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+      align-items:start;
+    }}
+    .q-card h3{{
+      margin:0 0 6px;
+      font-size:19px;
+      line-height:1.05;
+      color:#f5fff8;
+    }}
+    .q-card p{{
+      margin:0;
+      color:rgba(245,255,248,.66);
+      font-weight:800;
+      font-size:12px;
+      line-height:1.38;
+      word-break:break-word;
+    }}
+    .q-score{{
+      width:44px;
+      height:44px;
+      border-radius:15px;
+      display:grid;
+      place-items:center;
+      color:#02120b;
+      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      font-weight:1000;
+      font-size:18px;
+      box-shadow:0 0 18px rgba(32,255,136,.18);
+    }}
+    .q-meta{{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      margin-top:11px;
+      color:rgba(245,255,248,.52);
+      font-size:10px;
+      font-weight:900;
+      flex-wrap:wrap;
+    }}
+    .q-signals{{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }}
+    .q-chip{{
+      border:1px solid rgba(32,255,136,.18);
+      background:rgba(32,255,136,.07);
+      color:#98ffb8;
+      border-radius:999px;
+      padding:5px 8px;
+      font-size:10px;
+      font-weight:900;
+    }}
+    .q-empty{{
+      border:1px solid rgba(35,255,137,.22);
+      background:linear-gradient(145deg,rgba(8,35,23,.92),rgba(2,13,8,.9));
+      border-radius:19px;
+      padding:15px;
+      margin-bottom:16px;
+    }}
+    .q-empty h3{{margin:0 0 7px;font-size:19px}}
+    .q-empty p{{margin:0;color:rgba(245,255,248,.66);font-weight:800;font-size:12px;line-height:1.4}}
+  </style>
+
+  <div class="section">KARANTİNA</div>
+  <div class="bar"></div>
+
+  <section class="status" style="margin-bottom:14px;">
+    <div class="row"><b>Toplam Karantina</b><span>{total_count}</span><div class="mini-plus">✓</div></div>
+    <div class="row"><b>Yüksek Risk</b><span>{high_count}</span><div class="mini-plus">✓</div></div>
+    <div class="row"><b>Durum</b><span>Aktif İzleme</span><div class="mini-plus">✓</div></div>
+  </section>
+
+  <div class="q-grid">
+    {cards}
+  </div>
+'''
+
+        if '<div class="section">DETAYLAR</div>' in html:
+            html = html.replace('<div class="section">DETAYLAR</div>', quarantine_html + '\n  <div class="section">DETAYLAR</div>', 1)
+        else:
+            html = html.replace('</section>', '</section>\n' + quarantine_html, 1)
+
+        new_resp = _ss_blocked_titanium_make_response(html)
+        new_resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        new_resp.headers["Pragma"] = "no-cache"
+        new_resp.headers["Expires"] = "0"
+        return new_resp
+
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule) == "/u/blocked":
+            app.view_functions[_rule.endpoint] = _ss_user_blocked_titanium_quarantine_page_final
+
+except Exception as e:
+    print("Blocked titanium quarantine page override skipped:", e)
+# ===== SPAMSHIELD USER BLOCKED TITANIUM QUARANTINE UI END =====
