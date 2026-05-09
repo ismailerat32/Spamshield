@@ -4468,3 +4468,295 @@ try:
 except Exception as e:
     print("Protection titanium scanner page override skipped:", e)
 # ===== SPAMSHIELD USER PROTECTION TITANIUM SCANNER UI END =====
+
+# ===== SPAMSHIELD USER ANALYSIS TITANIUM SCANNER UI START =====
+from flask import redirect as _ss_analysis_redirect
+from flask import session as _ss_analysis_session
+from flask import request as _ss_analysis_request
+from flask import make_response as _ss_analysis_make_response
+import html as _ss_analysis_html_escape
+
+def _ss_analysis_safe(v):
+    try:
+        return _ss_analysis_html_escape.escape(str(v or ""))
+    except Exception:
+        return ""
+
+def _ss_user_analysis_check_titanium_final():
+    if not (session.get("logged_in") and session.get("username")):
+        return redirect("/login")
+
+    if _ss_analysis_request.method == "GET":
+        return _ss_analysis_redirect("/u/analysis")
+
+    sms_text = (_ss_analysis_request.form.get("sms_text") or "").strip()
+
+    if not sms_text:
+        _ss_analysis_session["ss_analysis_scan_result"] = {
+            "ok": False,
+            "label": "Boş mesaj",
+            "score": 0,
+            "status": "empty",
+            "summary": "Analiz için SMS metni gerekli.",
+            "signals": ["SMS metni girilmedi."],
+            "auto_quarantine": False
+        }
+        return _ss_analysis_redirect("/u/analysis")
+
+    result = _ss_titanium_analyze_sms(sms_text)
+    _ss_titanium_save_analysis(result)
+
+    quarantined = None
+    if result.get("score", 0) >= 70:
+        quarantined = _ss_titanium_save_quarantine(result, source="analysis_page_scan")
+
+    _ss_titanium_event("analysis_page_scan", {
+        "score": result.get("score"),
+        "status": result.get("status"),
+        "auto_quarantine": bool(quarantined)
+    })
+
+    _ss_analysis_session["ss_analysis_scan_result"] = {
+        "ok": True,
+        "label": result.get("label"),
+        "score": result.get("score"),
+        "status": result.get("status"),
+        "summary": result.get("summary"),
+        "signals": result.get("signals", []),
+        "auto_quarantine": bool(quarantined)
+    }
+
+    return _ss_analysis_redirect("/u/analysis")
+
+
+try:
+    def _ss_user_analysis_titanium_scanner_page_final():
+        resp = _ss_user_analysis_compact_final()
+
+        try:
+            html = resp.get_data(as_text=True)
+        except Exception:
+            return resp
+
+        result = _ss_analysis_session.pop("ss_analysis_scan_result", None)
+
+        result_html = ""
+        if result:
+            label = _ss_analysis_safe(result.get("label", "Bilinmiyor"))
+            score = _ss_analysis_safe(result.get("score", 0))
+            summary = _ss_analysis_safe(result.get("summary", ""))
+            quarantine_text = "Otomatik karantinaya alındı" if result.get("auto_quarantine") else "Karantinaya alınmadı"
+
+            signal_rows = ""
+            for sig in result.get("signals", [])[:8]:
+                signal_rows += f'''
+    <div class="row">
+      <b>Risk Sinyali</b>
+      <span>{_ss_analysis_safe(sig)}</span>
+      <div class="mini-plus">✓</div>
+    </div>
+'''
+
+            result_html = f'''
+  <section class="status" style="margin:0 0 14px;">
+    <div class="row"><b>Analiz Sonucu</b><span>{label}</span><div class="mini-plus">✓</div></div>
+    <div class="row"><b>Risk Skoru</b><span>{score}/100</span><div class="mini-plus">✓</div></div>
+    <div class="row"><b>Karantina</b><span>{quarantine_text}</span><div class="mini-plus">✓</div></div>
+    <div class="row"><b>AI Özeti</b><span>{summary}</span><div class="mini-plus">✓</div></div>
+    {signal_rows}
+  </section>
+'''
+
+        scanner_html = f'''
+  <div class="section">AI TARAMA</div>
+  <div class="bar"></div>
+
+  <section class="status" style="margin-bottom:14px;">
+    <form method="post" action="/u/analysis/check">
+      <label style="display:block;font-weight:950;margin:8px 0 8px;color:#f5fff8;">
+        SMS / mesaj metnini detaylı analiz et
+      </label>
+
+      <textarea name="sms_text" rows="6" placeholder="Analiz etmek istediğin SMS veya mesaj metnini buraya yapıştır..."
+        style="width:100%;resize:vertical;border-radius:17px;border:1px solid rgba(35,255,137,.22);background:rgba(0,0,0,.22);color:#f5fff8;padding:12px;font:800 13px system-ui;outline:none;"></textarea>
+
+      <button type="submit"
+        style="width:100%;margin-top:10px;min-height:48px;border:0;border-radius:17px;background:linear-gradient(135deg,#20d36f,#25d0c5);color:#02120b;font-weight:1000;font-size:15px;">
+        AI Analizi Başlat
+      </button>
+
+      <div style="margin-top:10px;color:rgba(245,255,248,.58);font-size:11px;font-weight:800;line-height:1.35;">
+        Titanium AI motoru mesajı risk skoru, sinyal ve karantina durumuna göre değerlendirir.
+      </div>
+    </form>
+  </section>
+
+  {result_html}
+'''
+
+        if '<div class="section">DETAYLAR</div>' in html:
+            html = html.replace('<div class="section">DETAYLAR</div>', scanner_html + '\n  <div class="section">DETAYLAR</div>', 1)
+        else:
+            html = html.replace('</section>', '</section>\n' + scanner_html, 1)
+
+        new_resp = _ss_analysis_make_response(html)
+        new_resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        new_resp.headers["Pragma"] = "no-cache"
+        new_resp.headers["Expires"] = "0"
+        return new_resp
+
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule) == "/u/analysis":
+            app.view_functions[_rule.endpoint] = _ss_user_analysis_titanium_scanner_page_final
+        if str(_rule) == "/u/analysis/check":
+            app.view_functions[_rule.endpoint] = _ss_user_analysis_check_titanium_final
+
+except Exception as e:
+    print("Analysis titanium scanner page override skipped:", e)
+# ===== SPAMSHIELD USER ANALYSIS TITANIUM SCANNER UI END =====
+
+# ===== SPAMSHIELD USER ANALYSIS TITANIUM SCANNER UI START =====
+from flask import redirect as _ss_analysis_redirect
+from flask import session as _ss_analysis_session
+from flask import request as _ss_analysis_request
+from flask import make_response as _ss_analysis_make_response
+import html as _ss_analysis_html_escape
+
+def _ss_analysis_safe(v):
+    try:
+        return _ss_analysis_html_escape.escape(str(v or ""))
+    except Exception:
+        return ""
+
+def _ss_user_analysis_check_titanium_final():
+    if not (session.get("logged_in") and session.get("username")):
+        return redirect("/login")
+
+    if _ss_analysis_request.method == "GET":
+        return _ss_analysis_redirect("/u/analysis")
+
+    sms_text = (_ss_analysis_request.form.get("sms_text") or "").strip()
+
+    if not sms_text:
+        _ss_analysis_session["ss_analysis_scan_result"] = {
+            "ok": False,
+            "label": "Boş mesaj",
+            "score": 0,
+            "status": "empty",
+            "summary": "Analiz için SMS metni gerekli.",
+            "signals": ["SMS metni girilmedi."],
+            "auto_quarantine": False
+        }
+        return _ss_analysis_redirect("/u/analysis")
+
+    result = _ss_titanium_analyze_sms(sms_text)
+    _ss_titanium_save_analysis(result)
+
+    quarantined = None
+    if result.get("score", 0) >= 70:
+        quarantined = _ss_titanium_save_quarantine(result, source="analysis_page_scan")
+
+    _ss_titanium_event("analysis_page_scan", {
+        "score": result.get("score"),
+        "status": result.get("status"),
+        "auto_quarantine": bool(quarantined)
+    })
+
+    _ss_analysis_session["ss_analysis_scan_result"] = {
+        "ok": True,
+        "label": result.get("label"),
+        "score": result.get("score"),
+        "status": result.get("status"),
+        "summary": result.get("summary"),
+        "signals": result.get("signals", []),
+        "auto_quarantine": bool(quarantined)
+    }
+
+    return _ss_analysis_redirect("/u/analysis")
+
+
+try:
+    def _ss_user_analysis_titanium_scanner_page_final():
+        resp = _ss_user_analysis_compact_final()
+
+        try:
+            html = resp.get_data(as_text=True)
+        except Exception:
+            return resp
+
+        result = _ss_analysis_session.pop("ss_analysis_scan_result", None)
+
+        result_html = ""
+        if result:
+            label = _ss_analysis_safe(result.get("label", "Bilinmiyor"))
+            score = _ss_analysis_safe(result.get("score", 0))
+            summary = _ss_analysis_safe(result.get("summary", ""))
+            quarantine_text = "Otomatik karantinaya alındı" if result.get("auto_quarantine") else "Karantinaya alınmadı"
+
+            signal_rows = ""
+            for sig in result.get("signals", [])[:8]:
+                signal_rows += f'''
+    <div class="row">
+      <b>Risk Sinyali</b>
+      <span>{_ss_analysis_safe(sig)}</span>
+      <div class="mini-plus">✓</div>
+    </div>
+'''
+
+            result_html = f'''
+  <section class="status" style="margin:0 0 14px;">
+    <div class="row"><b>Analiz Sonucu</b><span>{label}</span><div class="mini-plus">✓</div></div>
+    <div class="row"><b>Risk Skoru</b><span>{score}/100</span><div class="mini-plus">✓</div></div>
+    <div class="row"><b>Karantina</b><span>{quarantine_text}</span><div class="mini-plus">✓</div></div>
+    <div class="row"><b>AI Özeti</b><span>{summary}</span><div class="mini-plus">✓</div></div>
+    {signal_rows}
+  </section>
+'''
+
+        scanner_html = f'''
+  <div class="section">AI TARAMA</div>
+  <div class="bar"></div>
+
+  <section class="status" style="margin-bottom:14px;">
+    <form method="post" action="/u/analysis/check">
+      <label style="display:block;font-weight:950;margin:8px 0 8px;color:#f5fff8;">
+        SMS / mesaj metnini detaylı analiz et
+      </label>
+
+      <textarea name="sms_text" rows="6" placeholder="Analiz etmek istediğin SMS veya mesaj metnini buraya yapıştır..."
+        style="width:100%;resize:vertical;border-radius:17px;border:1px solid rgba(35,255,137,.22);background:rgba(0,0,0,.22);color:#f5fff8;padding:12px;font:800 13px system-ui;outline:none;"></textarea>
+
+      <button type="submit"
+        style="width:100%;margin-top:10px;min-height:48px;border:0;border-radius:17px;background:linear-gradient(135deg,#20d36f,#25d0c5);color:#02120b;font-weight:1000;font-size:15px;">
+        AI Analizi Başlat
+      </button>
+
+      <div style="margin-top:10px;color:rgba(245,255,248,.58);font-size:11px;font-weight:800;line-height:1.35;">
+        Titanium AI motoru mesajı risk skoru, sinyal ve karantina durumuna göre değerlendirir.
+      </div>
+    </form>
+  </section>
+
+  {result_html}
+'''
+
+        if '<div class="section">DETAYLAR</div>' in html:
+            html = html.replace('<div class="section">DETAYLAR</div>', scanner_html + '\n  <div class="section">DETAYLAR</div>', 1)
+        else:
+            html = html.replace('</section>', '</section>\n' + scanner_html, 1)
+
+        new_resp = _ss_analysis_make_response(html)
+        new_resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        new_resp.headers["Pragma"] = "no-cache"
+        new_resp.headers["Expires"] = "0"
+        return new_resp
+
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule) == "/u/analysis":
+            app.view_functions[_rule.endpoint] = _ss_user_analysis_titanium_scanner_page_final
+        if str(_rule) == "/u/analysis/check":
+            app.view_functions[_rule.endpoint] = _ss_user_analysis_check_titanium_final
+
+except Exception as e:
+    print("Analysis titanium scanner page override skipped:", e)
+# ===== SPAMSHIELD USER ANALYSIS TITANIUM SCANNER UI END =====
