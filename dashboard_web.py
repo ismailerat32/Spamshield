@@ -3354,37 +3354,33 @@ def _ss_user_protection_compact_final():
   <div class="bar"></div>
 
   <main class="list">
-    <a class="info-card" href="/u/analysis">
+    <div class="info-card">
       <div>
         <h3>Anlık SMS Taraması</h3>
         <p>Gelen mesajlar risk sinyallerine göre değerlendirilir.</p>
       </div>
-      <div class="plus">+</div>
-    </a>
+    </div>
 
-    <a class="info-card" href="/u/blocked">
+    <div class="info-card">
       <div>
         <h3>Akıllı Spam Filtresi</h3>
         <p>Kampanya, oltalama ve tehlikeli bağlantılar ayrıştırılır.</p>
       </div>
-      <div class="plus">+</div>
-    </a>
+    </div>
 
-    <a class="info-card" href="/u/settings">
+    <div class="info-card">
       <div>
         <h3>Koruma Katmanı</h3>
         <p>Kullanıcı deneyimini bozmadan sessiz güvenlik sağlar.</p>
       </div>
-      <div class="plus">+</div>
-    </a>
+    </div>
 
-    <a class="info-card" href="/u/safe-list">
+    <div class="info-card">
       <div>
         <h3>Güvenli Liste</h3>
         <p>Güvendiğin kişiler ve servisler esnek şekilde yönetilir.</p>
       </div>
-      <div class="plus">+</div>
-    </a>
+    </div>
   </main>
 
   <div class="section">DURUM</div>
@@ -3695,37 +3691,33 @@ def _ss_user_analysis_compact_final():
   <div class="bar"></div>
 
   <main class="list">
-    <a class="info-card" href="/u/analysis/check">
+    <div class="info-card">
       <div>
         <h3>Metin Analizi</h3>
         <p>Vaat, tehdit, sahte ödül ve aciliyet ifadelerini inceler.</p>
       </div>
-      <div class="plus">+</div>
-    </a>
+    </div>
 
-    <a class="info-card" href="/u/analysis/check">
+    <div class="info-card">
       <div>
         <h3>Bağlantı Kontrolü</h3>
         <p>Şüpheli URL ve yönlendirme işaretlerini yakalamaya hazırlanır.</p>
       </div>
-      <div class="plus">+</div>
-    </a>
+    </div>
 
-    <a class="info-card" href="/u/reports">
+    <div class="info-card">
       <div>
         <h3>Risk Skoru</h3>
         <p>Her mesaja anlaşılır bir güvenlik skoru üretir.</p>
       </div>
-      <div class="plus">+</div>
-    </a>
+    </div>
 
-    <a class="info-card" href="/u/settings">
+    <div class="info-card">
       <div>
         <h3>AI Geliştirme Alanı</h3>
         <p>Gelecekte daha gelişmiş analiz modeli için hazır yapı sağlar.</p>
       </div>
-      <div class="plus">+</div>
-    </a>
+    </div>
   </main>
 
   <div class="section">DURUM</div>
@@ -4008,37 +4000,33 @@ def _ss_user_blocked_compact_final():
   <div class="bar"></div>
 
   <main class="list">
-    <a class="info-card" href="/u/block-list">
+    <div class="info-card">
       <div>
         <h3>Blok Listesi</h3>
         <p>Spam gönderen numara ve servisleri tek ekrandan yönet.</p>
       </div>
-      <div class="plus">+</div>
-    </a>
+    </div>
 
-    <a class="info-card" href="/u/analysis">
+    <div class="info-card">
       <div>
         <h3>Riskli İçerik</h3>
         <p>Şüpheli mesajlar analiz edilip engel listesine hazırlanır.</p>
       </div>
-      <div class="plus">+</div>
-    </a>
+    </div>
 
-    <a class="info-card" href="/u/safe-list">
+    <div class="info-card">
       <div>
         <h3>Güvenli Liste</h3>
         <p>Güvendiğin kişiler yanlışlıkla engellenmesin.</p>
       </div>
-      <div class="plus">+</div>
-    </a>
+    </div>
 
-    <a class="info-card" href="/u/reports">
+    <div class="info-card">
       <div>
         <h3>Engel Raporları</h3>
         <p>Engellenen mesajlar ve son hareketler özetlenir.</p>
       </div>
-      <div class="plus">+</div>
-    </a>
+    </div>
   </main>
 
   <div class="section">DURUM</div>
