@@ -5289,3 +5289,294 @@ try:
 except Exception as e:
     print("Reports titanium summary page override skipped:", e)
 # ===== SPAMSHIELD USER REPORTS TITANIUM SUMMARY UI END =====
+
+# ===== SPAMSHIELD USER NOTIFICATIONS TITANIUM EVENTS UI START =====
+from flask import render_template_string as _ss_notify_render_template_string
+from flask import make_response as _ss_notify_make_response
+import html as _ss_notify_html_escape
+
+def _ss_notify_safe(v):
+    try:
+        return _ss_notify_html_escape.escape(str(v or ""))
+    except Exception:
+        return ""
+
+def _ss_notify_event_title(event_type, payload):
+    event_type = str(event_type or "")
+    payload = payload or {}
+
+    if event_type == "protection_page_scan":
+        if payload.get("auto_quarantine"):
+            return "Koruma taraması: riskli SMS karantinaya alındı"
+        return "Koruma taraması tamamlandı"
+
+    if event_type == "analysis_page_scan":
+        if payload.get("auto_quarantine"):
+            return "AI analiz: yüksek risk karantinaya alındı"
+        return "AI analiz tamamlandı"
+
+    if event_type == "sms_scan":
+        if payload.get("auto_quarantine"):
+            return "Titanium motor riskli mesajı karantinaya aldı"
+        return "Titanium SMS taraması tamamlandı"
+
+    return "Güvenlik olayı kaydedildi"
+
+def _ss_notify_event_detail(event_type, payload):
+    payload = payload or {}
+    score = payload.get("score", "-")
+    status = payload.get("status", "bilinmiyor")
+
+    if payload.get("auto_quarantine"):
+        return f"Risk skoru {score}. Durum: {status}. Mesaj otomatik karantinaya alındı."
+
+    return f"Risk skoru {score}. Durum: {status}. İzleme kaydı oluşturuldu."
+
+def _ss_user_notifications_titanium_events_page_final():
+    if not (session.get("logged_in") and session.get("username")):
+        return redirect("/login")
+
+    username = str(session.get("username") or "kullanıcı")
+
+    events_all = _ss_titanium_read_json(_SS_TITANIUM_EVENTS_FILE, [])
+    events = [x for x in events_all if x.get("username") == username]
+    events = list(reversed(events[-12:]))
+
+    quarantine_all = _ss_titanium_read_json(_SS_QUARANTINE_FILE, [])
+    quarantine = [x for x in quarantine_all if x.get("username") == username]
+
+    history_all = _ss_titanium_read_json(_SS_ANALYSIS_HISTORY_FILE, [])
+    history = [x for x in history_all if x.get("username") == username]
+
+    riskli = sum(1 for x in history if x.get("status") == "riskli")
+    auto_q = sum(1 for x in events if (x.get("payload") or {}).get("auto_quarantine"))
+
+    if events:
+        event_cards = ""
+        for ev in events:
+            payload = ev.get("payload") or {}
+            event_type = ev.get("event_type")
+            created = _ss_notify_safe(ev.get("created_at", ""))
+            title = _ss_notify_safe(_ss_notify_event_title(event_type, payload))
+            detail = _ss_notify_safe(_ss_notify_event_detail(event_type, payload))
+
+            score = _ss_notify_safe(payload.get("score", "-"))
+
+            if payload.get("auto_quarantine"):
+                badge = "Karantina"
+            elif str(payload.get("status")) == "riskli":
+                badge = "Riskli"
+            else:
+                badge = "Bilgi"
+
+            event_cards += f'''
+    <article class="notify-card">
+      <div class="notify-top">
+        <div>
+          <h3>{title}</h3>
+          <p>{detail}</p>
+        </div>
+        <div class="notify-score">{score}</div>
+      </div>
+      <div class="notify-meta">
+        <span>{created}</span>
+        <span>{badge}</span>
+      </div>
+    </article>
+'''
+    else:
+        event_cards = '''
+    <article class="notify-empty">
+      <h3>Henüz bildirim yok</h3>
+      <p>Koruma veya AI Analiz sayfasında tarama yaptığında güvenlik bildirimleri burada oluşur.</p>
+    </article>
+'''
+
+    html = f"""
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>SpamShield PRO • Bildirimler</title>
+  <style>
+    :root{{
+      --bg:#020806;
+      --line:rgba(35,255,137,.22);
+      --green:#20ff88;
+      --green2:#8cff5a;
+      --text:#f5fff8;
+      --muted:rgba(245,255,248,.66);
+    }}
+    *{{box-sizing:border-box;-webkit-tap-highlight-color:transparent}}
+    body{{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 50% 0%,rgba(32,255,136,.14),transparent 32%),
+        radial-gradient(circle at 88% 76%,rgba(140,255,90,.10),transparent 28%),
+        linear-gradient(180deg,#010403,#03150d 58%,#010403);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      padding:14px;
+      overflow-x:hidden;
+    }}
+    .top{{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}}
+    .brand{{display:flex;align-items:center;gap:10px;min-width:0}}
+    .logo{{
+      width:46px;height:46px;border-radius:16px;
+      display:grid;place-items:center;
+      background:linear-gradient(145deg,rgba(32,255,136,.18),rgba(32,255,136,.04));
+      border:1px solid var(--line);
+      box-shadow:0 0 20px rgba(32,255,136,.14);
+      font-size:24px;
+      flex:0 0 auto;
+    }}
+    h1{{margin:0;font-size:27px;line-height:1;letter-spacing:-1px}}
+    h1 span{{color:var(--green2)}}
+    .sub{{margin-top:5px;color:var(--muted);font-weight:800;font-size:12px}}
+    .badge{{
+      color:var(--green);
+      border:1px solid var(--line);
+      background:rgba(32,255,136,.08);
+      border-radius:999px;
+      padding:8px 10px;
+      font-weight:950;
+      font-size:12px;
+      white-space:nowrap;
+    }}
+    .hero{{
+      border:1px solid var(--line);
+      background:linear-gradient(145deg,rgba(8,35,23,.94),rgba(2,13,8,.92));
+      border-radius:22px;
+      padding:16px;
+      box-shadow:0 18px 44px rgba(0,0,0,.34), inset 0 0 42px rgba(32,255,136,.04);
+      margin-bottom:18px;
+    }}
+    .hero-icon{{
+      width:48px;height:48px;border-radius:16px;
+      display:grid;place-items:center;
+      background:rgba(32,255,136,.10);
+      border:1px solid rgba(32,255,136,.18);
+      font-size:25px;
+      margin-bottom:13px;
+    }}
+    .hero h2{{margin:0 0 9px;font-size:28px;line-height:1.05;letter-spacing:-1px}}
+    .hero p{{margin:0;color:var(--muted);font-size:14px;line-height:1.42;font-weight:800}}
+    .stats{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px}}
+    .stat{{
+      border:1px solid rgba(32,255,136,.15);
+      background:rgba(0,0,0,.17);
+      border-radius:17px;
+      padding:10px 6px;
+      text-align:center;
+    }}
+    .stat b{{display:block;color:var(--green);font-size:18px;line-height:1}}
+    .stat span{{display:block;margin-top:6px;color:var(--muted);font-weight:900;font-size:9px}}
+    .back{{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      margin-top:14px;
+      border-radius:17px;
+      color:var(--text);
+      text-decoration:none;
+      font-weight:950;
+      font-size:15px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.12);
+    }}
+    .section{{margin:17px 0 8px;letter-spacing:6px;font-weight:1000;font-size:16px}}
+    .bar{{width:82px;height:5px;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--green2));margin-bottom:11px}}
+    .notify-list{{display:grid;gap:10px}}
+    .notify-card{{
+      border:1px solid rgba(35,255,137,.22);
+      background:linear-gradient(145deg,rgba(8,35,23,.92),rgba(2,13,8,.9));
+      border-radius:19px;
+      padding:14px;
+      box-shadow:0 14px 34px rgba(0,0,0,.22);
+    }}
+    .notify-top{{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}}
+    .notify-card h3{{margin:0 0 6px;font-size:18px;line-height:1.08}}
+    .notify-card p{{margin:0;color:rgba(245,255,248,.66);font-weight:800;font-size:12px;line-height:1.38}}
+    .notify-score{{
+      width:42px;height:42px;border-radius:15px;
+      display:grid;place-items:center;
+      color:#02120b;
+      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      font-weight:1000;
+      font-size:17px;
+    }}
+    .notify-meta{{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      margin-top:11px;
+      color:rgba(245,255,248,.52);
+      font-size:10px;
+      font-weight:900;
+      flex-wrap:wrap;
+    }}
+    .notify-empty{{
+      border:1px solid rgba(35,255,137,.22);
+      background:linear-gradient(145deg,rgba(8,35,23,.92),rgba(2,13,8,.9));
+      border-radius:19px;
+      padding:15px;
+    }}
+    .notify-empty h3{{margin:0 0 7px;font-size:19px}}
+    .notify-empty p{{margin:0;color:rgba(245,255,248,.66);font-weight:800;font-size:12px;line-height:1.4}}
+    .foot{{text-align:center;color:rgba(245,255,248,.38);font-weight:800;padding:22px 0 8px;font-size:12px}}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="brand">
+      <div class="logo">🛡️</div>
+      <div>
+        <h1>Spam<span>Shield</span></h1>
+        <div class="sub">Titanium bildirim merkezi</div>
+      </div>
+    </div>
+    <div class="badge">👑 PRO AKTİF</div>
+  </div>
+
+  <section class="hero">
+    <div class="hero-icon">🔔</div>
+    <h2>Bildirimler</h2>
+    <p>Koruma, AI analiz ve karantina olayları burada güvenlik akışı olarak görünür.</p>
+
+    <div class="stats">
+      <div class="stat"><b>{len(events)}</b><span>Olay</span></div>
+      <div class="stat"><b>{riskli}</b><span>Riskli</span></div>
+      <div class="stat"><b>{len(quarantine)}</b><span>Karantina</span></div>
+    </div>
+
+    <a class="back" href="/radial">← Ana ekrana dön</a>
+  </section>
+
+  <div class="section">AKIŞ</div>
+  <div class="bar"></div>
+
+  <main class="notify-list">
+    {event_cards}
+  </main>
+
+  <div class="foot">SpamShield PRO · {username} · © 2026</div>
+</body>
+</html>
+"""
+
+    resp = _ss_notify_make_response(_ss_notify_render_template_string(html))
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
+
+try:
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule) == "/u/notifications":
+            app.view_functions[_rule.endpoint] = _ss_user_notifications_titanium_events_page_final
+except Exception as e:
+    print("Notifications titanium events page override skipped:", e)
+# ===== SPAMSHIELD USER NOTIFICATIONS TITANIUM EVENTS UI END =====
