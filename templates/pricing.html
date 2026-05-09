@@ -1,420 +1,323 @@
-<!--
-============================================================
-PRICE LOCK
-SpamShield Pro Pricing
-Starter Shield: 150 TL / ay
-Shield Pro+: 1000 TL / yıl
-Lifetime Shield: 2000 TL
-Annual advantage: 789 TL
-Status: FINAL / APPROVED / LOCKED
-============================================================
--->
-
-<!--
-============================================================
-SpamShield Pro Pricing
-Status: CLEAN PREMIUM SIMPLE
-============================================================
--->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SpamShield Pro Paketler</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpamShield PRO • Fiyatlandırma</title>
+
   <style>
-    :root{
-      --bg:#00140b;
-      --green:#00e676;
-      --green2:#00ff88;
-      --text:#ffffff;
-      --muted:#cfd8d3;
-      --line:rgba(0,230,118,.34);
+    :root {
+      --bg: #06110b;
+      --card: rgba(12, 30, 18, 0.92);
+      --card2: rgba(18, 43, 26, 0.94);
+      --green: #7cff4f;
+      --green2: #38c95a;
+      --text: #f4fff4;
+      --muted: #b7c8b7;
+      --border: rgba(124, 255, 79, 0.22);
+      --danger: #ff6b6b;
     }
 
-    *{box-sizing:border-box}
+    * {
+      box-sizing: border-box;
+    }
 
-    body{
-      margin:0;
-      min-height:100vh;
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
       background:
-        radial-gradient(circle at 50% -5%, rgba(0,230,118,.16), transparent 34%),
-        linear-gradient(180deg,#00140b 0%,#000f08 100%);
-      color:var(--text);
-      font-family:Arial,Helvetica,sans-serif;
+        radial-gradient(circle at top, rgba(124, 255, 79, 0.13), transparent 34%),
+        linear-gradient(180deg, #07140c, #030804 80%);
+      color: var(--text);
+      min-height: 100vh;
     }
 
-    .wrap{
-      width:min(90vw,390px);
-      margin:0 auto;
-      padding:22px 0 24px;
+    .page {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 34px 0 50px;
     }
 
-    .top{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      margin-bottom:14px;
+    .hero {
+      text-align: center;
+      padding: 38px 18px 28px;
     }
 
-    .logo{
-      font-size:38px;
-      line-height:1;
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(124, 255, 79, 0.10);
+      border: 1px solid var(--border);
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .2px;
     }
 
-    h1{
-      margin:0;
-      font-size:37px;
-      font-weight:900;
-      letter-spacing:-1.3px;
+    h1 {
+      margin: 18px 0 12px;
+      font-size: clamp(34px, 5vw, 62px);
+      line-height: 1.02;
     }
 
-    .hero{
-      border:1.3px solid var(--line);
-      border-radius:21px;
-      padding:14px;
-      background:linear-gradient(180deg, rgba(4,34,20,.94), rgba(0,18,10,.90));
-      margin-bottom:12px;
-      text-align:center;
+    .hero p {
+      max-width: 820px;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.65;
     }
 
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:7px;
-      padding:7px 11px;
-      border-radius:999px;
-      background:rgba(0,230,118,.11);
-      border:1px solid rgba(0,230,118,.28);
-      font-size:13px;
-      font-weight:900;
-      margin-bottom:10px;
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 26px;
     }
 
-    .hero-title{
-      margin:0 0 6px;
-      font-size:29px;
-      line-height:1.05;
-      font-weight:900;
-      letter-spacing:-1px;
+    .plan {
+      position: relative;
+      background: linear-gradient(180deg, var(--card), rgba(5, 16, 9, 0.96));
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      padding: 24px;
+      box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
     }
 
-    .muted{
-      margin:0;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.35;
+    .plan.featured {
+      background: linear-gradient(180deg, rgba(28, 68, 38, 0.98), rgba(8, 24, 12, 0.98));
+      border-color: rgba(124, 255, 79, 0.42);
+      transform: translateY(-8px);
     }
 
-    .main-plan{
-      position:relative;
-      overflow:hidden;
-      border:1.6px solid rgba(0,255,136,.62);
-      border-radius:24px;
-      padding:18px 16px;
-      background:
-        radial-gradient(circle at 100% 0%, rgba(0,255,136,.13), transparent 38%),
-        linear-gradient(180deg, rgba(4,34,20,.98), rgba(0,18,10,.92));
-      box-shadow:
-        0 0 0 1px rgba(0,230,118,.08),
-        0 18px 36px rgba(0,230,118,.10);
-      margin-bottom:12px;
+    .plan.featured::before {
+      content: "Önerilen";
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #06200b;
+      font-size: 12px;
+      font-weight: 900;
     }
 
-    .plan-head{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
+    .plan h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
     }
 
-    .plan-name{
-      font-size:30px;
-      line-height:1.05;
-      font-weight:900;
-      letter-spacing:-.8px;
+    .desc {
+      color: var(--muted);
+      min-height: 56px;
+      line-height: 1.5;
+      margin-bottom: 18px;
     }
 
-    .plan-sub{
-      margin-top:5px;
-      color:rgba(255,255,255,.66);
-      font-size:14px;
-      font-weight:800;
+    .price {
+      font-size: 42px;
+      font-weight: 900;
+      margin: 8px 0 4px;
+      color: var(--green);
     }
 
-    .tag{
-      color:#00140b;
-      background:linear-gradient(180deg,#5cffae,#00ff88);
-      padding:7px 10px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:900;
-      white-space:nowrap;
+    .period {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 18px;
     }
 
-    .plan-save{
-      margin-top:7px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:5px 8px;
-      border-radius:999px;
-      background:rgba(0,230,118,.12);
-      border:1px solid rgba(0,230,118,.24);
-      color:var(--green2);
-      font-size:12.5px;
-      font-weight:900;
+    ul {
+      padding-left: 18px;
+      color: var(--text);
+      line-height: 1.8;
+      margin: 0;
     }
 
-    .price{
-      color:var(--green2);
-      font-size:44px;
-      line-height:1;
-      font-weight:900;
-      letter-spacing:-1.4px;
-      margin-bottom:10px;
+    li::marker {
+      color: var(--green);
     }
 
-    .price small{
-      font-size:21px;
-      color:#bfffe0;
-      letter-spacing:0;
+    .btn {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      margin-top: 22px;
+      padding: 14px 16px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #041108;
+      font-weight: 900;
+      box-shadow: 0 10px 30px rgba(124, 255, 79, 0.18);
     }
 
-    .simple-list{
-      display:flex;
-      flex-wrap:wrap;
-      gap:7px;
-      margin-bottom:14px;
+    .sections {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 26px;
     }
 
-    .pill{
-      flex:1 1 calc(50% - 7px);
-      min-height:38px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding:7px;
-      border-radius:13px;
-      background:rgba(255,255,255,.035);
-      border:1px solid rgba(255,255,255,.055);
-      font-size:13px;
-      font-weight:900;
-      color:#eef8f2;
+    .info {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      line-height: 1.7;
+      color: var(--muted);
     }
 
-    .btn{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:54px;
-      border-radius:18px;
-      text-decoration:none;
-      background:linear-gradient(180deg,#00f083,#00d970);
-      color:#00140b;
-      font-size:19px;
-      font-weight:900;
+    .info h3 {
+      margin: 0 0 10px;
+      color: var(--text);
+      font-size: 22px;
     }
 
-    .alt-title{
-      color:rgba(255,255,255,.70);
-      font-size:14px;
-      font-weight:900;
-      margin:2px 0 9px;
-      text-align:center;
+    .info strong {
+      color: var(--text);
     }
 
-    .mini-row{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:9px;
+    .wide {
+      grid-column: 1 / -1;
     }
 
-    .mini{
-      border:1.2px solid rgba(0,230,118,.27);
-      border-radius:19px;
-      padding:13px;
-      background:rgba(0,30,17,.74);
+    .footer-note {
+      margin-top: 26px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
     }
 
-    .mini-top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:8px;
-      margin-bottom:6px;
-    }
+    @media (max-width: 900px) {
+      .plans,
+      .sections {
+        grid-template-columns: 1fr;
+      }
 
-    .mini-name{
-      font-size:21px;
-      font-weight:900;
-    }
+      .plan.featured {
+        transform: none;
+      }
 
-    .mini-tag{
-      color:#dffff0;
-      background:rgba(0,230,118,.13);
-      border:1px solid rgba(0,230,118,.24);
-      padding:5px 8px;
-      border-radius:999px;
-      font-size:11.5px;
-      font-weight:900;
-      white-space:nowrap;
+      .desc {
+        min-height: auto;
+      }
     }
-
-    .mini-price{
-      color:var(--green2);
-      font-size:28px;
-      line-height:1;
-      font-weight:900;
-      margin-bottom:8px;
-    }
-
-    .mini-price small{
-      color:#bfffe0;
-      font-size:16px;
-    }
-
-    .mini-desc{
-      color:var(--muted);
-      font-size:13.5px;
-      line-height:1.35;
-      margin:-2px 0 8px;
-    }
-
-    .mini-btn{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:44px;
-      border-radius:15px;
-      text-decoration:none;
-      background:rgba(0,230,118,.13);
-      border:1px solid rgba(0,230,118,.28);
-      color:#dffff0;
-      font-size:15.5px;
-      font-weight:900;
-    }
-
-    .back{
-      margin-top:12px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:48px;
-      border-radius:17px;
-      text-decoration:none;
-      background:rgba(0,230,118,.13);
-      border:1px solid rgba(0,230,118,.28);
-      color:#dffff0;
-      font-size:16px;
-      font-weight:900;
-    }
-
-    .mini-note{
-      text-align:center;
-      color:rgba(255,255,255,.42);
-      font-size:11.5px;
-      line-height:1.35;
-      margin:8px 6px 0;
-    }
-  
-/* SPAMSHIELD_COPYRIGHT_STYLE_START */
-.ss-copyright{
-  margin:18px auto 8px;
-  text-align:center;
-  color:rgba(255,255,255,.48);
-  font-size:12px;
-  font-weight:700;
-  letter-spacing:.2px;
-  line-height:1.35;
-}
-.ss-copyright a{
-  color:rgba(32,240,138,.78);
-  text-decoration:none;
-  font-weight:900;
-}
-.ss-copyright a:hover{
-  text-decoration:underline;
-}
-@media(max-width:480px){
-  .ss-copyright{
-    margin-top:14px;
-    font-size:11px;
-  }
-}
-/* SPAMSHIELD_COPYRIGHT_STYLE_END */
-
-</style>
+  </style>
 </head>
+
 <body>
-  <main class="wrap">
-    <div class="top">
-      <div class="logo">💎</div>
-      <h1>Paketler</h1>
-    </div>
-
+  <main class="page">
     <section class="hero">
-      <div class="badge">🛡️ SHIELD PRO PASS</div>
-      <h2 class="hero-title">SpamShield Pro</h2>
-      <p class="muted">Premium koruma ve radial deneyim.</p>
+      <div class="badge">🛡️ SpamShield PRO Premium Koruma</div>
+      <h1>SpamShield PRO Fiyatlandırma</h1>
+      <p>
+        SpamShield PRO, spam, sahte ve riskli mesajlara karşı kullanıcıyı bilgilendirmeye yardımcı olan
+        güvenlik odaklı bir spam analiz ve uyarı sistemidir.
+      </p>
     </section>
 
-    <section class="main-plan">
-      <div class="plan-head">
-        <div>
-          <div class="plan-name">Shield Pro+</div>
-          <div class="plan-sub">En mantıklı yıllık seçim</div>
-          <div class="plan-save">12 ayda 789 TL avantaj</div>
-        </div>
-        <div class="tag">Önerilen</div>
+    <section class="plans">
+      <div class="plan">
+        <h2>SpamShield PRO Aylık</h2>
+        <div class="desc">1 aylık premium koruma erişimi.</div>
+        <div class="price">99 TL</div>
+        <div class="period">Aylık lisans</div>
+        <ul>
+          <li>Spam mesaj analizi</li>
+          <li>Riskli içerik uyarıları</li>
+          <li>Premium koruma ekranları</li>
+          <li>Lisans tabanlı erişim</li>
+        </ul>
+        <a class="btn" href="/odeme?plan=monthly">Satın Al</a>
       </div>
 
-      <div class="price">1000 TL <small>/ yıl</small></div>
-
-      <div class="simple-list">
-        <div class="pill">12 Ay Premium</div>
-        <div class="pill">AI Koruma</div>
-        <div class="pill">Radial Pro</div>
-        <div class="pill">Lisans Onaylı</div>
+      <div class="plan featured">
+        <h2>SpamShield PRO Yıllık</h2>
+        <div class="desc">12 aylık premium koruma erişimi.</div>
+        <div class="price">799 TL</div>
+        <div class="period">Yıllık lisans</div>
+        <ul>
+          <li>Spam mesaj analizi</li>
+          <li>Riskli içerik erken uyarıları</li>
+          <li>Güvenli gönderici ayrımı</li>
+          <li>Güncel koruma modülü desteği</li>
+        </ul>
+        <a class="btn" href="/odeme?plan=yearly">Satın Al</a>
       </div>
 
-      <a class="btn" href="/u/pay?plan=pro_yearly">Shield Pro+ Seç</a>
+      <div class="plan">
+        <h2>SpamShield Lifetime</h2>
+        <div class="desc">Tek seferlik ödeme ile uzun süreli premium erişim.</div>
+        <div class="price">1499 TL</div>
+        <div class="period">Tek seferlik ödeme</div>
+        <ul>
+          <li>Premium koruma erişimi</li>
+          <li>Riskli içerik uyarıları</li>
+          <li>Lisans tabanlı kullanım</li>
+          <li>Öncelikli destek değerlendirmesi</li>
+        </ul>
+        <a class="btn" href="/odeme?plan=lifetime">Satın Al</a>
+      </div>
     </section>
 
-    <div class="alt-title">Diğer seçenekler</div>
+    <section class="sections">
+      <div class="info">
+        <h3>SpamShield PRO nedir?</h3>
+        <p>
+          SpamShield PRO, spam, sahte ve riskli mesajlara karşı kullanıcıyı bilgilendirmeye yardımcı olan
+          bir güvenlik destek sistemidir. Uygulama, gelen içerikleri analiz etmeye, riskli görünen mesajları
+          işaretlemeye ve kullanıcıya daha güvenli bir kullanım deneyimi sunmaya odaklanır.
+        </p>
+      </div>
 
-    <section class="mini-row">
-      <article class="mini">
-        <div class="mini-top">
-          <div class="mini-name">Starter Shield</div>
-          <div class="mini-tag">Aylık</div>
-        </div>
-        <div class="mini-price">150 TL <small>/ ay</small></div>
-        <a class="mini-btn" href="/u/pay?plan=starter_monthly">Aylık Başlat</a>
-      </article>
+      <div class="info">
+        <h3>SpamShield PRO ile neler sunulur?</h3>
+        <ul>
+          <li>Spam mesaj analizi</li>
+          <li>Riskli içerik uyarıları</li>
+          <li>Güvenli gönderici ayrımı</li>
+          <li>Premium koruma ekranları</li>
+          <li>Lisans tabanlı erişim</li>
+          <li>Güncel koruma modülü desteği</li>
+        </ul>
+      </div>
 
-      <article class="mini">
-        <div class="mini-top">
-          <div class="mini-name">Lifetime Shield</div>
-          <div class="mini-tag">Tek Sefer</div>
-        </div>
-        <div class="mini-price">2000 TL</div>
-        <a class="mini-btn" href="/u/pay?plan=lifetime">Kalıcı Kalkan</a>
-      </article>
+      <div class="info">
+        <h3>Ödeme sonrası erişim</h3>
+        <p>
+          Satın alma işlemi tamamlandıktan sonra kullanıcıya SpamShield PRO premium erişimi tanımlanır.
+          Lisans durumu sistem üzerinden kontrol edilir ve aktif kullanıcılar premium özelliklerden yararlanabilir.
+        </p>
+      </div>
+
+      <div class="info">
+        <h3>Güvenli ödeme bilgilendirmesi</h3>
+        <p>
+          SpamShield PRO, kullanıcı adına finansal işlem yapmaz, banka hesabına erişmez ve ödeme bilgilerini
+          kendi sisteminde saklamaz. Ödeme işlemleri güvenli ödeme altyapısı üzerinden gerçekleştirilir.
+        </p>
+      </div>
+
+      <div class="info wide">
+        <h3>İade ve iptal politikası</h3>
+        <p>
+          Dijital lisans satın alımlarında, lisans aktif edilmeden önce iade talebi değerlendirilebilir.
+          Lisans aktif edildikten ve premium erişim kullanıma açıldıktan sonra dijital ürün niteliği gereği
+          iade talepleri ayrıca incelenir. Hatalı ödeme, teknik sorun veya mükerrer ödeme durumlarında kullanıcı
+          destek kanalı üzerinden bizimle iletişime geçebilir.
+        </p>
+      </div>
     </section>
 
-    <a class="back" href="/u/license">← Lisans Merkezine Dön</a>
-
-    <p class="mini-note">Test ödeme akışı geliştirme modundadır.</p>
+    <div class="footer-note">
+      © 2024 SpamShield PRO • Tüm hakları saklıdır.
+    </div>
   </main>
-
-<!-- SPAMSHIELD_COPYRIGHT_BLOCK_START -->
-<div class="ss-copyright">
-  © 2026 SpamShield PRO · Tüm hakları saklıdır. · <a href="/u/legal">Telif ve Yasal Bildirim</a> · <a href="/u/terms">Kullanım Sözleşmesi</a> · <a href="/u/privacy">Gizlilik</a> · <a href="/u/refund">İade</a>
-</div>
-<!-- SPAMSHIELD_COPYRIGHT_BLOCK_END -->
-
 </body>
 </html>
