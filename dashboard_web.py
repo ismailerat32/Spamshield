@@ -6696,3 +6696,262 @@ try:
 except Exception as e:
     print("Community titanium feedback page override skipped:", e)
 # ===== SPAMSHIELD USER COMMUNITY TITANIUM FEEDBACK UI END =====
+
+# ===== SPAMSHIELD IYZICO PUBLIC LEGAL PAGES START =====
+from flask import render_template_string as _ss_legal_public_render_template_string
+from flask import make_response as _ss_legal_public_make_response
+
+def _ss_public_legal_page(title, subtitle, body_html):
+    html = f"""
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>{title} - SpamShield PRO</title>
+  <style>
+    :root{{
+      --bg:#020806;
+      --line:rgba(35,255,137,.22);
+      --green:#20ff88;
+      --green2:#8cff5a;
+      --text:#f5fff8;
+      --muted:rgba(245,255,248,.68);
+    }}
+    *{{box-sizing:border-box}}
+    body{{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 50% 0%,rgba(32,255,136,.14),transparent 32%),
+        linear-gradient(180deg,#010403,#03150d 58%,#010403);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      padding:16px;
+    }}
+    .wrap{{max-width:860px;margin:0 auto}}
+    .top{{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:16px;
+    }}
+    .brand{{display:flex;align-items:center;gap:10px}}
+    .logo{{
+      width:46px;height:46px;border-radius:16px;
+      display:grid;place-items:center;
+      background:linear-gradient(145deg,rgba(32,255,136,.18),rgba(32,255,136,.04));
+      border:1px solid var(--line);
+      font-size:24px;
+    }}
+    h1{{margin:0;font-size:26px;letter-spacing:-1px}}
+    h1 span{{color:var(--green2)}}
+    .nav a{{
+      color:#98ffb8;
+      text-decoration:none;
+      font-weight:900;
+      font-size:13px;
+      margin-left:10px;
+    }}
+    .hero{{
+      border:1px solid var(--line);
+      background:linear-gradient(145deg,rgba(8,35,23,.94),rgba(2,13,8,.92));
+      border-radius:24px;
+      padding:20px;
+      margin-bottom:14px;
+      box-shadow:0 18px 44px rgba(0,0,0,.34);
+    }}
+    .hero h2{{margin:0 0 8px;font-size:30px;line-height:1.05}}
+    .hero p{{margin:0;color:var(--muted);font-weight:800;line-height:1.45}}
+    .panel{{
+      border:1px solid var(--line);
+      background:linear-gradient(145deg,rgba(8,35,23,.92),rgba(2,13,8,.9));
+      border-radius:22px;
+      padding:18px;
+      margin-bottom:14px;
+    }}
+    h3{{margin:18px 0 8px;font-size:20px;color:#f5fff8}}
+    h3:first-child{{margin-top:0}}
+    p, li{{color:var(--muted);font-weight:750;line-height:1.55;font-size:14px}}
+    ul{{padding-left:20px}}
+    .notice{{
+      border:1px solid rgba(32,255,136,.28);
+      background:rgba(32,255,136,.08);
+      border-radius:18px;
+      padding:13px;
+      color:#98ffb8;
+      font-weight:900;
+      margin-top:12px;
+    }}
+    .foot{{
+      text-align:center;
+      color:rgba(245,255,248,.42);
+      font-weight:800;
+      font-size:12px;
+      padding:18px 0 8px;
+    }}
+    @media(max-width:560px){{
+      .top{{align-items:flex-start;flex-direction:column}}
+      .nav a{{margin-left:0;margin-right:10px;display:inline-block;margin-top:6px}}
+    }}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo">🛡️</div>
+        <div>
+          <h1>Spam<span>Shield</span> PRO</h1>
+          <div style="color:rgba(245,255,248,.55);font-weight:800;font-size:12px">Yasal ve bilgilendirme merkezi</div>
+        </div>
+      </div>
+      <div class="nav">
+        <a href="/pricing">Fiyatlandırma</a>
+        <a href="/privacy">Gizlilik</a>
+        <a href="/terms">Şartlar</a>
+        <a href="/refund">İade</a>
+        <a href="/contact">İletişim</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <h2>{title}</h2>
+      <p>{subtitle}</p>
+    </section>
+
+    <section class="panel">
+      {body_html}
+    </section>
+
+    <div class="foot">© 2026 SpamShield PRO · Tüm hakları saklıdır.</div>
+  </div>
+</body>
+</html>
+"""
+    resp = _ss_legal_public_make_response(_ss_legal_public_render_template_string(html))
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
+
+
+@app.route("/privacy")
+@app.route("/gizlilik")
+def ss_public_privacy_page():
+    return _ss_public_legal_page(
+        "Gizlilik ve KVKK Politikası",
+        "SpamShield PRO kullanıcı verilerinin korunması, gizlilik ve kişisel veri işleme ilkeleri.",
+        """
+        <h3>Gizlilik İlkesi</h3>
+        <p>SpamShield PRO, kullanıcı güvenliğini artırmak için tasarlanmış dijital bir güvenlik ve spam analiz hizmetidir. Kullanıcı verileri yalnızca hizmetin çalışması, lisans yönetimi, güvenlik analizi ve destek süreçleri için kullanılır.</p>
+
+        <h3>İşlenen Veriler</h3>
+        <ul>
+          <li>Kullanıcı adı ve oturum bilgileri</li>
+          <li>Lisans ve plan bilgileri</li>
+          <li>Kullanıcının analiz için manuel olarak girdiği SMS/metin örnekleri</li>
+          <li>Risk skoru, karantina ve güvenlik olay kayıtları</li>
+          <li>Topluluk geri bildirimleri</li>
+        </ul>
+
+        <h3>Ödeme Bilgileri</h3>
+        <p>Kart bilgileri SpamShield PRO içinde saklanmaz. Ödeme işlemleri güvenli ödeme altyapısı üzerinden tamamlanır.</p>
+
+        <h3>KVKK Bilgilendirmesi</h3>
+        <p>Kişisel veriler; hizmet sunumu, kullanıcı güvenliği, lisans aktivasyonu, destek ve yasal yükümlülükler kapsamında işlenebilir. Kullanıcılar kişisel verileriyle ilgili bilgi alma, düzeltme ve silme taleplerini iletişim kanalları üzerinden iletebilir.</p>
+
+        <h3>Saklama ve Güvenlik</h3>
+        <p>Veriler, hizmetin gerektirdiği süre boyunca saklanır. SpamShield PRO, yetkisiz erişime karşı makul teknik ve idari önlemler almayı hedefler.</p>
+
+        <div class="notice">Bu sayfa iyzico ve kullanıcı incelemesi için kamusal bilgilendirme amacıyla hazırlanmıştır.</div>
+        """
+    )
+
+
+@app.route("/terms")
+@app.route("/mesafeli-satis")
+def ss_public_terms_page():
+    return _ss_public_legal_page(
+        "Kullanım Şartları ve Mesafeli Satış Bilgilendirmesi",
+        "SpamShield PRO dijital lisans hizmetinin kullanım, satış ve aktivasyon koşulları.",
+        """
+        <h3>Hizmet Tanımı</h3>
+        <p>SpamShield PRO; SMS/metin spam analizi, risk skoru, otomatik karantina, raporlama, bildirim ve lisans tabanlı kullanıcı paneli özellikleri sunan dijital bir yazılım hizmetidir.</p>
+
+        <h3>Dijital Ürün ve Lisans</h3>
+        <p>Satın alma işlemi sonrasında kullanıcıya dijital hizmet/lisans erişimi sağlanır. Lisans aktif edildiğinde kullanıcı premium özelliklerden yararlanabilir.</p>
+
+        <h3>Kullanıcı Sorumluluğu</h3>
+        <ul>
+          <li>Kullanıcı, hesap bilgilerini güvenli tutmakla sorumludur.</li>
+          <li>Hizmet kötüye kullanım, yasa dışı faaliyet veya üçüncü kişilerin haklarını ihlal edecek şekilde kullanılamaz.</li>
+          <li>SpamShield PRO analiz sonuçları bilgilendirme amaçlıdır; nihai karar kullanıcı sorumluluğundadır.</li>
+        </ul>
+
+        <h3>Ödeme ve Aktivasyon</h3>
+        <p>Ödeme işlemleri güvenli ödeme altyapısı üzerinden tamamlanır. Ödeme sonrası lisans aktivasyonu SpamShield PRO lisans merkezi üzerinden yapılır.</p>
+
+        <h3>Hizmet Değişiklikleri</h3>
+        <p>SpamShield PRO, güvenlik ve performans gerekçeleriyle özelliklerde iyileştirme, güncelleme veya değişiklik yapabilir.</p>
+
+        <div class="notice">Mesafeli satış ve kullanım şartları yayın öncesi firma bilgileriyle son kez kontrol edilmelidir.</div>
+        """
+    )
+
+
+@app.route("/refund")
+@app.route("/iade")
+def ss_public_refund_page():
+    return _ss_public_legal_page(
+        "İptal ve İade Politikası",
+        "SpamShield PRO dijital lisans satın alımlarında iptal, iade ve aktivasyon bilgilendirmesi.",
+        """
+        <h3>Dijital Ürün Niteliği</h3>
+        <p>SpamShield PRO dijital yazılım/lisans hizmetidir. Lisans aktif edildikten ve premium erişim kullanıma açıldıktan sonra dijital ürün niteliği gereği iade koşulları sınırlı olabilir.</p>
+
+        <h3>Aktivasyon Öncesi Talepler</h3>
+        <p>Ödeme yapılmış ancak lisans aktivasyonu tamamlanmamışsa kullanıcı destek kanalı üzerinden iptal veya iade talebi oluşturabilir.</p>
+
+        <h3>Teknik Sorunlar</h3>
+        <p>Kullanıcı, hizmete erişememe veya lisans aktivasyon sorunu yaşarsa destek ekibiyle iletişime geçebilir. Öncelik, sorunun giderilmesi ve hizmetin kullanılabilir hale getirilmesidir.</p>
+
+        <h3>İade Değerlendirmesi</h3>
+        <p>İade talepleri; ödeme durumu, lisans aktivasyonu, kullanım durumu ve ilgili mevzuat dikkate alınarak değerlendirilir.</p>
+
+        <h3>Ödeme Güvenliği</h3>
+        <p>Kart bilgileri SpamShield PRO tarafından saklanmaz. Ödeme işlemleri güvenli ödeme altyapısı üzerinden gerçekleştirilir.</p>
+
+        <div class="notice">İade politikası dijital lisans mantığına göre hazırlanmıştır; yayın öncesi firma bilgileri ve süreçler netleştirilmelidir.</div>
+        """
+    )
+
+
+@app.route("/contact")
+@app.route("/iletisim")
+def ss_public_contact_page():
+    return _ss_public_legal_page(
+        "İletişim",
+        "SpamShield PRO destek, lisans, ödeme ve güvenlik bildirimleri için iletişim bilgileri.",
+        """
+        <h3>Destek ve İletişim</h3>
+        <p>SpamShield PRO ile ilgili lisans, ödeme, teknik destek, güvenlik bildirimi ve geri bildirim talepleri için aşağıdaki iletişim kanalları kullanılabilir.</p>
+
+        <h3>E-posta</h3>
+        <p>Yayın öncesi resmi destek e-posta adresi bu alana eklenecektir.</p>
+
+        <h3>Firma / Yayıncı Bilgileri</h3>
+        <ul>
+          <li>Ürün: SpamShield PRO</li>
+          <li>Hizmet türü: Dijital yazılım / lisans tabanlı güvenlik hizmeti</li>
+          <li>Ödeme altyapısı: iyzico güvenli ödeme sayfası</li>
+        </ul>
+
+        <h3>Önemli Not</h3>
+        <p>iyzico başvurusu ve canlı yayın öncesinde firma unvanı, vergi bilgileri, adres, telefon ve resmi e-posta bilgileri bu sayfada net şekilde yer almalıdır.</p>
+
+        <div class="notice">Bu sayfa iletişim ve firma bilgileri tamamlandığında iyzico incelemesi için kullanılabilir hale gelir.</div>
+        """
+    )
+# ===== SPAMSHIELD IYZICO PUBLIC LEGAL PAGES END =====
