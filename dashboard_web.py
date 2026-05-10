@@ -12,26 +12,26 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# ===== SPAMSHIELD STABLE SESSION SECRET START =====
+# ===== ERATGUARD STABLE SESSION SECRET START =====
 import os as _ss_os
 from pathlib import Path as _ss_Path
 
-_ss_secret_file = _ss_Path("data/.spamshield_secret_key")
+_ss_secret_file = _ss_Path("data/.eratguard_secret_key")
 try:
     _ss_secret_file.parent.mkdir(parents=True, exist_ok=True)
     if not _ss_secret_file.exists():
-        _ss_secret_file.write_text("spamshield-stable-render-session-secret-2026-admin-mobile", encoding="utf-8")
+        _ss_secret_file.write_text("eratguard-stable-render-session-secret-2026-admin-mobile", encoding="utf-8")
     app.secret_key = (
         _ss_os.environ.get("FLASK_SECRET_KEY")
         or _ss_os.environ.get("SECRET_KEY")
-        or _ss_os.environ.get("SPAMSHIELD_SECRET_KEY")
+        or _ss_os.environ.get("ERATGUARD_SECRET_KEY") or os.environ.get("SPAMSHIELD_SECRET_KEY")
         or _ss_secret_file.read_text(encoding="utf-8").strip()
     )
 except Exception:
-    app.secret_key = "spamshield-stable-render-session-secret-2026-admin-mobile"
-# ===== SPAMSHIELD STABLE SESSION SECRET END =====
+    app.secret_key = "eratguard-stable-render-session-secret-2026-admin-mobile"
+# ===== ERATGUARD STABLE SESSION SECRET END =====
 
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "spamshield_dev_key")
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "eratguard_dev_key")
 
 LOG_FILE = "logs/log.txt"
 WATCHLIST_FILE = "data/watchlist.json"
@@ -2051,7 +2051,7 @@ def ss_live_admin_access():
         users = _read_users()
         user = users.get(username) or users.get(username.lower()) or {}
 
-        env_admin_pass = os.environ.get("SPAMSHIELD_ADMIN_PASSWORD", "")
+        env_admin_pass = os.environ.get("ERATGUARD_ADMIN_PASSWORD", "") or os.environ.get("SPAMSHIELD_ADMIN_PASSWORD", "")
 
         is_admin_name = username.lower() == "admin" or str(user.get("role", "")).lower() == "admin" or user.get("is_admin") is True
         fallback_admin_sha256 = "11b2d8d98c0a8ed79080d388420deb3b3168e5631667cad074d09ee0e26c86fb"
@@ -2427,54 +2427,54 @@ if "ss_live_admin_all_slice_catchall" in app.view_functions:
     app.view_functions["ss_live_admin_all_slice_catchall"] = _ss_fast_admin_catchall
 # ===== SPAMSHIELD FAST ADMIN SLICE PAGES END =====
 
-# ===== SPAMSHIELD FINAL SESSION SECRET LOCK START =====
+# ===== ERATGUARD FINAL SESSION SECRET LOCK START =====
 try:
     import os as _ss_final_os
     from pathlib import Path as _ss_final_Path
 
-    _ss_final_secret_file = _ss_final_Path("data/.spamshield_secret_key")
+    _ss_final_secret_file = _ss_final_Path("data/.eratguard_secret_key")
     _ss_final_secret_file.parent.mkdir(parents=True, exist_ok=True)
 
     if not _ss_final_secret_file.exists():
         _ss_final_secret_file.write_text(
-            "spamshield-final-stable-session-secret-2026-admin-mobile",
+            "eratguard-final-stable-session-secret-2026-admin-mobile",
             encoding="utf-8"
         )
 
     app.secret_key = (
         _ss_final_os.environ.get("FLASK_SECRET_KEY")
         or _ss_final_os.environ.get("SECRET_KEY")
-        or _ss_final_os.environ.get("SPAMSHIELD_SECRET_KEY")
+        or _ss_final_os.environ.get("ERATGUARD_SECRET_KEY") or os.environ.get("SPAMSHIELD_SECRET_KEY")
         or _ss_final_secret_file.read_text(encoding="utf-8").strip()
-        or "spamshield-final-stable-session-secret-2026-admin-mobile"
+        or "eratguard-final-stable-session-secret-2026-admin-mobile"
     )
     app.config["SECRET_KEY"] = app.secret_key
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 except Exception:
-    app.secret_key = "spamshield-final-stable-session-secret-2026-admin-mobile"
+    app.secret_key = "eratguard-final-stable-session-secret-2026-admin-mobile"
     app.config["SECRET_KEY"] = app.secret_key
-# ===== SPAMSHIELD FINAL SESSION SECRET LOCK END =====
+# ===== ERATGUARD FINAL SESSION SECRET LOCK END =====
 
 
-# ===== SPAMSHIELD ADMIN SIGNED COOKIE FALLBACK START =====
+# ===== ERATGUARD ADMIN SIGNED COOKIE FALLBACK START =====
 def _ss_admin_cookie_secret_final():
     try:
         import os
         return (
             os.environ.get("FLASK_SECRET_KEY")
             or os.environ.get("SECRET_KEY")
-            or os.environ.get("SPAMSHIELD_SECRET_KEY")
-            or "spamshield-final-stable-session-secret-2026-admin-mobile"
+            or os.environ.get("ERATGUARD_SECRET_KEY") or os.environ.get("SPAMSHIELD_SECRET_KEY")
+            or "eratguard-final-stable-session-secret-2026-admin-mobile"
         )
     except Exception:
-        return "spamshield-final-stable-session-secret-2026-admin-mobile"
+        return "eratguard-final-stable-session-secret-2026-admin-mobile"
 
 def _ss_admin_cookie_token_final():
     import hmac
     import hashlib
     secret = _ss_admin_cookie_secret_final().encode("utf-8")
-    return hmac.new(secret, b"spamshield-admin-mobile-ok", hashlib.sha256).hexdigest()
+    return hmac.new(secret, b"eratguard-admin-mobile-ok", hashlib.sha256).hexdigest()
 
 def _ss_admin_cookie_ok_final():
     try:
@@ -2547,7 +2547,7 @@ def _ss_admin_access_cookie_override():
         users = _read_users()
         user = users.get(username) or users.get(username.lower()) or {}
 
-        env_admin_pass = os.environ.get("SPAMSHIELD_ADMIN_PASSWORD", "")
+        env_admin_pass = os.environ.get("ERATGUARD_ADMIN_PASSWORD", "") or os.environ.get("SPAMSHIELD_ADMIN_PASSWORD", "")
         fallback_admin_sha256 = "11b2d8d98c0a8ed79080d388420deb3b3168e5631667cad074d09ee0e26c86fb"
 
         is_admin_name = (
@@ -2600,7 +2600,7 @@ def _ss_admin_access_cookie_override():
 
 if "ss_live_admin_access" in app.view_functions:
     app.view_functions["ss_live_admin_access"] = _ss_admin_access_cookie_override
-# ===== SPAMSHIELD ADMIN SIGNED COOKIE FALLBACK END =====
+# ===== ERATGUARD ADMIN SIGNED COOKIE FALLBACK END =====
 
 # ===== SPAMSHIELD USER FINAL ROUTE ALIAS + HOME LOCK START =====
 from flask import render_template_string as _ss_user_render_template_string
