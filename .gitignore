@@ -147,3 +147,6 @@ ERATGUARD_ACTIVE_BRAND_AUDIT_*.txt
 
 # local secret audit reports
 ERATGUARD_SECRET_AUDIT_*.txt
+
+# EratGuard local secret key
+data/.eratguard_secret_key
