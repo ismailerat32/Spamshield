@@ -5994,3 +5994,298 @@ try:
 except Exception as e:
     print("Settings titanium preferences page override skipped:", e)
 # ===== SPAMSHIELD USER SETTINGS TITANIUM PREFERENCES UI END =====
+
+# ===== SPAMSHIELD USER LICENSE TITANIUM CENTER UI START =====
+from flask import render_template_string as _ss_license_render_template_string
+from flask import make_response as _ss_license_make_response
+import html as _ss_license_html_escape
+from pathlib import Path as _ss_license_Path
+import json as _ss_license_json
+
+_SS_LICENSE_FILE = _ss_license_Path("data") / "licenses.json"
+
+def _ss_license_safe(v):
+    try:
+        return _ss_license_html_escape.escape(str(v or ""))
+    except Exception:
+        return ""
+
+def _ss_license_read_all():
+    try:
+        if not _SS_LICENSE_FILE.exists():
+            return {}
+        return _ss_license_json.loads(_SS_LICENSE_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+def _ss_license_find_user(username):
+    data = _ss_license_read_all()
+
+    if isinstance(data, dict):
+        if username in data and isinstance(data.get(username), dict):
+            return data.get(username)
+
+        for _, item in data.items():
+            if isinstance(item, dict) and str(item.get("username", "")).lower() == str(username).lower():
+                return item
+
+    if isinstance(data, list):
+        for item in data:
+            if isinstance(item, dict) and str(item.get("username", "")).lower() == str(username).lower():
+                return item
+
+    return {}
+
+def _ss_license_plan_label(plan):
+    plan = str(plan or "").lower()
+    if "lifetime" in plan:
+        return "Lifetime Shield"
+    if "year" in plan or "pro_yearly" in plan:
+        return "Shield Pro+"
+    if "month" in plan or "starter" in plan:
+        return "Starter Shield"
+    if "pro" in plan:
+        return "Shield Pro"
+    return "PRO Aktif"
+
+def _ss_user_license_titanium_center_page_final():
+    if not (session.get("logged_in") and session.get("username")):
+        return redirect("/login")
+
+    username = str(session.get("username") or "kullanıcı")
+    lic = _ss_license_find_user(username)
+
+    plan_raw = lic.get("plan") or lic.get("plan_key") or lic.get("license_type") or "pro_active"
+    plan_label = lic.get("plan_label") or _ss_license_plan_label(plan_raw)
+    expiry = lic.get("expires_at") or lic.get("expiry") or lic.get("license_expiry") or "Aktif"
+    status = lic.get("status") or "active"
+
+    if str(status).lower() in {"active", "aktif", "valid", "ok"}:
+        status_label = "Aktif"
+        status_note = "PRO lisansın aktif görünüyor. Titanium özellikleri kullanılabilir."
+    else:
+        status_label = "Kontrol"
+        status_note = "Lisans durumu kontrol edilmeli. Gerekirse fiyatlandırma sayfasından yenileyebilirsin."
+
+    if not lic:
+        plan_label = "PRO Aktif"
+        expiry = "Aktif"
+        status_label = "Aktif"
+        status_note = "Kullanıcı oturumu PRO erişimde. Lisans merkezi Titanium modda hazır."
+
+    html = f"""
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>SpamShield PRO • Lisans</title>
+  <style>
+    :root{{
+      --bg:#020806;
+      --line:rgba(35,255,137,.22);
+      --green:#20ff88;
+      --green2:#8cff5a;
+      --text:#f5fff8;
+      --muted:rgba(245,255,248,.66);
+    }}
+    *{{box-sizing:border-box;-webkit-tap-highlight-color:transparent}}
+    body{{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 50% 0%,rgba(32,255,136,.14),transparent 32%),
+        radial-gradient(circle at 88% 76%,rgba(140,255,90,.10),transparent 28%),
+        linear-gradient(180deg,#010403,#03150d 58%,#010403);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      padding:14px;
+      overflow-x:hidden;
+    }}
+    .top{{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}}
+    .brand{{display:flex;align-items:center;gap:10px;min-width:0}}
+    .logo{{
+      width:46px;height:46px;border-radius:16px;
+      display:grid;place-items:center;
+      background:linear-gradient(145deg,rgba(32,255,136,.18),rgba(32,255,136,.04));
+      border:1px solid var(--line);
+      box-shadow:0 0 20px rgba(32,255,136,.14);
+      font-size:24px;
+      flex:0 0 auto;
+    }}
+    h1{{margin:0;font-size:27px;line-height:1;letter-spacing:-1px}}
+    h1 span{{color:var(--green2)}}
+    .sub{{margin-top:5px;color:var(--muted);font-weight:800;font-size:12px}}
+    .badge{{
+      color:var(--green);
+      border:1px solid var(--line);
+      background:rgba(32,255,136,.08);
+      border-radius:999px;
+      padding:8px 10px;
+      font-weight:950;
+      font-size:12px;
+      white-space:nowrap;
+    }}
+    .hero{{
+      border:1px solid var(--line);
+      background:linear-gradient(145deg,rgba(8,35,23,.94),rgba(2,13,8,.92));
+      border-radius:22px;
+      padding:16px;
+      box-shadow:0 18px 44px rgba(0,0,0,.34), inset 0 0 42px rgba(32,255,136,.04);
+      margin-bottom:18px;
+    }}
+    .hero-icon{{
+      width:52px;height:52px;border-radius:17px;
+      display:grid;place-items:center;
+      background:rgba(32,255,136,.10);
+      border:1px solid rgba(32,255,136,.18);
+      font-size:27px;
+      margin-bottom:13px;
+    }}
+    .hero h2{{margin:0 0 9px;font-size:29px;line-height:1.05;letter-spacing:-1px}}
+    .hero p{{margin:0;color:var(--muted);font-size:14px;line-height:1.42;font-weight:800}}
+    .stats{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px}}
+    .stat{{
+      border:1px solid rgba(32,255,136,.15);
+      background:rgba(0,0,0,.17);
+      border-radius:17px;
+      padding:10px 6px;
+      text-align:center;
+    }}
+    .stat b{{display:block;color:var(--green);font-size:17px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+    .stat span{{display:block;margin-top:6px;color:var(--muted);font-weight:900;font-size:9px}}
+    .actions{{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}}
+    .btn{{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      border-radius:17px;
+      text-decoration:none;
+      font-weight:1000;
+      font-size:14px;
+    }}
+    .btn.primary{{color:#02120b;background:linear-gradient(135deg,#20d36f,#25d0c5)}}
+    .btn.ghost{{color:var(--text);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}}
+    .section{{margin:17px 0 8px;letter-spacing:6px;font-weight:1000;font-size:16px}}
+    .bar{{width:82px;height:5px;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--green2));margin-bottom:11px}}
+    .panel{{
+      border:1px solid var(--line);
+      background:linear-gradient(145deg,rgba(8,35,23,.92),rgba(2,13,8,.9));
+      border-radius:21px;
+      padding:6px 14px;
+      margin-bottom:14px;
+    }}
+    .row{{
+      display:grid;
+      grid-template-columns:1fr auto auto;
+      align-items:center;
+      gap:10px;
+      padding:13px 0;
+      border-bottom:1px solid rgba(245,255,248,.07);
+    }}
+    .row:last-child{{border-bottom:0}}
+    .row b{{font-size:15px}}
+    .row span{{color:#98ffb8;font-weight:950;font-size:13px;text-align:right}}
+    .tick{{
+      width:30px;height:30px;border-radius:999px;
+      display:grid;place-items:center;
+      color:#9affb9;
+      border:1px solid rgba(32,255,136,.22);
+      background:rgba(32,255,136,.09);
+      font-weight:950;
+    }}
+    .feature-grid{{display:grid;gap:10px}}
+    .feature{{
+      border:1px solid rgba(35,255,137,.22);
+      background:linear-gradient(145deg,rgba(8,35,23,.92),rgba(2,13,8,.9));
+      border-radius:19px;
+      padding:14px;
+    }}
+    .feature h3{{margin:0 0 6px;font-size:19px;line-height:1.05}}
+    .feature p{{margin:0;color:rgba(245,255,248,.66);font-weight:800;font-size:12px;line-height:1.38}}
+    .foot{{text-align:center;color:rgba(245,255,248,.38);font-weight:800;padding:22px 0 8px;font-size:12px}}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="brand">
+      <div class="logo">🛡️</div>
+      <div>
+        <h1>Spam<span>Shield</span></h1>
+        <div class="sub">Titanium lisans merkezi</div>
+      </div>
+    </div>
+    <div class="badge">👑 PRO AKTİF</div>
+  </div>
+
+  <section class="hero">
+    <div class="hero-icon">👑</div>
+    <h2>Lisans</h2>
+    <p>{_ss_license_safe(status_note)}</p>
+
+    <div class="stats">
+      <div class="stat"><b>{_ss_license_safe(status_label)}</b><span>Durum</span></div>
+      <div class="stat"><b>{_ss_license_safe(plan_label)}</b><span>Plan</span></div>
+      <div class="stat"><b>{_ss_license_safe(expiry)}</b><span>Süre</span></div>
+    </div>
+
+    <div class="actions">
+      <a class="btn ghost" href="/radial">← Ana ekran</a>
+      <a class="btn primary" href="/u/pricing">Planları Gör</a>
+    </div>
+  </section>
+
+  <div class="section">LİSANS</div>
+  <div class="bar"></div>
+
+  <section class="panel">
+    <div class="row"><b>Kullanıcı</b><span>{_ss_license_safe(username)}</span><div class="tick">✓</div></div>
+    <div class="row"><b>Plan</b><span>{_ss_license_safe(plan_label)}</span><div class="tick">✓</div></div>
+    <div class="row"><b>Lisans Durumu</b><span>{_ss_license_safe(status_label)}</span><div class="tick">✓</div></div>
+    <div class="row"><b>PRO Erişim</b><span>Aktif</span><div class="tick">✓</div></div>
+  </section>
+
+  <div class="section">ÖZELLİKLER</div>
+  <div class="bar"></div>
+
+  <main class="feature-grid">
+    <article class="feature">
+      <h3>Titanium Tarama</h3>
+      <p>Koruma ve AI Analiz sayfalarında SMS risk skoru çıkarılır.</p>
+    </article>
+
+    <article class="feature">
+      <h3>Otomatik Karantina</h3>
+      <p>Yüksek riskli mesajlar Engellenenler merkezinde güvenli alana alınır.</p>
+    </article>
+
+    <article class="feature">
+      <h3>Rapor ve Bildirim</h3>
+      <p>Analiz, karantina ve güvenlik olayları raporlanır ve bildirim akışına düşer.</p>
+    </article>
+
+    <article class="feature">
+      <h3>Premium Güvenlik Akışı</h3>
+      <p>Tara, analiz et, karantinaya al, raporla ve kullanıcıya bildir.</p>
+    </article>
+  </main>
+
+  <div class="foot">SpamShield PRO · {username} · © 2026</div>
+</body>
+</html>
+"""
+
+    resp = _ss_license_make_response(_ss_license_render_template_string(html))
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
+
+try:
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule) == "/u/license":
+            app.view_functions[_rule.endpoint] = _ss_user_license_titanium_center_page_final
+except Exception as e:
+    print("License titanium center page override skipped:", e)
+# ===== SPAMSHIELD USER LICENSE TITANIUM CENTER UI END =====
