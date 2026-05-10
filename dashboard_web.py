@@ -6289,3 +6289,410 @@ try:
 except Exception as e:
     print("License titanium center page override skipped:", e)
 # ===== SPAMSHIELD USER LICENSE TITANIUM CENTER UI END =====
+
+# ===== SPAMSHIELD USER COMMUNITY TITANIUM FEEDBACK UI START =====
+from flask import render_template_string as _ss_comm_render_template_string
+from flask import make_response as _ss_comm_make_response
+from flask import request as _ss_comm_request
+from flask import redirect as _ss_comm_redirect
+from flask import session as _ss_comm_session
+from pathlib import Path as _ss_comm_Path
+import json as _ss_comm_json
+import html as _ss_comm_html_escape
+
+_SS_COMMUNITY_FILE = _ss_comm_Path("data") / "user_community_feedback.json"
+
+def _ss_comm_safe(v):
+    try:
+        return _ss_comm_html_escape.escape(str(v or ""))
+    except Exception:
+        return ""
+
+def _ss_comm_read_all():
+    try:
+        if not _SS_COMMUNITY_FILE.exists():
+            return []
+        data = _ss_comm_json.loads(_SS_COMMUNITY_FILE.read_text(encoding="utf-8"))
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+def _ss_comm_write_all(data):
+    _SS_COMMUNITY_FILE.parent.mkdir(exist_ok=True)
+    _SS_COMMUNITY_FILE.write_text(
+        _ss_comm_json.dumps(data[-300:], ensure_ascii=False, indent=2),
+        encoding="utf-8"
+    )
+
+def _ss_user_community_feedback_post_final():
+    if not (session.get("logged_in") and session.get("username")):
+        return redirect("/login")
+
+    username = str(session.get("username") or "kullanıcı")
+    category = (_ss_comm_request.form.get("category") or "suggestion").strip()
+    message = (_ss_comm_request.form.get("message") or "").strip()
+
+    if category not in {"suggestion", "bug", "experience", "security"}:
+        category = "suggestion"
+
+    if not message:
+        _ss_comm_session["ss_community_feedback_status"] = {
+            "ok": False,
+            "message": "Geri bildirim için kısa bir not yazmalısın."
+        }
+        return _ss_comm_redirect("/u/community")
+
+    all_items = _ss_comm_read_all()
+    item = {
+        "created_at": _ss_titanium_now() if "_ss_titanium_now" in globals() else "",
+        "username": username,
+        "category": category,
+        "message": message[:800],
+        "status": "received"
+    }
+    all_items.append(item)
+    _ss_comm_write_all(all_items)
+
+    try:
+        _ss_titanium_event("community_feedback", {
+            "category": category,
+            "status": "received"
+        })
+    except Exception:
+        pass
+
+    _ss_comm_session["ss_community_feedback_status"] = {
+        "ok": True,
+        "message": "Geri bildirimin alındı. SpamShield PRO gelişim havuzuna eklendi."
+    }
+    return _ss_comm_redirect("/u/community")
+
+def _ss_comm_category_label(category):
+    category = str(category or "")
+    if category == "bug":
+        return "Hata"
+    if category == "experience":
+        return "Deneyim"
+    if category == "security":
+        return "Güvenlik"
+    return "Öneri"
+
+def _ss_user_community_titanium_feedback_page_final():
+    if not (session.get("logged_in") and session.get("username")):
+        return redirect("/login")
+
+    username = str(session.get("username") or "kullanıcı")
+    status = _ss_comm_session.pop("ss_community_feedback_status", None)
+
+    all_items = _ss_comm_read_all()
+    user_items = [x for x in all_items if x.get("username") == username]
+    last_items = list(reversed(user_items[-6:]))
+
+    total_feedback = len(user_items)
+    security_feedback = sum(1 for x in user_items if x.get("category") == "security")
+    bug_feedback = sum(1 for x in user_items if x.get("category") == "bug")
+
+    status_html = ""
+    if status:
+        ok = bool(status.get("ok"))
+        title = "Gönderildi" if ok else "Eksik bilgi"
+        status_html = f'''
+  <section class="notice {'ok' if ok else 'warn'}">
+    <b>{title}</b>
+    <span>{_ss_comm_safe(status.get("message"))}</span>
+  </section>
+'''
+
+    if last_items:
+        feedback_cards = ""
+        for item in last_items:
+            label = _ss_comm_safe(_ss_comm_category_label(item.get("category")))
+            created = _ss_comm_safe(item.get("created_at"))
+            msg = _ss_comm_safe(item.get("message"))
+            if len(msg) > 120:
+                msg = msg[:120] + "..."
+
+            feedback_cards += f'''
+    <article class="feedback-card">
+      <div class="feedback-top">
+        <div>
+          <h3>{label}</h3>
+          <p>{msg}</p>
+        </div>
+        <div class="feedback-badge">✓</div>
+      </div>
+      <div class="feedback-meta">
+        <span>{created}</span>
+        <span>Alındı</span>
+      </div>
+    </article>
+'''
+    else:
+        feedback_cards = '''
+    <article class="feedback-empty">
+      <h3>Henüz geri bildirim yok</h3>
+      <p>Öneri, hata, güvenlik fikri veya deneyimini buradan gönderebilirsin.</p>
+    </article>
+'''
+
+    html = f"""
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>SpamShield PRO • Topluluk</title>
+  <style>
+    :root{{
+      --bg:#020806;
+      --line:rgba(35,255,137,.22);
+      --green:#20ff88;
+      --green2:#8cff5a;
+      --text:#f5fff8;
+      --muted:rgba(245,255,248,.66);
+    }}
+    *{{box-sizing:border-box;-webkit-tap-highlight-color:transparent}}
+    body{{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 50% 0%,rgba(32,255,136,.14),transparent 32%),
+        radial-gradient(circle at 88% 76%,rgba(140,255,90,.10),transparent 28%),
+        linear-gradient(180deg,#010403,#03150d 58%,#010403);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      padding:14px;
+      overflow-x:hidden;
+    }}
+    .top{{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}}
+    .brand{{display:flex;align-items:center;gap:10px;min-width:0}}
+    .logo{{
+      width:46px;height:46px;border-radius:16px;
+      display:grid;place-items:center;
+      background:linear-gradient(145deg,rgba(32,255,136,.18),rgba(32,255,136,.04));
+      border:1px solid var(--line);
+      box-shadow:0 0 20px rgba(32,255,136,.14);
+      font-size:24px;
+      flex:0 0 auto;
+    }}
+    h1{{margin:0;font-size:27px;line-height:1;letter-spacing:-1px}}
+    h1 span{{color:var(--green2)}}
+    .sub{{margin-top:5px;color:var(--muted);font-weight:800;font-size:12px}}
+    .badge{{
+      color:var(--green);
+      border:1px solid var(--line);
+      background:rgba(32,255,136,.08);
+      border-radius:999px;
+      padding:8px 10px;
+      font-weight:950;
+      font-size:12px;
+      white-space:nowrap;
+    }}
+    .hero{{
+      border:1px solid var(--line);
+      background:linear-gradient(145deg,rgba(8,35,23,.94),rgba(2,13,8,.92));
+      border-radius:22px;
+      padding:16px;
+      box-shadow:0 18px 44px rgba(0,0,0,.34), inset 0 0 42px rgba(32,255,136,.04);
+      margin-bottom:18px;
+    }}
+    .hero-icon{{
+      width:52px;height:52px;border-radius:17px;
+      display:grid;place-items:center;
+      background:rgba(32,255,136,.10);
+      border:1px solid rgba(32,255,136,.18);
+      font-size:27px;
+      margin-bottom:13px;
+    }}
+    .hero h2{{margin:0 0 9px;font-size:29px;line-height:1.05;letter-spacing:-1px}}
+    .hero p{{margin:0;color:var(--muted);font-size:14px;line-height:1.42;font-weight:800}}
+    .stats{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px}}
+    .stat{{
+      border:1px solid rgba(32,255,136,.15);
+      background:rgba(0,0,0,.17);
+      border-radius:17px;
+      padding:10px 6px;
+      text-align:center;
+    }}
+    .stat b{{display:block;color:var(--green);font-size:18px;line-height:1}}
+    .stat span{{display:block;margin-top:6px;color:var(--muted);font-weight:900;font-size:9px}}
+    .back{{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      margin-top:14px;
+      border-radius:17px;
+      color:var(--text);
+      text-decoration:none;
+      font-weight:950;
+      font-size:15px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.12);
+    }}
+    .section{{margin:17px 0 8px;letter-spacing:6px;font-weight:1000;font-size:16px}}
+    .bar{{width:82px;height:5px;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--green2));margin-bottom:11px}}
+    .panel{{
+      border:1px solid var(--line);
+      background:linear-gradient(145deg,rgba(8,35,23,.92),rgba(2,13,8,.9));
+      border-radius:21px;
+      padding:14px;
+      margin-bottom:14px;
+    }}
+    label{{display:block;font-weight:950;margin:0 0 8px;color:#f5fff8;font-size:14px}}
+    select, textarea{{
+      width:100%;
+      border-radius:17px;
+      border:1px solid rgba(35,255,137,.22);
+      background:rgba(0,0,0,.22);
+      color:#f5fff8;
+      padding:12px;
+      font:800 13px system-ui;
+      outline:none;
+      margin-bottom:10px;
+    }}
+    textarea{{resize:vertical;min-height:112px}}
+    .send-btn{{
+      width:100%;
+      min-height:50px;
+      border:0;
+      border-radius:18px;
+      color:#02120b;
+      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      font-weight:1000;
+      font-size:16px;
+    }}
+    .notice{{
+      border-radius:18px;
+      padding:13px 14px;
+      margin-bottom:14px;
+      border:1px solid rgba(32,255,136,.35);
+      background:rgba(32,255,136,.10);
+    }}
+    .notice.warn{{
+      border-color:rgba(255,190,90,.34);
+      background:rgba(255,190,90,.10);
+    }}
+    .notice b{{display:block;color:#98ffb8;font-size:15px}}
+    .notice.warn b{{color:#ffd18a}}
+    .notice span{{display:block;color:rgba(245,255,248,.68);font-weight:800;font-size:12px;margin-top:4px}}
+    .feedback-list{{display:grid;gap:10px}}
+    .feedback-card{{
+      border:1px solid rgba(35,255,137,.22);
+      background:linear-gradient(145deg,rgba(8,35,23,.92),rgba(2,13,8,.9));
+      border-radius:19px;
+      padding:14px;
+    }}
+    .feedback-top{{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}}
+    .feedback-card h3{{margin:0 0 6px;font-size:19px;line-height:1.05}}
+    .feedback-card p{{margin:0;color:rgba(245,255,248,.66);font-weight:800;font-size:12px;line-height:1.38;word-break:break-word}}
+    .feedback-badge{{
+      width:38px;height:38px;border-radius:15px;
+      display:grid;place-items:center;
+      color:#02120b;
+      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      font-weight:1000;
+      font-size:18px;
+    }}
+    .feedback-meta{{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      margin-top:11px;
+      color:rgba(245,255,248,.52);
+      font-size:10px;
+      font-weight:900;
+      flex-wrap:wrap;
+    }}
+    .feedback-empty{{
+      border:1px solid rgba(35,255,137,.22);
+      background:linear-gradient(145deg,rgba(8,35,23,.92),rgba(2,13,8,.9));
+      border-radius:19px;
+      padding:15px;
+    }}
+    .feedback-empty h3{{margin:0 0 7px;font-size:19px}}
+    .feedback-empty p{{margin:0;color:rgba(245,255,248,.66);font-weight:800;font-size:12px;line-height:1.4}}
+    .foot{{text-align:center;color:rgba(245,255,248,.38);font-weight:800;padding:22px 0 8px;font-size:12px}}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="brand">
+      <div class="logo">🛡️</div>
+      <div>
+        <h1>Spam<span>Shield</span></h1>
+        <div class="sub">Titanium topluluk merkezi</div>
+      </div>
+    </div>
+    <div class="badge">👑 PRO AKTİF</div>
+  </div>
+
+  <section class="hero">
+    <div class="hero-icon">🌐</div>
+    <h2>Topluluk</h2>
+    <p>SpamShield PRO’yu birlikte daha güçlü hale getirmek için öneri, hata ve güvenlik geri bildirimi gönder.</p>
+
+    <div class="stats">
+      <div class="stat"><b>{total_feedback}</b><span>Geri Bildirim</span></div>
+      <div class="stat"><b>{security_feedback}</b><span>Güvenlik</span></div>
+      <div class="stat"><b>{bug_feedback}</b><span>Hata</span></div>
+    </div>
+
+    <a class="back" href="/radial">← Ana ekrana dön</a>
+  </section>
+
+  {status_html}
+
+  <div class="section">GÖNDER</div>
+  <div class="bar"></div>
+
+  <form method="post" action="/u/community/feedback" class="panel">
+    <label>Geri bildirim türü</label>
+    <select name="category">
+      <option value="suggestion">Öneri</option>
+      <option value="bug">Hata bildirimi</option>
+      <option value="experience">Kullanıcı deneyimi</option>
+      <option value="security">Güvenlik fikri</option>
+    </select>
+
+    <label>Mesajın</label>
+    <textarea name="message" placeholder="SpamShield PRO için önerini, hatanı veya geliştirme fikrini yaz..."></textarea>
+
+    <button class="send-btn" type="submit">Geri Bildirim Gönder</button>
+  </form>
+
+  <div class="section">SON KAYITLAR</div>
+  <div class="bar"></div>
+
+  <main class="feedback-list">
+    {feedback_cards}
+  </main>
+
+  <div class="foot">SpamShield PRO · {username} · © 2026</div>
+</body>
+</html>
+"""
+
+    resp = _ss_comm_make_response(_ss_comm_render_template_string(html))
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
+
+try:
+    app.add_url_rule(
+        "/u/community/feedback",
+        endpoint="ss_user_community_feedback_post_final",
+        view_func=_ss_user_community_feedback_post_final,
+        methods=["POST"]
+    )
+except Exception as e:
+    print("Community feedback route register skipped:", e)
+
+try:
+    for _rule in list(app.url_map.iter_rules()):
+        if str(_rule) == "/u/community":
+            app.view_functions[_rule.endpoint] = _ss_user_community_titanium_feedback_page_final
+except Exception as e:
+    print("Community titanium feedback page override skipped:", e)
+# ===== SPAMSHIELD USER COMMUNITY TITANIUM FEEDBACK UI END =====

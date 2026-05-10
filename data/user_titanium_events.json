@@ -79,5 +79,14 @@
       "auto_quarantine": true,
       "notifications_enabled": true
     }
+  },
+  {
+    "created_at": "2026-05-10T08:47:11",
+    "username": "playtest32",
+    "event_type": "community_feedback",
+    "payload": {
+      "category": "security",
+      "status": "received"
+    }
   }
 ]
