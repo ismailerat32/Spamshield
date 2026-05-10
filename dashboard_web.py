@@ -6939,19 +6939,25 @@ def ss_public_contact_page():
         <p>SpamShield PRO ile ilgili lisans, ödeme, teknik destek, güvenlik bildirimi ve geri bildirim talepleri için aşağıdaki iletişim kanalları kullanılabilir.</p>
 
         <h3>E-posta</h3>
-        <p>Yayın öncesi resmi destek e-posta adresi bu alana eklenecektir.</p>
+        <p>Destek e-posta adresi: <strong>spamshieldprotr@gmail.com</strong></p>
 
         <h3>Firma / Yayıncı Bilgileri</h3>
         <ul>
-          <li>Ürün: SpamShield PRO</li>
+          <li>Yayıncı / Hizmet Sağlayıcı: İsmail Erat</li>
+          <li>Ürün / Marka: SpamShield PRO</li>
           <li>Hizmet türü: Dijital yazılım / lisans tabanlı güvenlik hizmeti</li>
+          <li>Adres: Isparta / Türkiye</li>
+          <li>Destek e-posta: spamshieldprotr@gmail.com</li>
           <li>Ödeme altyapısı: iyzico güvenli ödeme sayfası</li>
         </ul>
 
-        <h3>Önemli Not</h3>
-        <p>iyzico başvurusu ve canlı yayın öncesinde firma unvanı, vergi bilgileri, adres, telefon ve resmi e-posta bilgileri bu sayfada net şekilde yer almalıdır.</p>
+        <h3>Vergi / Kimlik Bilgisi</h3>
+        <p>Vergi ve kimlik bilgileri güvenlik nedeniyle herkese açık sitede yayınlanmaz; yalnızca resmi başvuru ve ödeme sağlayıcı panelinde paylaşılır.</p>
 
-        <div class="notice">Bu sayfa iletişim ve firma bilgileri tamamlandığında iyzico incelemesi için kullanılabilir hale gelir.</div>
+        <h3>Önemli Not</h3>
+        <p>SpamShield PRO bireysel yayıncı tarafından geliştirilen dijital yazılım/lisans hizmetidir. Resmi başvuru süreçlerinde gerekli bilgiler ilgili ödeme sağlayıcı panelinden paylaşılır.</p>
+
+        <div class="notice">İletişim ve yayıncı bilgileri iyzico incelemesine uygun şekilde güncellenmiştir.</div>
         """
     )
 # ===== SPAMSHIELD IYZICO PUBLIC LEGAL PAGES END =====
