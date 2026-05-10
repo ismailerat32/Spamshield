@@ -137,3 +137,6 @@ test_server.py
 # local audit reports
 USER_MODULE_LINK_AUDIT_*.txt
 USER_MODULE_LINK_AUDIT_V2_*.txt
+
+# local release reports
+SPAMSHIELD_TITANIUM_RELEASE_REPORT_*.txt
