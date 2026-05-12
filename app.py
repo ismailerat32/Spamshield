@@ -1831,6 +1831,30 @@ def forgot_password():
             reset_link = url_for("reset_password", token=raw_token, _external=True)
             reset_code = create_reset_code(username)
 
+            target_email = str(user.get("email", "") or "").strip()
+            if not target_email and "@" in username:
+                target_email = username
+
+            if target_email:
+                subject = "EratGuard Şifre Sıfırlama"
+                body = (
+                    f"Merhaba {username},\n\n"
+                    f"EratGuard hesabın için şifre sıfırlama isteği oluşturuldu.\n\n"
+                    f"Sıfırlama linki:\n{reset_link}\n\n"
+                    f"6 haneli kodun: {reset_code}\n\n"
+                    f"Bu işlemi sen yapmadıysan bu mesajı yok sayabilirsin.\n"
+                )
+
+                try:
+                    ok, msg = send_mail(
+                        to_email=target_email,
+                        subject=subject,
+                        body=body
+                    )
+                    print("Password reset mail:", ok, msg)
+                except Exception as e:
+                    print("Password reset mail error:", e)
+
         return render_template(
             "forgot.html",
             success=True,
