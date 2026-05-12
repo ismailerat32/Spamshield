@@ -925,7 +925,7 @@ def forgot_password_live():
 
         if username and user:
             raw_token = create_reset_token(username)
-            reset_link = url_for("reset_password", token=raw_token, _external=True)
+            reset_link = None  # dashboard_web.py içinde reset_password route yok; 500 hatasını önler
             reset_code = create_reset_code(username)
 
             target_email = str(user.get("email", "") or "").strip()
@@ -937,7 +937,7 @@ def forgot_password_live():
                 body = (
                     f"Merhaba {username}\n\n"
                     f"EratGuard hesabın için şifre sıfırlama isteği oluşturuldu.\n\n"
-                    f"Sıfırlama linki:\n{reset_link}\n\n"
+                    f"Sıfırlama kodu ile şifre sıfırlama ekranından devam edebilirsin.\n\n"
                     f"6 haneli kodun: {reset_code}\n\n"
                     f"Bu işlemi sen yapmadıysan bu mesajı yok sayabilirsin.\n"
                 )
