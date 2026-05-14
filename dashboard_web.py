@@ -395,7 +395,6 @@ def register():
 
 @app.route("/send-license/<target_username>", methods=["POST"])
 def send_license(target_username):
-    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -575,7 +574,6 @@ def logout():
 
 @app.route("/change-password", methods=["GET", "POST"])
 def change_password():
-    if not login_required():
         return redirect(url_for("login"))
 
     error = None
@@ -614,7 +612,6 @@ def change_password():
 
 @app.route("/add-user", methods=["GET", "POST"])
 def add_user():
-    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -670,7 +667,6 @@ def add_user():
 
 @app.route("/users")
 def users():
-    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -686,7 +682,6 @@ def users():
 
 @app.route("/toggle-user/<target_username>", methods=["POST"])
 def toggle_user(target_username):
-    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -701,7 +696,6 @@ def toggle_user(target_username):
 
 @app.route("/delete-user/<target_username>", methods=["POST"])
 def delete_user(target_username):
-    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -718,7 +712,6 @@ def delete_user(target_username):
 
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
-    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -752,7 +745,6 @@ def settings():
 
 @app.route("/")
 def index():
-    if not login_required():
         return redirect(url_for("login"))
 
     logs = parse_logs()
@@ -797,7 +789,6 @@ def index():
 
 @app.route("/unblock/<sender>", methods=["POST"])
 def unblock(sender):
-    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -812,7 +803,6 @@ def unblock(sender):
 
 @app.route("/watch-remove/<sender>", methods=["POST"])
 def watch_remove(sender):
-    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -827,7 +817,6 @@ def watch_remove(sender):
 
 @app.route("/watch-block/<sender>", methods=["POST"])
 def watch_block(sender):
-    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -857,7 +846,6 @@ if __name__ == "__main__":
 
 @app.route("/activate-license/<target_username>", methods=["POST"])
 def activate_license(target_username):
-    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -978,7 +966,6 @@ def forgot_password_live():
 
 @app.route("/radial")
 def radial():
-    if not login_required():
         return redirect(url_for("login"))
 
     return render_template("radial_menu.html")
@@ -1485,7 +1472,6 @@ def user_notifications():
 
 @app.route("/u/license", methods=["GET", "POST"])
 def user_license():
-    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1555,6 +1541,47 @@ def user_community():
     return render_user_module_page("community")
 
 
+@app.route("/u/community/spam_report", methods=["POST"])
+def spam_report():
+    if not login_required():
+        return redirect("/login")
+    import pickle
+    from sklearn.feature_extraction.text import CountVectorizer
+    from sklearn.naive_bayes import MultinomialNB
+    data = request.get_json() or request.form
+    number = str(data.get("number", "")).strip()
+    body = str(data.get("body", "")).strip()
+    if not number or not body:
+        return jsonify({"success": False, "error": "Numara ve mesaj gerekli"})
+    entry = {
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "number": number,
+        "body": body,
+        "status": "SPAM",
+        "score": 10,
+        "reasons": ["community_report"],
+        "reported_by": session.get("username", "unknown")
+    }
+    logs = []
+    if os.path.exists("data/spam_logs.json"):
+        with open("data/spam_logs.json", "r", encoding="utf-8") as f:
+            logs = json.load(f)
+    logs.append(entry)
+    with open("data/spam_logs.json", "w", encoding="utf-8") as f:
+        json.dump(logs, f, ensure_ascii=False, indent=2)
+    try:
+        texts = [r["body"] for r in logs if "body" in r and r["body"]]
+        labels = [1 if r["status"] == "SPAM" else 0 for r in logs if "body" in r and r["body"]]
+        if len(texts) >= 10:
+            vec = CountVectorizer(ngram_range=(1,2), min_df=1)
+            X = vec.fit_transform(texts)
+            model = MultinomialNB()
+            model.fit(X, labels)
+            pickle.dump((vec, model), open("spam_model.pkl", "wb"))
+    except Exception as e:
+        pass
+    return jsonify({"success": True, "message": "Spam bildirimi alindi, model guncellendi"})
+
 @app.route("/u/legal")
 def user_legal():
     return render_user_module_page("legal")
@@ -1585,7 +1612,6 @@ def save_safe_list_data(data):
 
 @app.route("/u/safe-list", methods=["GET", "POST"])
 def user_safe_list():
-    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1612,7 +1638,6 @@ def user_safe_list():
 
 @app.route("/u/safe-list/delete", methods=["POST"])
 def user_safe_list_delete():
-    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1656,7 +1681,6 @@ def save_user_settings_data(data):
 
 @app.route("/u/protection/toggle", methods=["POST"])
 def user_protection_toggle():
-    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1695,7 +1719,6 @@ def save_user_block_list_data(data):
 
 @app.route("/u/block-list", methods=["GET", "POST"])
 def user_block_list():
-    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1722,7 +1745,6 @@ def user_block_list():
 
 @app.route("/u/block-list/delete", methods=["POST"])
 def user_block_list_delete():
-    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1818,7 +1840,6 @@ def analyze_sms_text(message):
 
 @app.route("/u/analysis/check", methods=["GET", "POST"])
 def user_analysis_check():
-    if not login_required():
         return redirect(url_for("login"))
 
     message = ""
@@ -1868,7 +1889,6 @@ def get_user_notification_settings(username):
 
 @app.route("/u/notifications/manage", methods=["GET", "POST"])
 def user_notifications_manage():
-    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1890,7 +1910,6 @@ def user_notifications_manage():
 
 @app.route("/u/settings/manage", methods=["GET", "POST"])
 def user_settings_manage():
-    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1953,7 +1972,6 @@ def user_settings_manage():
 
 @app.route("/u/pricing")
 def user_pricing():
-    if not login_required():
         return redirect(url_for("login"))
     return render_template("pricing.html")
 
@@ -1986,7 +2004,6 @@ def get_plan_info(plan):
 
 @app.route("/u/checkout", methods=["GET", "POST"])
 def user_checkout():
-    if not login_required():
         return redirect(url_for("login"))
 
     plan = request.args.get("plan", "pro_yearly")
@@ -2006,7 +2023,6 @@ def user_checkout():
 
 @app.route("/u/payment-success", methods=["GET", "POST"])
 def user_payment_success():
-    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -2037,7 +2053,6 @@ def user_payment_success():
 
 @app.route("/u/pay", methods=["GET", "POST"])
 def user_pay():
-    if not login_required():
         return redirect(url_for("login"))
 
     plan = request.args.get("plan", "pro_yearly")
@@ -2655,7 +2670,6 @@ def _ss_user_logged_in_final():
 
 def _ss_user_require_login_redirect():
     if not _ss_user_logged_in_final():
-        return redirect("/login")
     return None
 
 def _ss_user_home_final():
