@@ -750,6 +750,15 @@ def settings():
     )
 
 
+
+@app.route("/splash")
+def splash():
+    return render_template("splash.html")
+
+@app.route("/splash_admin")
+def splash_admin():
+    return render_template("splash_admin.html")
+
 @app.route("/")
 def index():
     if not login_required():
@@ -2173,6 +2182,13 @@ def ss_live_admin_access():
           </form>
         </body></html>
         """
+
+
+@app.route("/app-start")
+def user_app_start():
+    if session.get("logged_in"):
+        return redirect("/u/home")
+    return render_template("splash_user_app.html")
 
 @app.route("/ss-admin-app-start")
 def ss_live_admin_app_start():

@@ -23,7 +23,7 @@ public class MainActivity extends Activity {
     private FrameLayout root;
     private LinearLayout splashView;
 
-    private static final String APP_URL = "https://spamshield-peld.onrender.com/login";
+    private static final String APP_URL = "https://spamshield-peld.onrender.com/app-start";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +60,7 @@ public class MainActivity extends Activity {
         shield.setGravity(Gravity.CENTER);
 
         TextView title = new TextView(this);
-        title.setText("SpamShield PRO");
+        title.setText("EratGuard PRO");
         title.setTextColor(Color.WHITE);
         title.setTextSize(32);
         title.setTypeface(Typeface.DEFAULT_BOLD);
@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
         title.setPadding(0, 20, 0, 8);
 
         TextView sub = new TextView(this);
-        sub.setText("AI destekli SMS koruma");
+        sub.setText("AI Spam Koruma Sistemi");
         sub.setTextColor(Color.rgb(32, 240, 138));
         sub.setTextSize(17);
         sub.setTypeface(Typeface.DEFAULT_BOLD);
@@ -76,7 +76,7 @@ public class MainActivity extends Activity {
         sub.setPadding(0, 0, 0, 18);
 
         TextView mini = new TextView(this);
-        mini.setText("Güvenli giriş hazırlanıyor...");
+        mini.setText("Güvenlik başlatılıyor...");
         mini.setTextColor(Color.argb(170, 255, 255, 255));
         mini.setTextSize(13);
         mini.setGravity(Gravity.CENTER);
