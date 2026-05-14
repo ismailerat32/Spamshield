@@ -25,14 +25,14 @@ try:
     app.secret_key = (
         _ss_os.environ.get("FLASK_SECRET_KEY")
         or _ss_os.environ.get("SECRET_KEY")
-        or _ss_os.environ.get("ERATGUARD_SECRET_KEY") or os.environ.get("ERATGUARD_SECRET_KEY")
+        or _ss_os.environ.get("ERATGUARD_SECRET_KEY") or os.environ.get("SPAMSHIELD_SECRET_KEY")
         or _ss_secret_file.read_text(encoding="utf-8").strip()
     )
 except Exception:
     app.secret_key = "eratguard-stable-render-session-secret-2026-admin-mobile"
 # ===== ERATGUARD STABLE SESSION SECRET END =====
 
-app.secret_key = os.getenv("SECRET_KEY", "eratguard_dev_key")
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "eratguard_dev_key")
 
 LOG_FILE = "logs/log.txt"
 WATCHLIST_FILE = "data/watchlist.json"
@@ -48,7 +48,7 @@ def ensure_default_user():
     if not os.path.exists(USERS_FILE):
         users = {
             "admin": {
-                "password": generate_password_hash(os.environ.get("ADMIN_PASSWORD", "admin123")),
+                "password": generate_password_hash("admin123"),
                 "role": "admin",
                 "active": True,
                 "license_key": "ADMIN-SYSTEM",
@@ -303,7 +303,7 @@ def set_language(lang):
 
 
 
-# ===== ERATGUARD RENDER KEEPALIVE HEALTH START =====
+# ===== SPAMSHIELD RENDER KEEPALIVE HEALTH START =====
 @app.route("/health")
 @app.route("/ping")
 @app.route("/status")
@@ -313,7 +313,7 @@ def ss_health_ping():
         "service": "EratGuard PRO",
         "status": "alive"
     }, 200
-# ===== ERATGUARD RENDER KEEPALIVE HEALTH END =====
+# ===== SPAMSHIELD RENDER KEEPALIVE HEALTH END =====
 
 @app.route("/landing")
 def landing():
@@ -395,6 +395,7 @@ def register():
 
 @app.route("/send-license/<target_username>", methods=["POST"])
 def send_license(target_username):
+    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -574,6 +575,7 @@ def logout():
 
 @app.route("/change-password", methods=["GET", "POST"])
 def change_password():
+    if not login_required():
         return redirect(url_for("login"))
 
     error = None
@@ -612,6 +614,7 @@ def change_password():
 
 @app.route("/add-user", methods=["GET", "POST"])
 def add_user():
+    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -667,6 +670,7 @@ def add_user():
 
 @app.route("/users")
 def users():
+    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -682,6 +686,7 @@ def users():
 
 @app.route("/toggle-user/<target_username>", methods=["POST"])
 def toggle_user(target_username):
+    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -696,6 +701,7 @@ def toggle_user(target_username):
 
 @app.route("/delete-user/<target_username>", methods=["POST"])
 def delete_user(target_username):
+    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -712,6 +718,7 @@ def delete_user(target_username):
 
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
+    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -745,6 +752,7 @@ def settings():
 
 @app.route("/")
 def index():
+    if not login_required():
         return redirect(url_for("login"))
 
     logs = parse_logs()
@@ -789,6 +797,7 @@ def index():
 
 @app.route("/unblock/<sender>", methods=["POST"])
 def unblock(sender):
+    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -803,6 +812,7 @@ def unblock(sender):
 
 @app.route("/watch-remove/<sender>", methods=["POST"])
 def watch_remove(sender):
+    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -817,6 +827,7 @@ def watch_remove(sender):
 
 @app.route("/watch-block/<sender>", methods=["POST"])
 def watch_block(sender):
+    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -846,6 +857,7 @@ if __name__ == "__main__":
 
 @app.route("/activate-license/<target_username>", methods=["POST"])
 def activate_license(target_username):
+    if not login_required():
         return redirect(url_for("login"))
     if not admin_required():
         return redirect(url_for("index"))
@@ -966,6 +978,7 @@ def forgot_password_live():
 
 @app.route("/radial")
 def radial():
+    if not login_required():
         return redirect(url_for("login"))
 
     return render_template("radial_menu.html")
@@ -1472,6 +1485,7 @@ def user_notifications():
 
 @app.route("/u/license", methods=["GET", "POST"])
 def user_license():
+    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1540,7 +1554,6 @@ def user_settings():
 def user_community():
     return render_user_module_page("community")
 
-
 @app.route("/u/community/spam_report", methods=["POST"])
 def spam_report():
     if not login_required():
@@ -1578,9 +1591,12 @@ def spam_report():
             model = MultinomialNB()
             model.fit(X, labels)
             pickle.dump((vec, model), open("spam_model.pkl", "wb"))
-    except Exception as e:
+    except Exception:
         pass
     return jsonify({"success": True, "message": "Spam bildirimi alindi, model guncellendi"})
+
+
+
 
 @app.route("/u/legal")
 def user_legal():
@@ -1612,6 +1628,7 @@ def save_safe_list_data(data):
 
 @app.route("/u/safe-list", methods=["GET", "POST"])
 def user_safe_list():
+    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1638,6 +1655,7 @@ def user_safe_list():
 
 @app.route("/u/safe-list/delete", methods=["POST"])
 def user_safe_list_delete():
+    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1681,6 +1699,7 @@ def save_user_settings_data(data):
 
 @app.route("/u/protection/toggle", methods=["POST"])
 def user_protection_toggle():
+    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1719,6 +1738,7 @@ def save_user_block_list_data(data):
 
 @app.route("/u/block-list", methods=["GET", "POST"])
 def user_block_list():
+    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1745,6 +1765,7 @@ def user_block_list():
 
 @app.route("/u/block-list/delete", methods=["POST"])
 def user_block_list_delete():
+    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1840,6 +1861,7 @@ def analyze_sms_text(message):
 
 @app.route("/u/analysis/check", methods=["GET", "POST"])
 def user_analysis_check():
+    if not login_required():
         return redirect(url_for("login"))
 
     message = ""
@@ -1889,6 +1911,7 @@ def get_user_notification_settings(username):
 
 @app.route("/u/notifications/manage", methods=["GET", "POST"])
 def user_notifications_manage():
+    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1910,6 +1933,7 @@ def user_notifications_manage():
 
 @app.route("/u/settings/manage", methods=["GET", "POST"])
 def user_settings_manage():
+    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -1972,6 +1996,7 @@ def user_settings_manage():
 
 @app.route("/u/pricing")
 def user_pricing():
+    if not login_required():
         return redirect(url_for("login"))
     return render_template("pricing.html")
 
@@ -2004,6 +2029,7 @@ def get_plan_info(plan):
 
 @app.route("/u/checkout", methods=["GET", "POST"])
 def user_checkout():
+    if not login_required():
         return redirect(url_for("login"))
 
     plan = request.args.get("plan", "pro_yearly")
@@ -2023,6 +2049,7 @@ def user_checkout():
 
 @app.route("/u/payment-success", methods=["GET", "POST"])
 def user_payment_success():
+    if not login_required():
         return redirect(url_for("login"))
 
     username = session.get("username", "user")
@@ -2053,6 +2080,7 @@ def user_payment_success():
 
 @app.route("/u/pay", methods=["GET", "POST"])
 def user_pay():
+    if not login_required():
         return redirect(url_for("login"))
 
     plan = request.args.get("plan", "pro_yearly")
@@ -2061,7 +2089,7 @@ def user_pay():
     # Sonra burası iyzico/Stripe gerçek ödeme linkiyle bağlanacak.
     return redirect(url_for("user_checkout", plan=plan))
 
-# ===== ERATGUARD LIVE ADMIN APK ROUTES START =====
+# ===== SPAMSHIELD LIVE ADMIN APK ROUTES START =====
 @app.route("/ss-admin-access", methods=["GET", "POST"])
 def ss_live_admin_access():
     from pathlib import Path
@@ -2111,7 +2139,7 @@ def ss_live_admin_access():
         users = _read_users()
         user = users.get(username) or users.get(username.lower()) or {}
 
-        env_admin_pass = os.environ.get("ERATGUARD_ADMIN_PASSWORD", "") or os.environ.get("ERATGUARD_ADMIN_PASSWORD", "")
+        env_admin_pass = os.environ.get("ERATGUARD_ADMIN_PASSWORD", "") or os.environ.get("SPAMSHIELD_ADMIN_PASSWORD", "")
 
         is_admin_name = username.lower() == "admin" or str(user.get("role", "")).lower() == "admin" or user.get("is_admin") is True
         fallback_admin_sha256 = "11b2d8d98c0a8ed79080d388420deb3b3168e5631667cad074d09ee0e26c86fb"
@@ -2178,12 +2206,12 @@ def ss_live_admin_dashboard():
     except Exception as e:
         return f"<h2>EratGuard ADMIN</h2><p>Dashboard yüklenemedi: {e}</p>", 500
 
-@app.route("/__eratguard_live_version")
+@app.route("/__spamshield_live_version")
 def ss_live_version_probe():
     return "EratGuard live: dashboard_web admin routes active 2026-05-05", 200
-# ===== ERATGUARD LIVE ADMIN APK ROUTES END =====
+# ===== SPAMSHIELD LIVE ADMIN APK ROUTES END =====
 
-# ===== ERATGUARD ADMIN ALL SLICE SAFE CATCHALL START =====
+# ===== SPAMSHIELD ADMIN ALL SLICE SAFE CATCHALL START =====
 @app.route("/admin/<path:anything>", methods=["GET", "POST"])
 def ss_live_admin_all_slice_catchall(anything):
     # Admin session yoksa admin girişe dön
@@ -2230,9 +2258,9 @@ def ss_live_admin_all_slice_catchall(anything):
           <p><a style="color:#8cff5a" href="/admin/dashboard">Admin Dashboard'a dön</a></p>
         </body></html>
         """, 200
-# ===== ERATGUARD ADMIN ALL SLICE SAFE CATCHALL END =====
+# ===== SPAMSHIELD ADMIN ALL SLICE SAFE CATCHALL END =====
 
-# ===== ERATGUARD FAST ADMIN SLICE PAGES START =====
+# ===== SPAMSHIELD FAST ADMIN SLICE PAGES START =====
 from flask import render_template_string as _ss_render_template_string
 
 def _ss_admin_logged_in_final():
@@ -2485,7 +2513,7 @@ if "ss_live_admin_all_slice_catchall" in app.view_functions:
         return _ss_fast_admin_dashboard()
 
     app.view_functions["ss_live_admin_all_slice_catchall"] = _ss_fast_admin_catchall
-# ===== ERATGUARD FAST ADMIN SLICE PAGES END =====
+# ===== SPAMSHIELD FAST ADMIN SLICE PAGES END =====
 
 # ===== ERATGUARD FINAL SESSION SECRET LOCK START =====
 try:
@@ -2504,7 +2532,7 @@ try:
     app.secret_key = (
         _ss_final_os.environ.get("FLASK_SECRET_KEY")
         or _ss_final_os.environ.get("SECRET_KEY")
-        or _ss_final_os.environ.get("ERATGUARD_SECRET_KEY") or os.environ.get("ERATGUARD_SECRET_KEY")
+        or _ss_final_os.environ.get("ERATGUARD_SECRET_KEY") or os.environ.get("SPAMSHIELD_SECRET_KEY")
         or _ss_final_secret_file.read_text(encoding="utf-8").strip()
         or "eratguard-final-stable-session-secret-2026-admin-mobile"
     )
@@ -2524,7 +2552,7 @@ def _ss_admin_cookie_secret_final():
         return (
             os.environ.get("FLASK_SECRET_KEY")
             or os.environ.get("SECRET_KEY")
-            or os.environ.get("ERATGUARD_SECRET_KEY") or os.environ.get("ERATGUARD_SECRET_KEY")
+            or os.environ.get("ERATGUARD_SECRET_KEY") or os.environ.get("SPAMSHIELD_SECRET_KEY")
             or "eratguard-final-stable-session-secret-2026-admin-mobile"
         )
     except Exception:
@@ -2607,7 +2635,7 @@ def _ss_admin_access_cookie_override():
         users = _read_users()
         user = users.get(username) or users.get(username.lower()) or {}
 
-        env_admin_pass = os.environ.get("ERATGUARD_ADMIN_PASSWORD", "") or os.environ.get("ERATGUARD_ADMIN_PASSWORD", "")
+        env_admin_pass = os.environ.get("ERATGUARD_ADMIN_PASSWORD", "") or os.environ.get("SPAMSHIELD_ADMIN_PASSWORD", "")
         fallback_admin_sha256 = "11b2d8d98c0a8ed79080d388420deb3b3168e5631667cad074d09ee0e26c86fb"
 
         is_admin_name = (
@@ -2662,7 +2690,7 @@ if "ss_live_admin_access" in app.view_functions:
     app.view_functions["ss_live_admin_access"] = _ss_admin_access_cookie_override
 # ===== ERATGUARD ADMIN SIGNED COOKIE FALLBACK END =====
 
-# ===== ERATGUARD USER FINAL ROUTE ALIAS + HOME LOCK START =====
+# ===== SPAMSHIELD USER FINAL ROUTE ALIAS + HOME LOCK START =====
 from flask import render_template_string as _ss_user_render_template_string
 
 def _ss_user_logged_in_final():
@@ -2670,6 +2698,7 @@ def _ss_user_logged_in_final():
 
 def _ss_user_require_login_redirect():
     if not _ss_user_logged_in_final():
+        return redirect("/login")
     return None
 
 def _ss_user_home_final():
@@ -3049,9 +3078,9 @@ def ss_public_checkout_final():
         plan_price=plan_info["price"],
         payment_link=payment_link
     )
-# ===== ERATGUARD USER FINAL ROUTE ALIAS + HOME LOCK END =====
+# ===== SPAMSHIELD USER FINAL ROUTE ALIAS + HOME LOCK END =====
 
-# ===== ERATGUARD USER SETTINGS OVERRIDE FINAL START =====
+# ===== SPAMSHIELD USER SETTINGS OVERRIDE FINAL START =====
 def _ss_user_settings_redirect_final():
     return redirect("/u/settings")
 
@@ -3061,9 +3090,9 @@ try:
             app.view_functions[_rule.endpoint] = _ss_user_settings_redirect_final
 except Exception:
     pass
-# ===== ERATGUARD USER SETTINGS OVERRIDE FINAL END =====
+# ===== SPAMSHIELD USER SETTINGS OVERRIDE FINAL END =====
 
-# ===== ERATGUARD REMOVE USER RADIAL KEEP CARD HOME START =====
+# ===== SPAMSHIELD REMOVE USER RADIAL KEEP CARD HOME START =====
 def _ss_user_card_home_locked_response():
     resp = _ss_user_home_final()
     try:
@@ -3096,9 +3125,9 @@ except Exception:
 @app.route("/u/home-final")
 def ss_user_card_home_final_alias():
     return _ss_user_card_home_locked_response()
-# ===== ERATGUARD REMOVE USER RADIAL KEEP CARD HOME END =====
+# ===== SPAMSHIELD REMOVE USER RADIAL KEEP CARD HOME END =====
 
-# ===== ERATGUARD RESTORE ADMIN RADIAL HOME FINAL START =====
+# ===== SPAMSHIELD RESTORE ADMIN RADIAL HOME FINAL START =====
 def _ss_admin_radial_home_final():
     if not _ss_admin_ok():
         return redirect("/ss-admin-access")
@@ -3146,9 +3175,9 @@ try:
         app.view_functions["ss_live_admin_all_slice_catchall"] = _ss_admin_catchall_radial_dashboard_final
 except Exception:
     pass
-# ===== ERATGUARD RESTORE ADMIN RADIAL HOME FINAL END =====
+# ===== SPAMSHIELD RESTORE ADMIN RADIAL HOME FINAL END =====
 
-# ===== ERATGUARD USER PROTECTION COMPACT FINAL START =====
+# ===== SPAMSHIELD USER PROTECTION COMPACT FINAL START =====
 from flask import render_template_string as _ss_protection_render_template_string
 from flask import make_response as _ss_protection_make_response
 
@@ -3468,9 +3497,9 @@ try:
             app.view_functions[_rule.endpoint] = _ss_user_protection_compact_final
 except Exception:
     pass
-# ===== ERATGUARD USER PROTECTION COMPACT FINAL END =====
+# ===== SPAMSHIELD USER PROTECTION COMPACT FINAL END =====
 
-# ===== ERATGUARD USER ANALYSIS COMPACT FINAL START =====
+# ===== SPAMSHIELD USER ANALYSIS COMPACT FINAL START =====
 from flask import render_template_string as _ss_analysis_render_template_string
 from flask import make_response as _ss_analysis_make_response
 
@@ -3805,9 +3834,9 @@ try:
             app.view_functions[_rule.endpoint] = _ss_user_analysis_compact_final
 except Exception:
     pass
-# ===== ERATGUARD USER ANALYSIS COMPACT FINAL END =====
+# ===== SPAMSHIELD USER ANALYSIS COMPACT FINAL END =====
 
-# ===== ERATGUARD USER BLOCKED COMPACT FINAL START =====
+# ===== SPAMSHIELD USER BLOCKED COMPACT FINAL START =====
 from flask import render_template_string as _ss_blocked_render_template_string
 from flask import make_response as _ss_blocked_make_response
 
@@ -4114,11 +4143,11 @@ try:
             app.view_functions[_rule.endpoint] = _ss_user_blocked_compact_final
 except Exception:
     pass
-# ===== ERATGUARD USER BLOCKED COMPACT FINAL END =====
+# ===== SPAMSHIELD USER BLOCKED COMPACT FINAL END =====
 
 
 
-# ===== ERATGUARD USER TITANIUM CORE START =====
+# ===== SPAMSHIELD USER TITANIUM CORE START =====
 from flask import request as _ss_titanium_request
 from flask import jsonify as _ss_titanium_jsonify
 from datetime import datetime as _ss_titanium_datetime
@@ -4395,9 +4424,9 @@ try:
     app.add_url_rule("/u/titanium/summary", endpoint="ss_user_titanium_summary_final", view_func=ss_user_titanium_summary_final, methods=["GET"])
 except Exception as e:
     print("Titanium route register skipped:", e)
-# ===== ERATGUARD USER TITANIUM CORE END =====
+# ===== SPAMSHIELD USER TITANIUM CORE END =====
 
-# ===== ERATGUARD USER PROTECTION TITANIUM SCANNER UI START =====
+# ===== SPAMSHIELD USER PROTECTION TITANIUM SCANNER UI START =====
 from flask import redirect as _ss_protect_redirect
 from flask import session as _ss_protect_session
 from flask import request as _ss_protect_request
@@ -4526,9 +4555,9 @@ try:
 
 except Exception as e:
     print("Protection titanium scanner page override skipped:", e)
-# ===== ERATGUARD USER PROTECTION TITANIUM SCANNER UI END =====
+# ===== SPAMSHIELD USER PROTECTION TITANIUM SCANNER UI END =====
 
-# ===== ERATGUARD USER ANALYSIS TITANIUM SCANNER UI START =====
+# ===== SPAMSHIELD USER ANALYSIS TITANIUM SCANNER UI START =====
 from flask import redirect as _ss_analysis_redirect
 from flask import session as _ss_analysis_session
 from flask import request as _ss_analysis_request
@@ -4672,9 +4701,9 @@ try:
 
 except Exception as e:
     print("Analysis titanium scanner page override skipped:", e)
-# ===== ERATGUARD USER ANALYSIS TITANIUM SCANNER UI END =====
+# ===== SPAMSHIELD USER ANALYSIS TITANIUM SCANNER UI END =====
 
-# ===== ERATGUARD USER ANALYSIS TITANIUM SCANNER UI START =====
+# ===== SPAMSHIELD USER ANALYSIS TITANIUM SCANNER UI START =====
 from flask import redirect as _ss_analysis_redirect
 from flask import session as _ss_analysis_session
 from flask import request as _ss_analysis_request
@@ -4818,9 +4847,9 @@ try:
 
 except Exception as e:
     print("Analysis titanium scanner page override skipped:", e)
-# ===== ERATGUARD USER ANALYSIS TITANIUM SCANNER UI END =====
+# ===== SPAMSHIELD USER ANALYSIS TITANIUM SCANNER UI END =====
 
-# ===== ERATGUARD USER BLOCKED TITANIUM QUARANTINE UI START =====
+# ===== SPAMSHIELD USER BLOCKED TITANIUM QUARANTINE UI START =====
 from flask import make_response as _ss_blocked_titanium_make_response
 from flask import session as _ss_blocked_titanium_session
 import html as _ss_blocked_titanium_html_escape
@@ -5011,9 +5040,9 @@ try:
 
 except Exception as e:
     print("Blocked titanium quarantine page override skipped:", e)
-# ===== ERATGUARD USER BLOCKED TITANIUM QUARANTINE UI END =====
+# ===== SPAMSHIELD USER BLOCKED TITANIUM QUARANTINE UI END =====
 
-# ===== ERATGUARD USER REPORTS TITANIUM SUMMARY UI START =====
+# ===== SPAMSHIELD USER REPORTS TITANIUM SUMMARY UI START =====
 from flask import render_template_string as _ss_reports_render_template_string
 from flask import make_response as _ss_reports_make_response
 import html as _ss_reports_html_escape
@@ -5347,9 +5376,9 @@ try:
             app.view_functions[_rule.endpoint] = _ss_user_reports_titanium_summary_page_final
 except Exception as e:
     print("Reports titanium summary page override skipped:", e)
-# ===== ERATGUARD USER REPORTS TITANIUM SUMMARY UI END =====
+# ===== SPAMSHIELD USER REPORTS TITANIUM SUMMARY UI END =====
 
-# ===== ERATGUARD USER NOTIFICATIONS TITANIUM EVENTS UI START =====
+# ===== SPAMSHIELD USER NOTIFICATIONS TITANIUM EVENTS UI START =====
 from flask import render_template_string as _ss_notify_render_template_string
 from flask import make_response as _ss_notify_make_response
 import html as _ss_notify_html_escape
@@ -5638,9 +5667,9 @@ try:
             app.view_functions[_rule.endpoint] = _ss_user_notifications_titanium_events_page_final
 except Exception as e:
     print("Notifications titanium events page override skipped:", e)
-# ===== ERATGUARD USER NOTIFICATIONS TITANIUM EVENTS UI END =====
+# ===== SPAMSHIELD USER NOTIFICATIONS TITANIUM EVENTS UI END =====
 
-# ===== ERATGUARD USER SETTINGS TITANIUM PREFERENCES UI START =====
+# ===== SPAMSHIELD USER SETTINGS TITANIUM PREFERENCES UI START =====
 from flask import render_template_string as _ss_settings_render_template_string
 from flask import make_response as _ss_settings_make_response
 from flask import request as _ss_settings_request
@@ -6052,9 +6081,9 @@ try:
             app.view_functions[_rule.endpoint] = _ss_user_settings_manage_titanium_final
 except Exception as e:
     print("Settings titanium preferences page override skipped:", e)
-# ===== ERATGUARD USER SETTINGS TITANIUM PREFERENCES UI END =====
+# ===== SPAMSHIELD USER SETTINGS TITANIUM PREFERENCES UI END =====
 
-# ===== ERATGUARD USER LICENSE TITANIUM CENTER UI START =====
+# ===== SPAMSHIELD USER LICENSE TITANIUM CENTER UI START =====
 from flask import render_template_string as _ss_license_render_template_string
 from flask import make_response as _ss_license_make_response
 import html as _ss_license_html_escape
@@ -6347,9 +6376,9 @@ try:
             app.view_functions[_rule.endpoint] = _ss_user_license_titanium_center_page_final
 except Exception as e:
     print("License titanium center page override skipped:", e)
-# ===== ERATGUARD USER LICENSE TITANIUM CENTER UI END =====
+# ===== SPAMSHIELD USER LICENSE TITANIUM CENTER UI END =====
 
-# ===== ERATGUARD USER COMMUNITY TITANIUM FEEDBACK UI START =====
+# ===== SPAMSHIELD USER COMMUNITY TITANIUM FEEDBACK UI START =====
 from flask import render_template_string as _ss_comm_render_template_string
 from flask import make_response as _ss_comm_make_response
 from flask import request as _ss_comm_request
@@ -6754,9 +6783,9 @@ try:
             app.view_functions[_rule.endpoint] = _ss_user_community_titanium_feedback_page_final
 except Exception as e:
     print("Community titanium feedback page override skipped:", e)
-# ===== ERATGUARD USER COMMUNITY TITANIUM FEEDBACK UI END =====
+# ===== SPAMSHIELD USER COMMUNITY TITANIUM FEEDBACK UI END =====
 
-# ===== ERATGUARD IYZICO PUBLIC LEGAL PAGES START =====
+# ===== SPAMSHIELD IYZICO PUBLIC LEGAL PAGES START =====
 from flask import render_template_string as _ss_legal_public_render_template_string
 from flask import make_response as _ss_legal_public_make_response
 
@@ -6998,7 +7027,7 @@ def ss_public_contact_page():
         <p>EratGuard PRO ile ilgili lisans, ödeme, teknik destek, güvenlik bildirimi ve geri bildirim talepleri için aşağıdaki iletişim kanalları kullanılabilir.</p>
 
         <h3>E-posta</h3>
-        <p>Destek e-posta adresi: <strong>eratguardprotr@gmail.com</strong></p>
+        <p>Destek e-posta adresi: <strong>spamshieldprotr@gmail.com</strong></p>
 
         <h3>Firma / Yayıncı Bilgileri</h3>
         <ul>
@@ -7006,7 +7035,7 @@ def ss_public_contact_page():
           <li>Ürün / Marka: EratGuard PRO</li>
           <li>Hizmet türü: Dijital yazılım / lisans tabanlı güvenlik hizmeti</li>
           <li>Adres: Isparta / Türkiye</li>
-          <li>Destek e-posta: eratguardprotr@gmail.com</li>
+          <li>Destek e-posta: spamshieldprotr@gmail.com</li>
           <li>Ödeme altyapısı: iyzico güvenli ödeme sayfası</li>
         </ul>
 
@@ -7019,4 +7048,4 @@ def ss_public_contact_page():
         <div class="notice">İletişim ve yayıncı bilgileri iyzico incelemesine uygun şekilde güncellenmiştir.</div>
         """
     )
-# ===== ERATGUARD IYZICO PUBLIC LEGAL PAGES END =====
+# ===== SPAMSHIELD IYZICO PUBLIC LEGAL PAGES END =====
