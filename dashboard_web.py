@@ -7075,3 +7075,24 @@ def ss_public_contact_page():
         """
     )
 # ===== SPAMSHIELD IYZICO PUBLIC LEGAL PAGES END =====
+
+# ===== ERATGUARD BETA PUBLIC/USER ALIAS FIX START =====
+# v1.0.0-beta probe fix:
+# These aliases prevent old/short links from returning 404 during beta testing.
+
+@app.route("/u")
+def eratguard_alias_u_root():
+    return redirect("/app-start")
+
+@app.route("/u/home")
+def eratguard_alias_u_home():
+    return redirect("/app-start")
+
+@app.route("/legal")
+def eratguard_alias_public_legal():
+    return redirect("/u/legal")
+
+@app.route("/forgot")
+def eratguard_alias_forgot():
+    return redirect("/forgot-password")
+# ===== ERATGUARD BETA PUBLIC/USER ALIAS FIX END =====

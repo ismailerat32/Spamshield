@@ -164,3 +164,5 @@ data/user_titanium_events.json
 data/whitelist.json
 data/feedback.json
 data/payment_requests.json
+ERATGUARD_DEEP_PROBE_*.json
+ERATGUARD_DEEP_PROBE_*.md
