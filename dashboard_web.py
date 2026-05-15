@@ -7096,3 +7096,108 @@ def eratguard_alias_public_legal():
 def eratguard_alias_forgot():
     return redirect("/forgot-password")
 # ===== ERATGUARD BETA PUBLIC/USER ALIAS FIX END =====
+
+# ===== ERATGUARD BETA SECURITY HARDENING START =====
+# Defensive hardening for v1.0.0-beta:
+# - Security headers
+# - Lightweight in-memory rate limit for login/admin/forgot-password POST requests
+
+from collections import defaultdict as _eg_defaultdict
+import time as _eg_time
+
+_eg_rate_buckets = _eg_defaultdict(list)
+
+def _eg_client_ip():
+    try:
+        xff = request.headers.get("X-Forwarded-For", "")
+        if xff:
+            return xff.split(",")[0].strip()
+        return request.headers.get("CF-Connecting-IP") or request.remote_addr or "unknown"
+    except Exception:
+        return "unknown"
+
+def _eg_rate_limit_check(bucket_name, limit, window_seconds):
+    now = _eg_time.time()
+    ip = _eg_client_ip()
+    key = f"{bucket_name}:{ip}"
+
+    bucket = _eg_rate_buckets[key]
+    bucket[:] = [t for t in bucket if now - t < window_seconds]
+
+    if len(bucket) >= limit:
+        return False, int(window_seconds - (now - bucket[0]))
+
+    bucket.append(now)
+    return True, 0
+
+@app.before_request
+def eratguard_beta_rate_limit_guard():
+    try:
+        path = request.path
+        method = request.method.upper()
+
+        if method != "POST":
+            return None
+
+        rules = {
+            "/ss-admin-access": ("admin-login", 8, 15 * 60),
+            "/login": ("user-login", 12, 15 * 60),
+            "/forgot-password": ("forgot-password", 5, 15 * 60),
+            "/forgot": ("forgot-password-alias", 5, 15 * 60),
+        }
+
+        if path not in rules:
+            return None
+
+        bucket, limit, window = rules[path]
+        ok, retry_after = _eg_rate_limit_check(bucket, limit, window)
+
+        if ok:
+            return None
+
+        resp = app.response_class(
+            "<h2>EratGuard PRO</h2><p>Çok fazla deneme yapıldı. Lütfen biraz sonra tekrar deneyin.</p>",
+            status=429,
+            mimetype="text/html",
+        )
+        resp.headers["Retry-After"] = str(max(retry_after, 60))
+        return resp
+
+    except Exception:
+        return None
+
+@app.after_request
+def eratguard_beta_security_headers(resp):
+    try:
+        resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+        resp.headers.setdefault("X-Frame-Options", "DENY")
+        resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        resp.headers.setdefault(
+            "Permissions-Policy",
+            "geolocation=(), microphone=(), camera=(), payment=()"
+        )
+
+        resp.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self' https: data: blob:; "
+            "script-src 'self' 'unsafe-inline' https:; "
+            "style-src 'self' 'unsafe-inline' https:; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' data: https:; "
+            "connect-src 'self' https:; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+
+        if request.scheme == "https" or request.headers.get("X-Forwarded-Proto") == "https":
+            resp.headers.setdefault(
+                "Strict-Transport-Security",
+                "max-age=31536000; includeSubDomains"
+            )
+
+    except Exception:
+        pass
+
+    return resp
+# ===== ERATGUARD BETA SECURITY HARDENING END =====

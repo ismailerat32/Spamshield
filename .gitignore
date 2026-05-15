@@ -166,3 +166,5 @@ data/feedback.json
 data/payment_requests.json
 ERATGUARD_DEEP_PROBE_*.json
 ERATGUARD_DEEP_PROBE_*.md
+ERATGUARD_SECURITY_PROBE_*.json
+ERATGUARD_SECURITY_PROBE_*.md
