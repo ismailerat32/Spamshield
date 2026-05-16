@@ -561,7 +561,9 @@ def login():
             session["onboarding_done"] = True
             session["username"] = username
             session["role"] = user.get("role", "user")
-            if not session.get("notif_asked"):
+            users = load_users()
+            udata = users.get(username, {})
+            if not udata.get("notif_asked"):
                 return redirect("/notification-permission")
             return redirect(url_for("radial"))
         else:
@@ -2218,6 +2220,14 @@ def notification_permission():
     if not login_required():
         return redirect("/login")
     session["notif_asked"] = True
+    username = session.get("username", "")
+    if username:
+        users = load_users()
+        if username in users:
+            users[username]["notif_asked"] = True
+            import json as _j
+            with open(USERS_FILE, "w", encoding="utf-8") as _f:
+                _j.dump(users, _f, ensure_ascii=False, indent=2)
     return render_template("notification_permission.html")
 
 @app.route("/onboarding")
