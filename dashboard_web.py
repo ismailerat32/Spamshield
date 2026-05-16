@@ -2788,6 +2788,19 @@ def _ss_user_home_final():
 
     username = session.get("username", "kullanıcı")
 
+    # Gerçek veriler
+    try:
+        import json as _j
+        _logs = _j.load(open("data/spam_logs.json", encoding="utf-8"))
+        spam_count = sum(1 for r in _logs if r.get("status") == "SPAM")
+    except:
+        spam_count = 0
+    try:
+        _block = _j.load(open("data/blocklist.json", encoding="utf-8"))
+        blocked_count = len(_block)
+    except:
+        blocked_count = 0
+
     return _ss_user_render_template_string("""
 <!doctype html>
 <html lang="tr">
@@ -3001,8 +3014,8 @@ def _ss_user_home_final():
     <h2>Kontrol sende,<br><span>koruma aktif.</span></h2>
     <p>AI spam analizi, lisans ve güvenlik modülleri tek ekranda.</p>
     <div class="stats">
-      <div class="stat"><b>8</b><span>Modül</span></div>
-      <div class="stat"><b>92</b><span>Skor</span></div>
+      <div class="stat"><b>{{ spam_count }}</b><span>Spam</span></div>
+      <div class="stat"><b>{{ blocked_count }}</b><span>Engellenen</span></div>
       <div class="stat"><b>AI</b><span>Aktif</span></div>
     </div>
   </section>
@@ -3055,7 +3068,7 @@ def _ss_user_home_final():
   <div class="foot">EratGuard PRO · {{ username }} · © 2026</div>
 </body>
 </html>
-""", username=username)
+""", username=username, spam_count=spam_count, blocked_count=blocked_count)
 
 # /radial endpointini temiz kartlı kullanıcı ana ekranına kilitle
 try:
