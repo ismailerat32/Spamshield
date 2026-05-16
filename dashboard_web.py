@@ -1565,6 +1565,22 @@ def user_settings():
     return render_user_module_page("settings")
 
 
+
+@app.route("/u/profile")
+def user_profile():
+    if not login_required():
+        return redirect("/login")
+    username = session.get("username", "")
+    users = load_users()
+    user = users.get(username, {})
+    return render_template("profile.html",
+        username=username,
+        email=user.get("email", ""),
+        role=user.get("role", "user"),
+        license_key=user.get("license_key", "—"),
+        expires_at=user.get("expires_at", "—")
+    )
+
 @app.route("/u/community")
 def user_community():
     return render_user_module_page("community")

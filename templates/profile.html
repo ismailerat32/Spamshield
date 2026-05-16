@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EratGuard — Profilim</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;min-height:100%;background:#020e07;font-family:'DM Sans',sans-serif;color:#fff}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(0,255,100,.08) 0%,transparent 50%),#020e07}
+.corner{position:fixed;width:16px;height:16px;z-index:3}
+.corner.tl{top:12px;left:12px;border-top:1.5px solid rgba(0,255,136,.2);border-left:1.5px solid rgba(0,255,136,.2)}
+.corner.tr{top:12px;right:12px;border-top:1.5px solid rgba(0,255,136,.2);border-right:1.5px solid rgba(0,255,136,.2)}
+.corner.bl{bottom:12px;left:12px;border-bottom:1.5px solid rgba(0,255,136,.2);border-left:1.5px solid rgba(0,255,136,.2)}
+.corner.br{bottom:12px;right:12px;border-bottom:1.5px solid rgba(0,255,136,.2);border-right:1.5px solid rgba(0,255,136,.2)}
+.page{position:relative;z-index:10;width:100%;min-height:100vh;display:flex;flex-direction:column;padding:52px 24px 48px;gap:20px}
+/* HEADER */
+.header{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.back-btn{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.back-btn:hover{border-color:rgba(0,255,136,.3)}
+.header-title{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800;letter-spacing:-.3px}
+/* AVATAR */
+.avatar-section{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0}
+.avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#003018,#00501f);border:2px solid rgba(0,255,136,.25);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;color:#00ff88;box-shadow:0 0 30px rgba(0,255,136,.15)}
+.avatar-name{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.3px}
+.avatar-email{font-size:13px;color:rgba(255,255,255,.4);margin-top:2px}
+.badge-row{display:flex;gap:8px;margin-top:4px}
+.badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:100px;font-family:'Space Grotesk',sans-serif;letter-spacing:.5px}
+.badge-pro{background:rgba(0,255,136,.12);color:#00ff88;border:1px solid rgba(0,255,136,.2)}
+.badge-active{background:rgba(0,255,136,.08);color:rgba(0,255,136,.7);border:1px solid rgba(0,255,136,.12)}
+/* SECTION */
+.section-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);font-weight:600;margin-bottom:4px;padding-left:4px}
+/* INFO CARDS */
+.info-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:18px;overflow:hidden}
+.info-row{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.05)}
+.info-row:last-child{border-bottom:none}
+.info-icon{width:36px;height:36px;border-radius:10px;background:rgba(0,255,136,.07);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.info-content{flex:1;padding:0 12px}
+.info-label{font-size:11px;color:rgba(255,255,255,.3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.info-value{font-size:14px;font-weight:500;color:#fff}
+.info-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px;font-family:'Space Grotesk',sans-serif}
+.badge-user{background:rgba(72,149,239,.12);color:#4895ef;border:1px solid rgba(72,149,239,.2)}
+/* LICENSE CARD */
+.license-card{background:linear-gradient(135deg,rgba(0,40,20,.6),rgba(0,20,10,.8));border:1px solid rgba(0,255,136,.15);border-radius:18px;padding:18px}
+.license-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.license-title{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700}
+.license-status{font-size:11px;font-weight:600;padding:4px 10px;border-radius:100px;background:rgba(0,255,136,.12);color:#00ff88;border:1px solid rgba(0,255,136,.2);font-family:'Space Grotesk',sans-serif}
+.license-key{font-family:'Space Grotesk',sans-serif;font-size:13px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.3);border-radius:10px;padding:10px 14px;letter-spacing:1px;margin-bottom:12px;word-break:break-all}
+.license-expires{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.4)}
+.expires-dot{width:6px;height:6px;border-radius:50%;background:#00ff88;flex-shrink:0}
+/* ACTIONS */
+.actions{display:flex;flex-direction:column;gap:10px}
+.btn-change-pass{width:100%;background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-change-pass:hover{border-color:rgba(0,255,136,.2);color:#00ff88}
+.btn-logout{width:100%;background:rgba(255,77,109,.06);color:#ff4d6d;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;border:1px solid rgba(255,77,109,.15);border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-logout:hover{background:rgba(255,77,109,.1)}
+.foot{text-align:center;font-size:10px;color:rgba(255,255,255,.12);letter-spacing:1px;text-transform:uppercase;margin-top:8px}
+.foot span{color:rgba(0,255,136,.2)}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+<div class="page">
+  <div class="header">
+    <div class="back-btn" onclick="history.back()">←</div>
+    <div class="header-title">Profilim</div>
+  </div>
+  <div class="avatar-section">
+    <div class="avatar">{{ username[0].upper() }}</div>
+    <div class="avatar-name">{{ username }}</div>
+    <div class="avatar-email">{{ email }}</div>
+    <div class="badge-row">
+      <div class="badge badge-pro">PRO</div>
+      <div class="badge badge-active">Aktif</div>
+    </div>
+  </div>
+  <div class="section-title">Hesap Bilgileri</div>
+  <div class="info-card">
+    <div class="info-row">
+      <div class="info-icon">👤</div>
+      <div class="info-content">
+        <div class="info-label">Kullanıcı Adı</div>
+        <div class="info-value">{{ username }}</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">📧</div>
+      <div class="info-content">
+        <div class="info-label">E-posta</div>
+        <div class="info-value">{{ email or 'Belirtilmemiş' }}</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🎭</div>
+      <div class="info-content">
+        <div class="info-label">Hesap Türü</div>
+        <div class="info-value"><span class="info-badge badge-user">{{ role.upper() }}</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="section-title">Lisans Bilgileri</div>
+  <div class="license-card">
+    <div class="license-header">
+      <div class="license-title">EratGuard PRO</div>
+      <div class="license-status">Aktif</div>
+    </div>
+    <div class="license-key">{{ license_key }}</div>
+    <div class="license-expires">
+      <div class="expires-dot"></div>
+      Son Geçerlilik: {{ expires_at }}
+    </div>
+  </div>
+  <div class="section-title">İşlemler</div>
+  <div class="actions">
+    <button class="btn-change-pass" onclick="location.href='/change-password'">🔑 Şifre Değiştir</button>
+    <button class="btn-logout" onclick="location.href='/logout'">🚪 Çıkış Yap</button>
+  </div>
+  <div class="foot">Erat<span>Guard</span> PRO · 2026</div>
+</div>
+</body>
+</html>
