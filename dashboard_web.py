@@ -2194,6 +2194,14 @@ def ss_live_admin_access():
 
 
 
+
+@app.route("/notification-permission")
+def notification_permission():
+    if not login_required():
+        return redirect("/login")
+    session["notif_asked"] = True
+    return render_template("notification_permission.html")
+
 @app.route("/onboarding")
 def onboarding():
     return render_template("onboarding.html")
