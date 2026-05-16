@@ -561,6 +561,8 @@ def login():
             session["onboarding_done"] = True
             session["username"] = username
             session["role"] = user.get("role", "user")
+            if not session.get("notif_asked"):
+                return redirect("/notification-permission")
             return redirect(url_for("radial"))
         else:
             error = "Kullanıcı adı veya şifre yanlış." if get_lang() == "tr" else "Username or password is incorrect."
