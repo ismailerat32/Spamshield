@@ -2977,7 +2977,7 @@ def _ss_user_home_final():
         <div class="sub">AI Spam Koruma Sistemi</div>
       </div>
     </div>
-    <div class="badge">👑 PRO AKTİF</div>
+    <a href="/u/profile" class="badge" style="text-decoration:none;cursor:pointer;">👑 {{ username }}</a>
   </div>
 
   <section class="hero">
