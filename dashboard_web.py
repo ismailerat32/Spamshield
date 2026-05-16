@@ -756,6 +756,13 @@ def settings():
 
 
 
+
+@app.route("/set-lang/<lang>")
+def set_lang(lang):
+    if lang in ["tr", "en"]:
+        session["lang"] = lang
+    return redirect(request.referrer or "/radial")
+
 @app.route("/splash")
 def splash():
     return render_template("splash.html")
