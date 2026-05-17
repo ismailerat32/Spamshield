@@ -3759,7 +3759,7 @@ def _ss_user_analysis_compact_final():
       text-decoration:none;
       font-weight:1000;
       font-size:16px;
-      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      background:linear-gradient(135deg,#00c860,#00e676);
       position:relative;
       z-index:1;
     }
@@ -4090,7 +4090,7 @@ def _ss_user_blocked_compact_final():
       text-decoration:none;
       font-weight:1000;
       font-size:16px;
-      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      background:linear-gradient(135deg,#00c860,#00e676);
       position:relative;
       z-index:1;
     }
@@ -4639,7 +4639,7 @@ try:
         style="width:100%;resize:vertical;border-radius:17px;border:1px solid rgba(35,255,137,.22);background:rgba(0,0,0,.22);color:#f5fff8;padding:12px;font:800 13px system-ui;outline:none;"></textarea>
 
       <button type="submit"
-        style="width:100%;margin-top:10px;min-height:48px;border:0;border-radius:17px;background:linear-gradient(135deg,#20d36f,#25d0c5);color:#02120b;font-weight:1000;font-size:15px;">
+        style="width:100%;margin-top:10px;min-height:48px;border:0;border-radius:17px;background:linear-gradient(135deg,#00c860,#00e676);color:#02120b;font-weight:1000;font-size:15px;">
         SMS'i Tara
       </button>
 
@@ -4783,7 +4783,7 @@ try:
         style="width:100%;resize:vertical;border-radius:17px;border:1px solid rgba(35,255,137,.22);background:rgba(0,0,0,.22);color:#f5fff8;padding:12px;font:800 13px system-ui;outline:none;"></textarea>
 
       <button type="submit"
-        style="width:100%;margin-top:10px;min-height:48px;border:0;border-radius:17px;background:linear-gradient(135deg,#20d36f,#25d0c5);color:#02120b;font-weight:1000;font-size:15px;">
+        style="width:100%;margin-top:10px;min-height:48px;border:0;border-radius:17px;background:linear-gradient(135deg,#00c860,#00e676);color:#02120b;font-weight:1000;font-size:15px;">
         AI Analizi Başlat
       </button>
 
@@ -4929,7 +4929,7 @@ try:
         style="width:100%;resize:vertical;border-radius:17px;border:1px solid rgba(35,255,137,.22);background:rgba(0,0,0,.22);color:#f5fff8;padding:12px;font:800 13px system-ui;outline:none;"></textarea>
 
       <button type="submit"
-        style="width:100%;margin-top:10px;min-height:48px;border:0;border-radius:17px;background:linear-gradient(135deg,#20d36f,#25d0c5);color:#02120b;font-weight:1000;font-size:15px;">
+        style="width:100%;margin-top:10px;min-height:48px;border:0;border-radius:17px;background:linear-gradient(135deg,#00c860,#00e676);color:#02120b;font-weight:1000;font-size:15px;">
         AI Analizi Başlat
       </button>
 
@@ -5082,7 +5082,7 @@ try:
       display:grid;
       place-items:center;
       color:#02120b;
-      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      background:linear-gradient(135deg,#00c860,#00e676);
       font-weight:1000;
       font-size:18px;
       box-shadow:0 0 18px rgba(32,255,136,.18);
@@ -5399,7 +5399,7 @@ def _ss_user_reports_titanium_summary_page_final():
       width:44px;height:44px;border-radius:15px;
       display:grid;place-items:center;
       color:#02120b;
-      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      background:linear-gradient(135deg,#00c860,#00e676);
       font-weight:1000;
       font-size:18px;
     }}
@@ -5706,7 +5706,7 @@ def _ss_user_notifications_titanium_events_page_final():
       width:42px;height:42px;border-radius:15px;
       display:grid;place-items:center;
       color:#02120b;
-      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      background:linear-gradient(135deg,#00c860,#00e676);
       font-weight:1000;
       font-size:17px;
     }}
@@ -6055,7 +6055,7 @@ def _ss_user_settings_titanium_preferences_page_final():
       transition:.2s;
     }}
     .switch input:checked + .slider{{
-      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      background:linear-gradient(135deg,#00c860,#00e676);
       border-color:rgba(32,255,136,.35);
     }}
     .switch input:checked + .slider:before{{
@@ -6078,7 +6078,7 @@ def _ss_user_settings_titanium_preferences_page_final():
       border:0;
       border-radius:18px;
       color:#02120b;
-      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      background:linear-gradient(135deg,#00c860,#00e676);
       font-weight:1000;
       font-size:16px;
       margin-top:10px;
@@ -6367,7 +6367,7 @@ def _ss_user_license_titanium_center_page_final():
       font-weight:1000;
       font-size:14px;
     }}
-    .btn.primary{{color:#02120b;background:linear-gradient(135deg,#20d36f,#25d0c5)}}
+    .btn.primary{{color:#02120b;background:linear-gradient(135deg,#00c860,#00e676)}}
     .btn.ghost{{color:var(--text);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}}
     .section{{margin:17px 0 8px;letter-spacing:6px;font-weight:1000;font-size:16px}}
     .bar{{width:82px;height:5px;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--green2));margin-bottom:11px}}
@@ -6760,7 +6760,7 @@ def _ss_user_community_titanium_feedback_page_final():
       border:0;
       border-radius:18px;
       color:#02120b;
-      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      background:linear-gradient(135deg,#00c860,#00e676);
       font-weight:1000;
       font-size:16px;
     }}
@@ -6792,7 +6792,7 @@ def _ss_user_community_titanium_feedback_page_final():
       width:38px;height:38px;border-radius:15px;
       display:grid;place-items:center;
       color:#02120b;
-      background:linear-gradient(135deg,#20d36f,#25d0c5);
+      background:linear-gradient(135deg,#00c860,#00e676);
       font-weight:1000;
       font-size:18px;
     }}
