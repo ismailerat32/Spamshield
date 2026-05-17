@@ -326,7 +326,7 @@ Status: PREMIUM REDESIGN
     </div>
 
     <section class="hero">
-      <div class="badge">🛡️ SHIELD REPORTS</div>
+      <a href="/u/profile" class="badge" style="text-decoration:none;cursor:pointer;">👑 {{ username }}</a>
       <div class="shield">📈</div>
       <h2 class="hero-title">EratGuard<br>Rapor Merkezi</h2>
       <p class="muted">Koruma performansı, analiz özeti ve güven durumu.</p>
@@ -341,7 +341,7 @@ Status: PREMIUM REDESIGN
         <div class="score-pill">Aktif</div>
       </div>
 
-      <div class="score">92<small>/100</small></div>
+      <div class="score">{{ spam_score }}<small>/100</small></div>
 
       <div class="meter">
         <div class="meter-fill"></div>
@@ -349,19 +349,19 @@ Status: PREMIUM REDESIGN
 
       <div class="stats">
         <div class="stat">
-          <div class="stat-value">128</div>
+          <div class="stat-value">{{ total_analyzed }}</div>
           <div class="stat-label">Analiz edilen mesaj</div>
         </div>
         <div class="stat">
-          <div class="stat-value">17</div>
+          <div class="stat-value">{{ total_spam }}</div>
           <div class="stat-label">Engellenen spam</div>
         </div>
         <div class="stat">
-          <div class="stat-value">4</div>
+          <div class="stat-value">{{ high_risk }}</div>
           <div class="stat-label">Yüksek risk uyarısı</div>
         </div>
         <div class="stat">
-          <div class="stat-value">%86</div>
+          <div class="stat-value">%{{ catch_rate }}</div>
           <div class="stat-label">Spam yakalama oranı</div>
         </div>
       </div>
