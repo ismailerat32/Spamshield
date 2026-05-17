@@ -888,6 +888,69 @@ def watch_block(sender):
     return redirect(url_for("index"))
 
 
+
+# ===== ERATGUARD FINAL SECURITY HEADERS + LICENSE ALIASES START =====
+# Play Store öncesi final hardening:
+# - Güvenlik header'ları
+# - Lisans/abonelik alias route'ları
+# - 404 görünen eski/alternatif lisans yollarını aktif sayfalara yönlendirme
+
+from flask import redirect as _eg_final_redirect
+from flask import request as _eg_final_request
+
+@app.after_request
+def _eg_final_security_headers(response):
+    # Render HTTPS arkasında çalıştığı için HSTS güvenli.
+    response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault(
+        "Permissions-Policy",
+        "geolocation=(), microphone=(), camera=(), payment=(), usb=(), bluetooth=()"
+    )
+
+    # Uygulamada inline CSS/JS bulunduğu için CSP güvenli ama kırmayacak seviyede tutuldu.
+    response.headers.setdefault(
+        "Content-Security-Policy",
+        "default-src 'self' https: data: blob:; "
+        "script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; "
+        "style-src 'self' https: 'unsafe-inline'; "
+        "img-src 'self' https: data: blob:; "
+        "font-src 'self' https: data:; "
+        "connect-src 'self' https:; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self' https:;"
+    )
+    return response
+
+
+@app.route("/licenses", methods=["GET", "POST"])
+@app.route("/generated-licenses", methods=["GET", "POST"])
+@app.route("/license-manager", methods=["GET", "POST"])
+@app.route("/activation", methods=["GET", "POST"])
+@app.route("/activate-license", methods=["GET", "POST"])
+@app.route("/u/lisans", methods=["GET", "POST"])
+def _eg_final_user_license_aliases():
+    return _eg_final_redirect("/u/license")
+
+
+@app.route("/subscription", methods=["GET", "POST"])
+@app.route("/abonelik", methods=["GET", "POST"])
+def _eg_final_subscription_aliases():
+    return _eg_final_redirect("/u/pricing")
+
+
+@app.route("/manage-license/admin", methods=["GET", "POST"])
+@app.route("/admin/generated-licenses", methods=["GET", "POST"])
+@app.route("/admin/license-manager", methods=["GET", "POST"])
+def _eg_final_admin_license_aliases():
+    return _eg_final_redirect("/admin/licenses")
+
+# ===== ERATGUARD FINAL SECURITY HEADERS + LICENSE ALIASES END =====
+
+
 if __name__ == "__main__":
     ensure_default_user()
     ensure_default_settings()
