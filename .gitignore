@@ -173,3 +173,6 @@ PLAYSTORE_OUTPUTS/
 ERATGUARD_FINAL_FULL_PROBE_*.json
 ERATGUARD_FINAL_FULL_PROBE_*.md
 eratguard_final_full_probe.py
+ERATGUARD_SAFE_HACKER_PROBE_*.json
+ERATGUARD_SAFE_HACKER_PROBE_*.md
+eratguard_safe_hacker_probe.py
