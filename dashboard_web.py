@@ -951,6 +951,55 @@ def _eg_final_admin_license_aliases():
 # ===== ERATGUARD FINAL SECURITY HEADERS + LICENSE ALIASES END =====
 
 
+
+# ===== ERATGUARD FINAL USER AUTH BOUNDARY GUARD START =====
+# Amaç:
+# Login olmadan kullanıcı paneli alt sayfaları görünmesin.
+# /app-start, /login, /privacy, /terms gibi public akışlar etkilenmez.
+
+from flask import session as _eg_auth_session
+from flask import redirect as _eg_auth_redirect
+from flask import request as _eg_auth_request
+
+def _eg_final_has_user_session():
+    keys = [
+        "username",
+        "user",
+        "user_id",
+        "email",
+        "logged_in",
+        "authenticated",
+        "admin_username",
+        "is_admin",
+    ]
+    for k in keys:
+        if _eg_auth_session.get(k):
+            return True
+    return False
+
+@app.before_request
+def _eg_final_user_auth_boundary_guard():
+    path = (_eg_auth_request.path or "").rstrip("/") or "/"
+
+    protected_exact = {
+        "/u",
+        "/u/home",
+        "/u/blocked",
+        "/u/analysis",
+    }
+
+    protected_prefixes = (
+        "/u/blocked/",
+        "/u/analysis/",
+    )
+
+    if path in protected_exact or any(path.startswith(prefix) for prefix in protected_prefixes):
+        if not _eg_final_has_user_session():
+            return _eg_auth_redirect("/login")
+
+# ===== ERATGUARD FINAL USER AUTH BOUNDARY GUARD END =====
+
+
 if __name__ == "__main__":
     ensure_default_user()
     ensure_default_settings()
