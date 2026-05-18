@@ -1000,6 +1000,146 @@ def _eg_final_user_auth_boundary_guard():
 # ===== ERATGUARD FINAL USER AUTH BOUNDARY GUARD END =====
 
 
+
+# ===== ERATGUARD FINAL PASSWORD RESET ROUTES START =====
+from flask import render_template_string as _eg_reset_render_template_string
+from flask import request as _eg_reset_request
+from flask import redirect as _eg_reset_redirect
+from werkzeug.security import generate_password_hash as _eg_reset_generate_password_hash
+
+def _eg_reset_page(error=None, message=None, token="", code_mode=False):
+    action = "/reset-password-code" if code_mode else ("/reset-password/" + token)
+
+    if code_mode:
+        code_input = """
+        <label>Sıfırlama kodu</label>
+        <input name="code" inputmode="numeric" maxlength="6" placeholder="6 haneli kod">
+        """
+    else:
+        code_input = ""
+
+    html = f"""
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EratGuard PRO • Şifre Sıfırla</title>
+  <style>
+    body {{
+      margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background:radial-gradient(circle at top,#07351f 0,#010805 48%,#000 100%);
+      color:#eefaf2; font-family:Arial,sans-serif;
+    }}
+    .card {{
+      width:min(88vw,480px); padding:34px 28px; border:1px solid rgba(120,255,150,.18);
+      border-radius:28px; background:rgba(0,20,12,.72); box-shadow:0 24px 80px rgba(0,0,0,.45);
+    }}
+    h1 {{ margin:0 0 14px; font-size:30px; }}
+    p {{ color:rgba(238,250,242,.72); line-height:1.55; }}
+    label {{ display:block; margin:18px 0 8px; font-weight:700; }}
+    input {{
+      width:100%; box-sizing:border-box; padding:15px 16px; border-radius:16px;
+      border:1px solid rgba(255,255,255,.14); background:rgba(0,0,0,.28);
+      color:white; font-size:16px; outline:none;
+    }}
+    button {{
+      width:100%; margin-top:22px; padding:16px; border:0; border-radius:18px;
+      color:white; font-weight:800; font-size:16px;
+      background:linear-gradient(90deg,#00d66f,#18c6e8);
+    }}
+    .msg {{ margin-top:14px; color:#8dffb0; }}
+    .err {{ margin-top:14px; color:#ff7b7b; }}
+    a {{ color:#a9c8ff; text-decoration:none; display:block; margin-top:18px; text-align:center; }}
+  </style>
+</head>
+<body>
+  <form class="card" method="post" action="{action}">
+    <h1>Yeni Şifre Oluştur</h1>
+    <p>EratGuard hesabın için yeni ve güçlü bir şifre belirle.</p>
+    {code_input}
+    <label>Yeni şifre</label>
+    <input name="new_password" type="password" minlength="6" required placeholder="En az 6 karakter">
+    <label>Yeni şifre tekrar</label>
+    <input name="confirm_password" type="password" minlength="6" required placeholder="Şifreyi tekrar gir">
+    <button type="submit">Şifreyi Güncelle</button>
+    {f'<div class="msg">{message}</div>' if message else ''}
+    {f'<div class="err">{error}</div>' if error else ''}
+    <a href="/login">← Giriş sayfasına dön</a>
+  </form>
+</body>
+</html>
+"""
+    return _eg_reset_render_template_string(html)
+
+def _eg_reset_update_password(username, new_password):
+    users = load_users()
+    if username not in users:
+        return False
+    users[username]["password"] = _eg_reset_generate_password_hash(new_password)
+    users[username].pop("password_hash", None)
+    save_users(users)
+    return True
+
+def _eg_reset_validate_passwords(new_password, confirm_password):
+    if not new_password or len(new_password) < 6:
+        return "Yeni şifre en az 6 karakter olmalı."
+    if new_password != confirm_password:
+        return "Yeni şifreler eşleşmiyor."
+    return None
+
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def eg_final_reset_password_token(token):
+    from utils.reset_utils import find_valid_token_record, mark_token_used
+
+    record = find_valid_token_record(token)
+    if not record:
+        return _eg_reset_page(error="Sıfırlama bağlantısı geçersiz veya süresi dolmuş.", token=token)
+
+    if _eg_reset_request.method == "POST":
+        new_password = _eg_reset_request.form.get("new_password", "")
+        confirm_password = _eg_reset_request.form.get("confirm_password", "")
+        err = _eg_reset_validate_passwords(new_password, confirm_password)
+        if err:
+            return _eg_reset_page(error=err, token=token)
+
+        username = record.get("username", "")
+        if _eg_reset_update_password(username, new_password):
+            mark_token_used(token)
+            return _eg_reset_redirect("/login?reset=success")
+
+        return _eg_reset_page(error="Şifre güncellenemedi. Lütfen destek ile iletişime geçin.", token=token)
+
+    return _eg_reset_page(token=token)
+
+@app.route("/reset-password-code", methods=["GET", "POST"])
+def eg_final_reset_password_code():
+    from utils.reset_utils import find_valid_code_record, mark_token_used
+
+    if _eg_reset_request.method == "POST":
+        code = (_eg_reset_request.form.get("code") or "").strip()
+        record = find_valid_code_record(code)
+        if not record:
+            return _eg_reset_page(error="Sıfırlama kodu geçersiz veya süresi dolmuş.", code_mode=True)
+
+        new_password = _eg_reset_request.form.get("new_password", "")
+        confirm_password = _eg_reset_request.form.get("confirm_password", "")
+        err = _eg_reset_validate_passwords(new_password, confirm_password)
+        if err:
+            return _eg_reset_page(error=err, code_mode=True)
+
+        username = record.get("username", "")
+        if _eg_reset_update_password(username, new_password):
+            mark_token_used(code)
+            return _eg_reset_redirect("/login?reset=success")
+
+        return _eg_reset_page(error="Şifre güncellenemedi. Lütfen destek ile iletişime geçin.", code_mode=True)
+
+    return _eg_reset_page(code_mode=True)
+
+# ===== ERATGUARD FINAL PASSWORD RESET ROUTES END =====
+
+
 if __name__ == "__main__":
     ensure_default_user()
     ensure_default_settings()
@@ -1043,6 +1183,7 @@ def forgot_password_live():
     if request.method == "POST":
         identity = (
             request.form.get("identity")
+            or request.form.get("username_or_email")
             or request.form.get("email")
             or request.form.get("username")
             or ""
@@ -1076,7 +1217,7 @@ def forgot_password_live():
 
         if username and user:
             raw_token = create_reset_token(username)
-            reset_link = None  # dashboard_web.py içinde reset_password route yok; 500 hatasını önler
+            reset_link = url_for("eg_final_reset_password_token", token=raw_token, _external=True)
             reset_code = create_reset_code(username)
 
             target_email = str(user.get("email", "") or "").strip()
@@ -1088,8 +1229,10 @@ def forgot_password_live():
                 body = (
                     f"Merhaba {username}\n\n"
                     f"EratGuard hesabın için şifre sıfırlama isteği oluşturuldu.\n\n"
-                    f"Sıfırlama kodu ile şifre sıfırlama ekranından devam edebilirsin.\n\n"
-                    f"6 haneli kodun: {reset_code}\n\n"
+                    f"Aşağıdaki bağlantı ile yeni şifre oluşturabilirsin:\n"
+                    f"{reset_link}\n\n"
+                    f"Alternatif olarak 6 haneli kodun: {reset_code}\n"
+                    f"Kod ekranı: {url_for('eg_final_reset_password_code', _external=True)}\n\n"
                     f"Bu işlemi sen yapmadıysan bu mesajı yok sayabilirsin.\n"
                 )
 
